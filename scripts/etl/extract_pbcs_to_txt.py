@@ -20,13 +20,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import shutil
 import sys
 import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from dotenv import load_dotenv
 
@@ -37,12 +40,36 @@ DEFAULT_DATASET = REPO_ROOT / "data" / "processed" / "procurements_dataset.json"
 DEFAULT_S3_DATASET_NAME = "procurements_dataset.json"
 
 
+@contextmanager
+def _isolated_job_tempdir() -> Iterator[str]:
+    """
+    Subdirectorio exclusivo por licitación bajo el TMPDIR del sistema (sin forzar otra raíz).
+    Al terminar se elimina el árbol completo (PDF + temporales de Camelot/Ghostscript).
+    Cada proceso worker tiene su propio directorio.
+    """
+    base = os.environ.get("TMPDIR") or tempfile.gettempdir()
+    Path(base).mkdir(parents=True, exist_ok=True)
+    job_dir = tempfile.mkdtemp(prefix="pbc_job_", dir=base)
+    prev = {k: os.environ.get(k) for k in ("TMPDIR", "TMP", "TEMP")}
+    os.environ["TMPDIR"] = job_dir
+    os.environ["TMP"] = job_dir
+    os.environ["TEMP"] = job_dir
+    try:
+        yield job_dir
+    finally:
+        shutil.rmtree(job_dir, ignore_errors=True)
+        for k, v in prev.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
 def _worker_run_extract(payload: dict[str, str]) -> dict[str, Any]:
     """
     Ejecuta en proceso hijo: bajar PDF, extraer, subir .txt.
     Debe ser top-level para multiprocessing (spawn).
     """
-    import tempfile
     from pathlib import Path as PathLocal
 
     from dotenv import load_dotenv
@@ -67,13 +94,12 @@ def _worker_run_extract(payload: dict[str, str]) -> dict[str, Any]:
             "pbc_text_error": str(e)[:2000],
             "seconds": time.monotonic() - t0,
         }
-    tmp_path: str | None = None
     try:
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-            tmp.write(pdf_bytes)
-            tmp_path = tmp.name
-        md = PDFReader(tmp_path).read_pdf_as_markdown()
-        sio.put_text_utf8(sio.s3_client(), bucket, txt_key, md)
+        with _isolated_job_tempdir() as job_dir:
+            pdf_path = PathLocal(job_dir) / "pbc_input.pdf"
+            pdf_path.write_bytes(pdf_bytes)
+            md = PDFReader(str(pdf_path)).read_pdf_as_markdown()
+            sio.put_text_utf8(sio.s3_client(), bucket, txt_key, md)
         return {
             "tender_id": tid,
             "pbc_text_extracted": True,
@@ -91,9 +117,6 @@ def _worker_run_extract(payload: dict[str, str]) -> dict[str, Any]:
             "pbc_text_error": str(e)[:2000],
             "seconds": time.monotonic() - t0,
         }
-    finally:
-        if tmp_path:
-            PathLocal(tmp_path).unlink(missing_ok=True)
 
 
 def _apply_worker_result(row: dict, res: dict[str, Any]) -> None:
@@ -291,6 +314,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    load_dotenv()
+
     try:
         from doc_extract import PDFReader
     except ImportError:
@@ -299,8 +324,6 @@ def main() -> None:
             file=sys.stderr,
         )
         raise SystemExit(1) from None
-
-    load_dotenv()
     bucket = spaces_io.bucket_name()
     if not bucket:
         print("Falta DO_SPACES_BUCKET o SPACES_BUCKET", file=sys.stderr)
@@ -494,13 +517,12 @@ def main() -> None:
                         pdf_bytes = None
 
                     if pdf_bytes is not None:
-                        tmp_path: str | None = None
                         try:
-                            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-                                tmp.write(pdf_bytes)
-                                tmp_path = tmp.name
-                            md = PDFReader(tmp_path).read_pdf_as_markdown()
-                            spaces_io.put_text_utf8(client, bucket, txt_key, md)
+                            with _isolated_job_tempdir() as job_dir:
+                                pdf_path = Path(job_dir) / "pbc_input.pdf"
+                                pdf_path.write_bytes(pdf_bytes)
+                                md = PDFReader(str(pdf_path)).read_pdf_as_markdown()
+                                spaces_io.put_text_utf8(client, bucket, txt_key, md)
                             existing_txt = existing_txt | {txt_key}
                             row["pbc_text_extracted"] = True
                             row["pbc_txt_s3_key"] = txt_key
@@ -509,9 +531,6 @@ def main() -> None:
                             row.pop("pbc_txt_s3_key", None)
                             row["pbc_text_skip_reason"] = f"extract:{type(e).__name__}"
                             row["pbc_text_error"] = str(e)[:2000]
-                        finally:
-                            if tmp_path:
-                                Path(tmp_path).unlink(missing_ok=True)
 
                 row_dt = time.monotonic() - row_t0
                 if not skip_existing:
