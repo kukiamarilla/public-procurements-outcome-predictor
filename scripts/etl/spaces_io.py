@@ -106,6 +106,32 @@ def pbc_extracted_txt_prefix_key() -> str:
     return f"{base}/txt/" if base else ""
 
 
+def pbc_embedding_object_key(safe_tender_stem: str) -> str:
+    """Key S3: …/outcome-predictor/pbcs/embeddings/{stem}.pt"""
+    stem = safe_tender_stem.strip().strip("/")
+    if not stem:
+        stem = "unknown"
+    root = _pbc_pbcs_root_directory_key().rstrip("/")
+    return f"{root}/embeddings/{stem}.pt"
+
+
+def pbc_embeddings_prefix_key() -> str:
+    """Prefijo `…/pbcs/embeddings/` para listar .pt de embeddings por licitación."""
+    base = _pbc_pbcs_root_directory_key().rstrip("/")
+    return f"{base}/embeddings/" if base else ""
+
+
+def put_object_bytes(
+    client: Any,
+    bucket: str,
+    key: str,
+    data: bytes,
+    *,
+    content_type: str = "application/octet-stream",
+) -> None:
+    client.put_object(Bucket=bucket, Key=key, Body=data, ContentType=content_type)
+
+
 def get_object_bytes(client: Any, bucket: str, key: str) -> bytes:
     obj = client.get_object(Bucket=bucket, Key=key)
     return obj["Body"].read()

@@ -16,6 +16,8 @@ class ModelConfig:
     # Chunking
     max_len: int = 4096
     stride: int = 2048
+    # Forward: cuántos chunks encolar a la vez (misma secuencia tokenizada); más = más VRAM, más rápido.
+    chunk_batch_size: int = 4
 
     # Cross-chunk encoder (TenderSuccessPredictor)
     d_model: int = 512

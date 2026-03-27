@@ -23,8 +23,11 @@ dataset:
   merged_with_pbc: outcome-predictor/procurements/procurements_dataset.json
   pbc_pdf_prefix: outcome-predictor/pbcs/pdf
   pbc_extracted_txt_prefix: outcome-predictor/pbcs/txt
+  # ETL embed_pbcs.py: outcome-predictor/pbcs/embeddings/{stem}.pt
+  pbc_embeddings_prefix: outcome-predictor/pbcs/embeddings
   # En procurements_dataset.json (ETL extract_pbcs_to_txt): pbc_text_extracted, pbc_txt_s3_key,
   # pbc_text_skip_reason, pbc_text_error — reconciliados con el prefijo pbcs/txt/
+  # ETL embed_pbcs: pbc_embedding_extracted, pbc_embedding_s3_key, etc. vs pbcs/embeddings/
 
 # Embeddings por chunk (.pt) para TenderSuccessPredictor; generados tras PDF → texto → embedder
 training:

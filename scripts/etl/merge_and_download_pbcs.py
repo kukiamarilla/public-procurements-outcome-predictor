@@ -4,7 +4,7 @@
 3) Sube cada PBC a Spaces: outcome-predictor/pbcs/pdf/{tender_id_sanitizado}.pdf
 4) Guarda JSON enriquecido en local y opcionalmente lo sube al prefijo procurements.
    Antes de escribir, reconcilia pbc_downloaded con un listado completo del prefijo de PDFs en Spaces.
-   Si existe un procurements_dataset.json previo (local o S3), preserva pbc_text_* por tenderId (ETL de extracción).
+   Si existe un procurements_dataset.json previo (local o S3), preserva pbc_text_* y pbc_embedding_* por tenderId (ETL).
 
 Orden fijo de lectura / merge / cola de descarga:
   unsuccessful → cancelled → complete (procurements.json),
@@ -93,6 +93,18 @@ _PRESERVE_PBC_TEXT_KEYS = frozenset(
     }
 )
 
+_PRESERVE_PBC_EMBEDDING_KEYS = frozenset(
+    {
+        "pbc_embedding_extracted",
+        "pbc_embedding_s3_key",
+        "pbc_embedding_skip_reason",
+        "pbc_embedding_error",
+        "pbc_embedding_n_chunks",
+        "pbc_embedding_model_id",
+        "pbc_embedding_embedded_at",
+    }
+)
+
 
 def _load_previous_procurements_dataset_by_tender_id(
     client: object,
@@ -143,6 +155,28 @@ def _apply_preserved_pbc_text_fields(merged: list[dict], prev_by_tid: dict[str, 
         prev = prev_by_tid[tid]
         touched = False
         for k in _PRESERVE_PBC_TEXT_KEYS:
+            if k in prev:
+                row[k] = prev[k]
+                touched = True
+        if touched:
+            n += 1
+    return n
+
+
+def _apply_preserved_pbc_embedding_fields(merged: list[dict], prev_by_tid: dict[str, dict]) -> int:
+    """Copia pbc_embedding_* del dataset previo cuando coincide tenderId."""
+    if not prev_by_tid:
+        return 0
+    n = 0
+    for row in merged:
+        if not isinstance(row, dict):
+            continue
+        tid = str(row.get("tenderId", "")).strip()
+        if not tid or tid not in prev_by_tid:
+            continue
+        prev = prev_by_tid[tid]
+        touched = False
+        for k in _PRESERVE_PBC_EMBEDDING_KEYS:
             if k in prev:
                 row[k] = prev[k]
                 touched = True
@@ -372,7 +406,11 @@ def main() -> None:
         applied = _apply_preserved_pbc_text_fields(merged, prev_by_tid)
         print(
             f"Preservados campos pbc_text_* desde dataset previo: "
-            f"{applied} licitación(es) coinciden (de {len(prev_by_tid)} en el archivo anterior).\n"
+            f"{applied} licitación(es) coinciden (de {len(prev_by_tid)} en el archivo anterior)."
+        )
+        applied_emb = _apply_preserved_pbc_embedding_fields(merged, prev_by_tid)
+        print(
+            f"Preservados campos pbc_embedding_* desde dataset previo: {applied_emb} licitación(es).\n"
         )
 
     todo = merged

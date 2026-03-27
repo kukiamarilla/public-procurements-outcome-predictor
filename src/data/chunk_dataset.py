@@ -13,7 +13,7 @@ class CachedChunkEmbDataset(Dataset):
 
     {
       "embs": Tensor [N, d_in],
-      "y": float en [0,1]   # etiqueta dura o soft
+      "y": float en [0,1] opcional; si falta, el Dataset devuelve y = -1 (filtrar en entrenamiento)
     }
     """
 
@@ -34,7 +34,11 @@ class CachedChunkEmbDataset(Dataset):
         except TypeError:
             d = torch.load(path, map_location="cpu")
         embs = d["embs"].float()
-        y = torch.tensor(d["y"], dtype=torch.float32)
+        raw_y = d.get("y")
+        y = torch.tensor(float(raw_y), dtype=torch.float32) if raw_y is not None else torch.tensor(
+            -1.0,
+            dtype=torch.float32,
+        )
         return embs, y
 
 
