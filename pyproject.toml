@@ -1,0 +1,53 @@
+[project]
+name = "procurements-outcome-predictor"
+version = "0.1.0"
+description = "Predicción de resultados en licitaciones (datos en DO Spaces)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "python-dotenv>=1.0.0",
+    "boto3>=1.34.0",
+    "requests>=2.31.0",
+    "Unidecode>=1.3.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "transformers>=4.36.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "ruff>=0.3.0",
+]
+pdf = [
+    "pdfplumber>=0.11.0",
+    "camelot-py>=1.0.0",
+    "opencv-python-headless>=4.8.0",
+]
+# PBC: .zip, .rar (rarfile + unar/unrar), .doc/.docx → PDF (LibreOffice si está; si no, pypandoc + pandoc + motor PDF)
+pbc = [
+    "rarfile>=4.2",
+    "pypandoc>=1.13",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools]
+py-modules = ["config"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]

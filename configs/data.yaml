@@ -1,0 +1,41 @@
+# Rutas locales y convención de datos remotos (DO Spaces).
+# Credenciales y bucket: solo en `.env` (SPACES_*), no en este archivo.
+
+local:
+  raw_dir: data/raw
+  processed_dir: data/processed
+
+spaces:
+  # Lectura en código vía variables de entorno cargadas desde `.env`
+  region_var: SPACES_REGION
+  endpoint_var: SPACES_ENDPOINT
+  access_key_var: SPACES_ACCESS_KEY
+  secret_key_var: SPACES_SECRET_KEY
+  bucket_var: SPACES_BUCKET
+  prefix_var: SPACES_PREFIX
+
+# Objetos del dataset outcome (bajo bucket + SPACES_PREFIX):
+#   outcome-predictor/procurements/procurements.json
+#   outcome-predictor/procurements/ids_unsuccessful.json
+#   outcome-predictor/procurements/ids_cancelled.json
+dataset:
+  procurements_dir: outcome-predictor/procurements
+  merged_with_pbc: outcome-predictor/procurements/procurements_dataset.json
+  pbc_pdf_prefix: outcome-predictor/pbcs/pdf
+  pbc_extracted_txt_prefix: outcome-predictor/pbcs/txt
+  # En procurements_dataset.json (ETL extract_pbcs_to_txt): pbc_text_extracted, pbc_txt_s3_key,
+  # pbc_text_skip_reason, pbc_text_error — reconciliados con el prefijo pbcs/txt/
+
+# Embeddings por chunk (.pt) para TenderSuccessPredictor; generados tras PDF → texto → embedder
+training:
+  chunk_embeddings_dir: data/chunk_embeddings
+
+# Parámetros del LM + predictor (ver models.ModelConfig en código; duplicar aquí si querés Hydra/yaml luego)
+model:
+  lm_model_id: openai/gpt-oss-20b
+  chunk_max_len: 4096
+  chunk_stride: 2048
+
+# PDF → texto (código: doc_extract.PDFReader; deps: uv sync --extra pdf)
+extraction:
+  pdf_reader_module: doc_extract
