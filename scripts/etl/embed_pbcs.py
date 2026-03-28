@@ -13,6 +13,7 @@ Genera embeddings por chunk (ChunkEmbedder) desde el texto PBC en Spaces y sube 
 
   Sin truncar por defecto: chunks en streaming CPU→GPU; opcional --max-doc-tokens N.
   Fragmentación: PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+  (Sin --empty-cuda-cache: no se llama empty_cache por licitación; eso destruye el throughput.)
 """
 
 from __future__ import annotations
@@ -275,9 +276,12 @@ def main() -> None:
         ),
     )
     parser.add_argument(
-        "--no-empty-cuda-cache",
+        "--empty-cuda-cache",
         action="store_true",
-        help="No vaciar caché CUDA entre licitaciones (más rápido; puede peor fragmentación).",
+        help=(
+            "Llamar torch.cuda.empty_cache() tras cada licitación (solo si ves OOM por fragmentación; "
+            "por defecto OFF porque ralentiza muchísimo miles de filas)."
+        ),
     )
     parser.add_argument(
         "--chunk-batch-size",
@@ -534,8 +538,8 @@ def main() -> None:
                 print(f"  [fallo] {tid} · embed · {e}", file=sys.stderr)
 
             if (
-                torch.cuda.is_available()
-                and not args.no_empty_cuda_cache
+                args.empty_cuda_cache
+                and torch.cuda.is_available()
                 and str(cfg.device).startswith("cuda")
             ):
                 torch.cuda.empty_cache()
