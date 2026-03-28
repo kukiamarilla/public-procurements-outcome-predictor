@@ -16,6 +16,8 @@ class ModelConfig:
     # Chunking
     max_len: int = 4096
     stride: int = 2048
+    # Opcional: truncar a N tokens (None = documento completo; la gestión de VRAM va por micro-batches en CPU→GPU).
+    max_doc_tokens: int | None = None
     # Forward: cuántos chunks encolar a la vez (misma secuencia tokenizada); más = más VRAM, más rápido.
     chunk_batch_size: int = 4
 

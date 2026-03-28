@@ -36,6 +36,7 @@ class ChunkEmbedder(nn.Module):
         stride: int = 2048,
         device: str = "cuda",
         chunk_batch_size: int = 4,
+        max_doc_tokens: int | None = None,
     ):
         super().__init__()
         self.gpt = gpt_model.eval()
@@ -47,6 +48,7 @@ class ChunkEmbedder(nn.Module):
         self.stride = stride
         self.device = device
         self.chunk_batch_size = max(1, int(chunk_batch_size))
+        self.max_doc_tokens = max_doc_tokens
 
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -74,6 +76,31 @@ class ChunkEmbedder(nn.Module):
         )
         return outputs.hidden_states[-1]
 
+    @staticmethod
+    def _padded_chunk(
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        start: int,
+        end: int,
+        max_len: int,
+        pad_id: int,
+    ) -> tuple[torch.Tensor, torch.Tensor] | None:
+        ids = input_ids[start:end].clone()
+        mask = attention_mask[start:end].clone()
+        if ids.numel() == 0:
+            return None
+        pad_len = max_len - ids.numel()
+        if pad_len > 0:
+            ids = torch.cat(
+                [ids, torch.full((pad_len,), pad_id, dtype=ids.dtype)],
+                dim=0,
+            )
+            mask = torch.cat(
+                [mask, torch.zeros((pad_len,), dtype=mask.dtype)],
+                dim=0,
+            )
+        return ids, mask
+
     @torch.no_grad()
     def forward(self, text: str) -> torch.Tensor:
         encoded = self.tokenizer(
@@ -83,66 +110,67 @@ class ChunkEmbedder(nn.Module):
             padding=False,
         )
 
-        input_ids = encoded["input_ids"][0].to(self.device)
-        attention_mask = encoded["attention_mask"][0].to(self.device)
+        # Secuencia en CPU; a la GPU solo cada micro-batch. Opcional: tope explícito (max_doc_tokens).
+        input_ids = encoded["input_ids"][0].contiguous()
+        attention_mask = encoded["attention_mask"][0].contiguous()
+        if self.max_doc_tokens is not None and input_ids.shape[0] > self.max_doc_tokens:
+            input_ids = input_ids[: self.max_doc_tokens].clone()
+            attention_mask = attention_mask[: self.max_doc_tokens].clone()
+
         total_len = int(attention_mask.sum().item())
-
-        chunk_ids: list[torch.Tensor] = []
-        chunk_masks: list[torch.Tensor] = []
-
-        for start in range(0, max(1, total_len), self.stride):
-            end = min(start + self.max_len, total_len)
-
-            ids = input_ids[start:end]
-            mask = attention_mask[start:end]
-
-            if ids.numel() == 0:
-                continue
-
-            pad_len = self.max_len - ids.numel()
-            if pad_len > 0:
-                ids = torch.cat(
-                    [
-                        ids,
-                        torch.full(
-                            (pad_len,),
-                            self.pad_id,
-                            device=self.device,
-                            dtype=ids.dtype,
-                        ),
-                    ],
-                    dim=0,
-                )
-                mask = torch.cat(
-                    [
-                        mask,
-                        torch.zeros(
-                            (pad_len,),
-                            device=self.device,
-                            dtype=mask.dtype,
-                        ),
-                    ],
-                    dim=0,
-                )
-
-            chunk_ids.append(ids)
-            chunk_masks.append(mask)
-
-            if end >= total_len:
-                break
-
-        if not chunk_ids:
-            raise ValueError("No chunks could be generated from the provided text.")
 
         chunk_embeddings: list[torch.Tensor] = []
         B = self.chunk_batch_size
-        for i in range(0, len(chunk_ids), B):
-            batch_ids = torch.stack(chunk_ids[i : i + B], dim=0)
-            batch_mask = torch.stack(chunk_masks[i : i + B], dim=0)
+        batch_ids_cpu: list[torch.Tensor] = []
+        batch_masks_cpu: list[torch.Tensor] = []
+
+        def flush() -> None:
+            nonlocal batch_ids_cpu, batch_masks_cpu
+            if not batch_ids_cpu:
+                return
+            batch_ids = torch.stack(batch_ids_cpu, dim=0).to(
+                self.device, non_blocking=True
+            )
+            batch_mask = torch.stack(batch_masks_cpu, dim=0).to(
+                self.device, non_blocking=True
+            )
             hidden = self._forward_hidden(batch_ids, batch_mask)
-            for j in range(hidden.shape[0]):
-                last_valid_idx = int(batch_mask[j].sum().item()) - 1
+            last_idx_per_row = [
+                int(batch_mask[j].sum().item()) - 1 for j in range(hidden.shape[0])
+            ]
+            del batch_ids, batch_mask
+            for j, last_valid_idx in enumerate(last_idx_per_row):
                 chunk_embeddings.append(hidden[j, last_valid_idx].detach().clone())
+            del hidden
+            batch_ids_cpu.clear()
+            batch_masks_cpu.clear()
+
+        for start in range(0, max(1, total_len), self.stride):
+            end = min(start + self.max_len, total_len)
+            pid = self.pad_id
+            pad_id = int(pid) if pid is not None else 0
+            tup = self._padded_chunk(
+                input_ids,
+                attention_mask,
+                start,
+                end,
+                self.max_len,
+                pad_id,
+            )
+            if tup is None:
+                continue
+            ids, mask = tup
+            batch_ids_cpu.append(ids)
+            batch_masks_cpu.append(mask)
+            if len(batch_ids_cpu) >= B:
+                flush()
+            if end >= total_len:
+                break
+
+        flush()
+
+        if not chunk_embeddings:
+            raise ValueError("No chunks could be generated from the provided text.")
 
         return torch.stack(chunk_embeddings, dim=0)
 
@@ -166,6 +194,7 @@ def build_chunk_embedder(config: ModelConfig) -> ChunkEmbedder:
         stride=config.stride,
         device=config.device,
         chunk_batch_size=config.chunk_batch_size,
+        max_doc_tokens=config.max_doc_tokens,
     )
 
 

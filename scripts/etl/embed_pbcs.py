@@ -10,6 +10,9 @@ Genera embeddings por chunk (ChunkEmbedder) desde el texto PBC en Spaces y sube 
   uv run python scripts/etl/embed_pbcs.py --limit 50 --dry-run
   uv run python scripts/etl/embed_pbcs.py --chunk-batch-size 8 --checkpoint-every 25
   CUDA_VISIBLE_DEVICES=1 uv run python scripts/etl/embed_pbcs.py --shard 1 4
+
+  Sin truncar por defecto: chunks en streaming CPU→GPU; opcional --max-doc-tokens N.
+  Fragmentación: PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 """
 
 from __future__ import annotations
@@ -168,6 +171,7 @@ def _save_embedding_pt(
     max_len: int,
     stride: int,
     chunk_batch_size: int,
+    max_doc_tokens: int | None,
     y_optional: float | None,
 ) -> bytes:
     payload: dict[str, Any] = {
@@ -177,6 +181,7 @@ def _save_embedding_pt(
         "max_len": max_len,
         "stride": stride,
         "chunk_batch_size": chunk_batch_size,
+        "max_doc_tokens": max_doc_tokens,
     }
     if y_optional is not None:
         payload["y"] = float(y_optional)
@@ -260,6 +265,21 @@ def main() -> None:
     parser.add_argument("--max-len", type=int, default=None)
     parser.add_argument("--stride", type=int, default=None)
     parser.add_argument(
+        "--max-doc-tokens",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "Opcional: truncar a N tokens (por defecto no se trunca). "
+            "0 = sin truncar explícito (igual que omitir)."
+        ),
+    )
+    parser.add_argument(
+        "--no-empty-cuda-cache",
+        action="store_true",
+        help="No vaciar caché CUDA entre licitaciones (más rápido; puede peor fragmentación).",
+    )
+    parser.add_argument(
         "--chunk-batch-size",
         type=int,
         default=None,
@@ -310,12 +330,19 @@ def main() -> None:
             sys.exit(1)
 
     base_cfg = ModelConfig()
+    max_doc_tokens: int | None
+    if args.max_doc_tokens is None or args.max_doc_tokens == 0:
+        max_doc_tokens = None
+    else:
+        max_doc_tokens = max(1, int(args.max_doc_tokens))
+
     cfg = ModelConfig(
         model_id=args.model_id or base_cfg.model_id,
         device=args.device or base_cfg.device,
         dtype=base_cfg.dtype,
         max_len=args.max_len if args.max_len is not None else base_cfg.max_len,
         stride=args.stride if args.stride is not None else base_cfg.stride,
+        max_doc_tokens=max_doc_tokens,
         chunk_batch_size=args.chunk_batch_size
         if args.chunk_batch_size is not None
         else base_cfg.chunk_batch_size,
@@ -371,7 +398,11 @@ def main() -> None:
         f"Candidatos (texto OK + shard): {work_total} · "
         f"a procesar con GPU (~{work_real}) · ya en Spaces (~{skipped_existing} sin --force)\n",
     )
-    print(f"Modelo: {cfg.model_id} · device={cfg.device} · chunk_batch_size={cfg.chunk_batch_size}\n")
+    mdt_s = str(cfg.max_doc_tokens) if cfg.max_doc_tokens is not None else "sin límite"
+    print(
+        f"Modelo: {cfg.model_id} · device={cfg.device} · chunk_batch_size={cfg.chunk_batch_size} "
+        f"· max_doc_tokens={mdt_s}\n"
+    )
 
     if args.dry_run:
         print("Dry-run: sin cargar LM ni escribir ficheros.")
@@ -479,6 +510,7 @@ def main() -> None:
                     max_len=cfg.max_len,
                     stride=cfg.stride,
                     chunk_batch_size=cfg.chunk_batch_size,
+                    max_doc_tokens=cfg.max_doc_tokens,
                     y_optional=y_opt,
                 )
                 spaces_io.put_object_bytes(client, bucket, emb_key, blob)
@@ -496,6 +528,13 @@ def main() -> None:
                 row["pbc_embedding_error"] = str(e)[:2000]
                 cum_fail += 1
                 print(f"  [fallo] {tid} · embed · {e}", file=sys.stderr)
+
+            if (
+                torch.cuda.is_available()
+                and not args.no_empty_cuda_cache
+                and str(cfg.device).startswith("cuda")
+            ):
+                torch.cuda.empty_cache()
 
             row_dt = time.monotonic() - row_t0
             work_seconds += row_dt
