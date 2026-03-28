@@ -23,6 +23,7 @@ class CFG:
     lr: float = 2e-4
     epochs: int = 50
     weight_decay: float = 0.01
+    # BCEWithLogitsLoss(pos_weight): ver train_cv_mlflow / train_one_fold (por fold suele ser n_neg/n_pos)
 
     # Caché de .pt por licitación (embs + y); ver data.chunk_dataset.CachedChunkEmbDataset
     cache_dir: str = "data/chunk_embeddings"

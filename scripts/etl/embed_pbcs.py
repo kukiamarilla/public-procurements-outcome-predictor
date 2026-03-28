@@ -33,11 +33,16 @@ import torch
 import torch.nn as nn
 from dotenv import load_dotenv
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_SRC = REPO_ROOT / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
 import spaces_io
+from data.procurement_target import training_y_from_procurement_row
 from models.embedder import build_chunk_embedder, forward_text_resolving_cuda_oom
 from models.lm_config import ModelConfig
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATASET = REPO_ROOT / "data" / "processed" / "procurements_dataset.json"
 DEFAULT_S3_DATASET_NAME = "procurements_dataset.json"
 
@@ -45,27 +50,6 @@ DEFAULT_S3_DATASET_NAME = "procurements_dataset.json"
 def _safe_file_stem(tender_id: str, max_len: int = 180) -> str:
     s = re.sub(r"[^\w\-.]+", "_", str(tender_id).strip(), flags=re.ASCII)
     return (s[:max_len] if s else "unknown").strip("_") or "unknown"
-
-
-def _training_y_from_row(row: dict) -> float | None:
-    """Etiqueta en [0,1] si se puede inferir del dataset; si no, None."""
-    for k in ("training_y", "outcome_y", "label"):
-        v = row.get(k)
-        if isinstance(v, bool):
-            return 1.0 if v else 0.0
-        if isinstance(v, (int, float)) and not isinstance(v, bool):
-            return float(max(0.0, min(1.0, float(v))))
-        if isinstance(v, str) and v.strip():
-            try:
-                return float(max(0.0, min(1.0, float(v))))
-            except ValueError:
-                pass
-    st = str(row.get("tenderStatus") or row.get("status") or "").strip().lower()
-    if st in ("complete", "completo", "successful", "awarded", "adjudicado"):
-        return 1.0
-    if st in ("unsuccessful", "cancelled", "canceled", "desierto", "cancelado"):
-        return 0.0
-    return None
 
 
 def _row_in_shard(tender_id: str, shard_index: int, shard_total: int) -> bool:
@@ -521,7 +505,7 @@ def main() -> None:
                     else embedder(text)
                 )
                 n_chunks = int(embs.shape[0])
-                y_opt = _training_y_from_row(row)
+                y_opt = training_y_from_procurement_row(row)
                 blob = _save_embedding_pt(
                     embs=embs,
                     tender_id=tid,

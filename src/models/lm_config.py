@@ -22,8 +22,8 @@ class ModelConfig:
     chunk_batch_size: int = 4
 
     # Cross-chunk encoder (TenderSuccessPredictor)
-    d_model: int = 512
-    n_heads: int = 8
-    ffn_dim: int = 2048
-    dropout: float = 0.1
+    d_model: int = 256
+    n_heads: int = 4
+    ffn_dim: int = 512
+    dropout: float = 0.2
     num_layers: int = 1

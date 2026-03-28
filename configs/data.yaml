@@ -32,6 +32,8 @@ dataset:
 # Embeddings por chunk (.pt) para TenderSuccessPredictor; generados tras PDF → texto → embedder
 training:
   chunk_embeddings_dir: data/chunk_embeddings
+  # MLflow (scripts/train_cv_mlflow.py): artefactos en s3://…/outcome-predictor/mlflow;
+  # tracking metadata por defecto en data/mlflow.db (SQLite). Credenciales: SPACES_* / DO_SPACES_*.
 
 # Parámetros del LM + predictor (ver models.ModelConfig en código; duplicar aquí si querés Hydra/yaml luego)
 model:

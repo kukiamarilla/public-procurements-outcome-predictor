@@ -17,14 +17,21 @@ build/
 # Datos locales (origen remoto: DO Spaces)
 data/raw/*
 data/processed/*
+data/chunk_embeddings/*
+data/mlflow.db
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/chunk_embeddings/.gitkeep
 
 # Experimentos / salidas locales
 experiments/*
 !experiments/.gitkeep
 outputs/
 multirun/
+figures/*.png
+figures/*.pdf
+mlruns/
+mlartifacts/
 
 # Jupyter
 .ipynb_checkpoints/
