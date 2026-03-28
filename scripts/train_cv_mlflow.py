@@ -8,6 +8,10 @@ Artefactos (modelos, ficheros) en DO Spaces: …/outcome-predictor/mlflow (misma
 procurements), vía credenciales SPACES_* en `.env`. Métricas/params: SQLite en data/mlflow.db
 salvo que definas MLFLOW_TRACKING_URI.
 
+Misma ``--seed`` y mismos datos → mismas divisiones CV y RNG acotada por fold (cuDNN
+determinista y ``DataLoader`` con ``generator``). Para CUDA suele ayudar
+``CUBLAS_WORKSPACE_CONFIG=:4096:8`` (el script lo define si falta).
+
 Embeddings locales (si están solo en Spaces):
   uv run python scripts/sync_embeddings_for_training.py
 
@@ -30,6 +34,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import List, Tuple, cast
 
 import numpy as np
 import torch
@@ -51,6 +56,7 @@ from data.chunk_dataset import (
 from models.predictor import build_model_from_sample_batch
 from training.loop import evaluate_probs, train_one_fold
 from training.metrics import binary_classification_metrics
+from training.reproducibility import configure_reproducibility, make_dataloader_worker_init_fn
 from training.mlflow_spaces import (
     configure_mlflow_s3_env_from_spaces,
     ensure_mlflow_experiment,
@@ -111,6 +117,11 @@ def _parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def _fold_rng_seed(global_seed: int, fold: int) -> int:
+    """Semilla estable por fold (no depende del número de épocas del fold anterior)."""
+    return int(global_seed) + int(fold) * 1_000_003
+
+
 def _use_stratified(y: np.ndarray, stratify: bool) -> bool:
     if not stratify or len(np.unique(y)) < 2:
         return False
@@ -128,6 +139,7 @@ def main() -> None:
 
     load_dotenv()
     args = _parse_args()
+    configure_reproducibility(args.seed)
     configure_mlflow_s3_env_from_spaces()
 
     if not os.environ.get("MLFLOW_TRACKING_URI", "").strip():
@@ -213,6 +225,7 @@ def main() -> None:
         "class_threshold": args.class_threshold,
         "dataset_json": str(args.dataset_json.resolve()) if args.dataset_json else None,
         "target_status_rule": "complete=1, unsuccessful|cancelled|canceled=0",
+        "reproducibility": "seed+cudnn_deterministic+dataloader_generator+fold_resets",
     }
 
     fold_rows: list[dict[str, float]] = []
@@ -224,9 +237,20 @@ def main() -> None:
             tr_idx = np.asarray(tr_idx, dtype=np.int64)
             va_idx = np.asarray(va_idx, dtype=np.int64)
 
+            fold_seed = _fold_rng_seed(args.seed, fold)
+            configure_reproducibility(fold_seed)
+
             base_ds = CachedChunkEmbDataset(files=paths, y_list=y_list)
             train_ds = Subset(base_ds, tr_idx.tolist())
             val_ds = Subset(base_ds, va_idx.tolist())
+
+            dl_gen = torch.Generator()
+            dl_gen.manual_seed(fold_seed + 9)
+            worker_init = (
+                make_dataloader_worker_init_fn(fold_seed + 99)
+                if args.num_workers > 0
+                else None
+            )
 
             train_dl = DataLoader(
                 train_ds,
@@ -235,6 +259,8 @@ def main() -> None:
                 collate_fn=collate_pad_chunks,
                 num_workers=args.num_workers,
                 pin_memory=str(cfg.device).startswith("cuda"),
+                generator=dl_gen,
+                worker_init_fn=worker_init,
             )
             val_dl = DataLoader(
                 val_ds,
@@ -243,9 +269,14 @@ def main() -> None:
                 collate_fn=collate_pad_chunks,
                 num_workers=args.num_workers,
                 pin_memory=str(cfg.device).startswith("cuda"),
+                worker_init_fn=worker_init,
             )
 
-            embs0, _, _ = next(iter(train_dl))
+            sample_batch = cast(
+                List[Tuple[torch.Tensor, torch.Tensor]],
+                [train_ds[0]],
+            )
+            embs0, _, _ = collate_pad_chunks(sample_batch)
             model = build_model_from_sample_batch(embs0, cfg)
 
             with mlflow.start_run(nested=True, run_name=f"fold_{fold}"):
