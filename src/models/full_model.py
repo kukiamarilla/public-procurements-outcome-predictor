@@ -7,7 +7,12 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
-from .embedder import ChunkEmbedder, build_chunk_embedder, infer_input_dim
+from .embedder import (
+    ChunkEmbedder,
+    build_chunk_embedder,
+    forward_text_resolving_cuda_oom,
+    infer_input_dim,
+)
 from .lm_config import ModelConfig
 from .predictor import TenderSuccessPredictor
 
@@ -34,7 +39,11 @@ class TenderSuccessModel(nn.Module):
 
     @torch.no_grad()
     def predict_from_text(self, text: str) -> torch.Tensor:
-        chunk_vecs = self.embedder(text).float().unsqueeze(0)
+        if str(self.embedder.device).startswith("cuda"):
+            embs = forward_text_resolving_cuda_oom(self.embedder, text)
+        else:
+            embs = self.embedder(text)
+        chunk_vecs = embs.float().unsqueeze(0)
         valid_mask = torch.ones(
             (1, chunk_vecs.size(1)),
             device=chunk_vecs.device,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import cast
 
 import torch
@@ -60,20 +61,36 @@ class ChunkEmbedder(nn.Module):
         """
         input_ids, attention_mask: [B, L]
         Devuelve última capa oculta [B, L, H] sin materializar todas las capas (cuando hay backbone).
+        use_cache=False evita reservar KV cache en cada forward (ahorra decenas de GB en batch alto).
         """
         if self._backbone is not None:
-            outputs = self._backbone(
+            kw: dict = dict(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
                 return_dict=True,
+                use_cache=False,
             )
+            try:
+                outputs = self._backbone(**kw)
+            except TypeError:
+                kw.pop("use_cache", None)
+                outputs = self._backbone(**kw)
             return outputs.last_hidden_state
-        outputs = self.gpt(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            output_hidden_states=True,
-            return_dict=True,
-        )
+        try:
+            outputs = self.gpt(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                output_hidden_states=True,
+                return_dict=True,
+                use_cache=False,
+            )
+        except TypeError:
+            outputs = self.gpt(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                output_hidden_states=True,
+                return_dict=True,
+            )
         return outputs.hidden_states[-1]
 
     @staticmethod
@@ -185,6 +202,15 @@ def build_chunk_embedder(config: ModelConfig) -> ChunkEmbedder:
         config.model_id,
         torch_dtype=config.dtype,
     )
+    mc = getattr(raw, "config", None)
+    if mc is not None and hasattr(mc, "use_cache"):
+        mc.use_cache = False
+    setter = getattr(raw, "set_attn_implementation", None)
+    if callable(setter):
+        try:
+            setter("sdpa")
+        except Exception:
+            pass
     base_model = cast(nn.Module, raw).to(dev)
 
     return ChunkEmbedder(
@@ -207,3 +233,37 @@ def infer_input_dim(embedder: ChunkEmbedder) -> int:
     if ne is not None:
         return int(ne)
     raise ValueError("Could not infer the embedding dimension from the base model config.")
+
+
+def forward_text_resolving_cuda_oom(embedder: ChunkEmbedder, text: str) -> torch.Tensor:
+    """
+    Ejecuta embedder.forward(text); ante CUDA OOM baja chunk_batch_size por mitades hasta 1 y reintenta.
+    Restaura chunk_batch_size original al terminar (éxito o fallo final).
+    """
+    orig_bs = embedder.chunk_batch_size
+    bs = orig_bs
+    try:
+        while True:
+            embedder.chunk_batch_size = bs
+            try:
+                return embedder(text)
+            except RuntimeError as e:
+                msg = str(e).lower()
+                oom = "out of memory" in msg
+                if torch.cuda.is_available():
+                    oom = oom or ("cuda" in msg and "memory" in msg)
+                if not oom:
+                    raise
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                if bs <= 1:
+                    raise
+                bs = max(1, bs // 2)
+                warnings.warn(
+                    f"CUDA OOM con chunk_batch_size={embedder.chunk_batch_size}; "
+                    f"reintentando con {bs}.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+    finally:
+        embedder.chunk_batch_size = orig_bs

@@ -33,7 +33,7 @@ import torch.nn as nn
 from dotenv import load_dotenv
 
 import spaces_io
-from models.embedder import build_chunk_embedder
+from models.embedder import build_chunk_embedder, forward_text_resolving_cuda_oom
 from models.lm_config import ModelConfig
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -500,7 +500,11 @@ def main() -> None:
                 continue
 
             try:
-                embs = embedder(text)
+                embs = (
+                    forward_text_resolving_cuda_oom(embedder, text)
+                    if str(cfg.device).startswith("cuda")
+                    else embedder(text)
+                )
                 n_chunks = int(embs.shape[0])
                 y_opt = _training_y_from_row(row)
                 blob = _save_embedding_pt(
