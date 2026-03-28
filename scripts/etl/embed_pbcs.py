@@ -226,18 +226,23 @@ def _print_row_done(
     skipped: bool,
     work_seconds: float,
     work_done: int,
+    gpu_total: int,
 ) -> None:
+    """
+    gpu_total = filas que al inicio necesitaban inferencia (work_real). El ETA solo aplica a esa cola,
+    no a `total - done` (que mezcla skips ya en Spaces y diluye el ritmo).
+    """
+    rem_gpu = max(0, gpu_total - work_done)
     if skipped:
-        rate_s = f"omitidas ~{done / work_seconds * 60.0:.1f} filas/min" if work_seconds > 0 else ""
-        print(f"  [{done}/{total}] tenderId={tid[:48]}…  (ya en Spaces)  {rate_s}".rstrip())
+        extra = f" · cola GPU restante ~{rem_gpu}" if rem_gpu > 0 else ""
+        print(f"  [{done}/{total}] tenderId={tid[:48]}…  (ya en Spaces){extra}")
         return
     if work_seconds > 0 and work_done > 0:
         rate = work_done / work_seconds * 60.0
-        rem = total - done
-        eta = (rem / rate) if rate > 0 else 0.0
+        eta = (rem_gpu / rate) if rate > 0 else 0.0
         print(
             f"  [{done}/{total}] tenderId={tid[:48]}…  "
-            f"~{rate:.2f} docs/min · ETA ~{eta:.0f} min",
+            f"~{rate:.2f} inferencias/min · ETA GPU ~{eta:.0f} min (~{rem_gpu} docs)",
         )
     else:
         print(f"  [{done}/{total}] tenderId={tid[:48]}…")
@@ -476,7 +481,13 @@ def main() -> None:
                 row["pbc_embedding_model_id"] = cfg.model_id
                 done += 1
                 _print_row_done(
-                    done, work_total, tid, skipped=True, work_seconds=work_seconds, work_done=work_done_gpu
+                    done,
+                    work_total,
+                    tid,
+                    skipped=True,
+                    work_seconds=work_seconds,
+                    work_done=work_done_gpu,
+                    gpu_total=work_real,
                 )
                 since_cp += 1
                 if cp_every and since_cp >= cp_every:
@@ -549,7 +560,13 @@ def main() -> None:
             work_done_gpu += 1
             done += 1
             _print_row_done(
-                done, work_total, tid, skipped=False, work_seconds=work_seconds, work_done=work_done_gpu
+                done,
+                work_total,
+                tid,
+                skipped=False,
+                work_seconds=work_seconds,
+                work_done=work_done_gpu,
+                gpu_total=work_real,
             )
             since_cp += 1
             if cp_every and since_cp >= cp_every:
