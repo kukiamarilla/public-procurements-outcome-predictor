@@ -38,7 +38,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--metrics",
         type=str,
-        default="roc_auc,pr_auc,f1,balanced_accuracy,brier_score,log_loss",
+        default="roc_auc,pr_auc,pr_auc_excess_over_prevalence,positive_prevalence,f1,balanced_accuracy,brier_score,log_loss",
         help="Claves cortas; se leen cv_mean_<clave> y cv_std_<clave>.",
     )
     p.add_argument(

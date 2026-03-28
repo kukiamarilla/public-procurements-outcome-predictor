@@ -319,7 +319,17 @@ def main() -> None:
 
                 fold_rows.append(metrics)
 
-        for key in ("roc_auc", "pr_auc", "f1", "balanced_accuracy", "brier_score", "log_loss"):
+        agg_keys = (
+            "roc_auc",
+            "pr_auc",
+            "pr_auc_excess_over_prevalence",
+            "positive_prevalence",
+            "f1",
+            "balanced_accuracy",
+            "brier_score",
+            "log_loss",
+        )
+        for key in agg_keys:
             vals = []
             for row in fold_rows:
                 v = row.get(key)
