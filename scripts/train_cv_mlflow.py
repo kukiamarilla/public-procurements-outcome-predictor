@@ -108,21 +108,6 @@ def _parse_args() -> argparse.Namespace:
             "Si se omite, se usa la clave y dentro de cada .pt."
         ),
     )
-    p.add_argument(
-        "--bce-pos-weight",
-        type=float,
-        default=None,
-        metavar="W",
-        help=(
-            "Peso PyTorch para la clase positiva en BCEWithLogitsLoss. "
-            "Por defecto se calcula por fold en el train: n_negativos / n_positivos."
-        ),
-    )
-    p.add_argument(
-        "--no-bce-pos-weight",
-        action="store_true",
-        help="No usar pos_weight (BCE estándar, sin compensar desbalance).",
-    )
     return p.parse_args()
 
 
@@ -228,8 +213,6 @@ def main() -> None:
         "class_threshold": args.class_threshold,
         "dataset_json": str(args.dataset_json.resolve()) if args.dataset_json else None,
         "target_status_rule": "complete=1, unsuccessful|cancelled|canceled=0",
-        "bce_pos_weight_manual": args.bce_pos_weight,
-        "bce_pos_weight_off": args.no_bce_pos_weight,
     }
 
     fold_rows: list[dict[str, float]] = []
@@ -265,35 +248,10 @@ def main() -> None:
             embs0, _, _ = next(iter(train_dl))
             model = build_model_from_sample_batch(embs0, cfg)
 
-            y_arr = np.asarray(y_list, dtype=np.float64)
-            y_tr = y_arr[tr_idx]
-            n_pos = int(np.sum(y_tr > 0.5))
-            n_neg = int(np.sum(y_tr <= 0.5))
-            bce_pw: torch.Tensor | None
-            if args.no_bce_pos_weight:
-                bce_pw = None
-            elif args.bce_pos_weight is not None:
-                bce_pw = torch.tensor(
-                    [float(args.bce_pos_weight)],
-                    device=cfg.device,
-                    dtype=torch.float32,
-                )
-            elif n_pos == 0:
-                bce_pw = torch.tensor([1.0], device=cfg.device, dtype=torch.float32)
-            else:
-                w = float(n_neg) / float(n_pos)
-                bce_pw = torch.tensor([w], device=cfg.device, dtype=torch.float32)
-
             with mlflow.start_run(nested=True, run_name=f"fold_{fold}"):
                 mlflow.log_param("fold", fold)
                 mlflow.log_param("n_train", int(len(tr_idx)))
                 mlflow.log_param("n_val", int(len(va_idx)))
-                mlflow.log_param("train_n_positive", n_pos)
-                mlflow.log_param("train_n_negative", n_neg)
-                if bce_pw is not None:
-                    mlflow.log_param("bce_pos_weight", float(bce_pw.item()))
-                else:
-                    mlflow.log_param("bce_pos_weight", "off")
 
                 history, best_val_loss, best_epoch = train_one_fold(
                     model,
@@ -302,7 +260,6 @@ def main() -> None:
                     cfg,
                     fold=fold,
                     patience=args.patience,
-                    bce_pos_weight=bce_pw,
                 )
                 mlflow.log_metric("best_val_loss", float(best_val_loss))
                 mlflow.log_metric("best_epoch", int(best_epoch))

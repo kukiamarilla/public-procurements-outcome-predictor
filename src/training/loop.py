@@ -17,7 +17,6 @@ def train_one_fold(
     cfg: CFG,
     fold: Optional[int] = None,
     patience: int = 5,
-    bce_pos_weight: Optional[torch.Tensor] = None,
 ) -> Tuple[Dict[str, list], float, int]:
     opt = torch.optim.AdamW(
         model.parameters(),
@@ -25,11 +24,7 @@ def train_one_fold(
         weight_decay=cfg.weight_decay,
     )
 
-    loss_fn = (
-        nn.BCEWithLogitsLoss(pos_weight=bce_pos_weight)
-        if bce_pos_weight is not None
-        else nn.BCEWithLogitsLoss()
-    )
+    loss_fn = nn.BCEWithLogitsLoss()
 
     early_stopping = EarlyStopping(
         patience=patience,
