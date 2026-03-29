@@ -1,0 +1,55 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{wang2012baselines}
+\citation{joulin2017bag}
+\citation{yang2016han}
+\citation{beltagy2020longformer}
+\citation{zaheer2020bigbird}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Task Definition}{1}{section.2}\protected@file@percent }
+\citation{wang2012baselines}
+\citation{joulin2017bag}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Method}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Document Representation}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Predictor Architecture}{2}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Baselines}{2}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Training and Reproducibility}{2}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Experimental Setup}{2}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Dataset}{2}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Leakage Handling}{3}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Evaluation Protocol}{3}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Metrics}{3}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Results}{3}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Ranking Performance}{3}{subsection.5.1}\protected@file@percent }
+\citation{guo2017calibration}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Threshold Sensitivity}{4}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Calibration}{4}{subsection.5.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Model comparison under 5-fold cross-validation (mean $\pm $ standard deviation). Lower is better for Brier score; higher is better for the remaining metrics.}}{4}{table.1}\protected@file@percent }
+\newlabel{tab:main-results}{{I}{4}{Model comparison under 5-fold cross-validation (mean $\pm $ standard deviation). Lower is better for Brier score; higher is better for the remaining metrics}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Threshold tuning on an inner validation split and evaluation on the outer test fold. Reported values are means across folds.}}{4}{table.2}\protected@file@percent }
+\newlabel{tab:thresholds}{{II}{4}{Threshold tuning on an inner validation split and evaluation on the outer test fold. Reported values are means across folds}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Representation Comparison}{4}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Discussion}{4}{section.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparative precision-recall curves from pooled out-of-fold predictions for the strongest lexical baseline (TF--IDF + logistic regression), the strongest mean-pooled dense baseline (MeanPool + MLP), and the cross-chunk transformer. The dashed horizontal line marks the positive prevalence baseline ($\pi \approx 0.726$). TF--IDF shows the strongest precision-recall trade-off overall, while both LLM-based models remain substantially above the no-skill baseline.}}{5}{figure.1}\protected@file@percent }
+\newlabel{fig:pr}{{1}{5}{Comparative precision-recall curves from pooled out-of-fold predictions for the strongest lexical baseline (TF--IDF + logistic regression), the strongest mean-pooled dense baseline (MeanPool + MLP), and the cross-chunk transformer. The dashed horizontal line marks the positive prevalence baseline ($\pi \approx 0.726$). TF--IDF shows the strongest precision-recall trade-off overall, while both LLM-based models remain substantially above the no-skill baseline}{figure.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Comparative calibration curves from pooled out-of-fold predictions for TF--IDF + logistic regression, MeanPool + MLP, and the cross-chunk transformer. The diagonal line indicates perfect calibration. Ranking and calibration do not coincide: the transformer remains closest to a useful calibrated probability signal, while TF--IDF is stronger as a ranking model than as a probability estimator.}}{5}{figure.2}\protected@file@percent }
+\newlabel{fig:calibration}{{2}{5}{Comparative calibration curves from pooled out-of-fold predictions for TF--IDF + logistic regression, MeanPool + MLP, and the cross-chunk transformer. The diagonal line indicates perfect calibration. Ranking and calibration do not coincide: the transformer remains closest to a useful calibrated probability signal, while TF--IDF is stronger as a ranking model than as a probability estimator}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Mean change in test-fold F1 and balanced accuracy after replacing the default threshold of $0.5$ with the F1-maximizing threshold selected on an inner validation split. Threshold tuning strongly improves F1 for TF--IDF + logistic regression, has mixed effects for mean-pooled models, and changes the cross-chunk transformer only marginally, indicating greater operating-point stability.}}{5}{figure.3}\protected@file@percent }
+\newlabel{fig:threshold-sensitivity}{{3}{5}{Mean change in test-fold F1 and balanced accuracy after replacing the default threshold of $0.5$ with the F1-maximizing threshold selected on an inner validation split. Threshold tuning strongly improves F1 for TF--IDF + logistic regression, has mixed effects for mean-pooled models, and changes the cross-chunk transformer only marginally, indicating greater operating-point stability}{figure.3}{}}
+\bibcite{devlin2019bert}{1}
+\bibcite{radford2019language}{2}
+\bibcite{saito2015precision}{3}
+\bibcite{wang2012baselines}{4}
+\bibcite{joulin2017bag}{5}
+\bibcite{yang2016han}{6}
+\bibcite{beltagy2020longformer}{7}
+\bibcite{zaheer2020bigbird}{8}
+\bibcite{guo2017calibration}{9}
+\bibcite{caruana2006empirical}{10}
+\bibcite{goodfellow2016deep}{11}
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Limitations}{6}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Conclusion}{6}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{6}{section*.1}\protected@file@percent }
+\gdef \@abspage@last{6}
