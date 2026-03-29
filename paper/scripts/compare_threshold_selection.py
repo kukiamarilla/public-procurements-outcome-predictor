@@ -30,7 +30,8 @@ import torch.nn as nn
 from dotenv import load_dotenv
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+PAPER_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 _SRC = REPO_ROOT / "src"
 _ETL = REPO_ROOT / "scripts" / "etl"
 if str(_SRC) not in sys.path:
@@ -114,7 +115,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--out",
         type=Path,
-        default=REPO_ROOT / "outputs" / "threshold_selection_comparison.json",
+        default=PAPER_ROOT / "outputs" / "threshold_selection_comparison.json",
     )
     p.add_argument("--experiment", type=str, default="procurements_predictor")
     p.add_argument("--run-name", type=str, default=None)

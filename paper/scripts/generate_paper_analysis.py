@@ -25,7 +25,8 @@ import torch
 from dotenv import load_dotenv
 from torch.utils.data import DataLoader, Subset
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+PAPER_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 _SRC = REPO_ROOT / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
@@ -233,11 +234,11 @@ def main() -> None:
         "cache_dir": str(cache_dir),
     }
 
-    out_dir = REPO_ROOT / "outputs"
+    out_dir = PAPER_ROOT / "outputs"
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "paper_analysis_stats.json").write_text(json.dumps(out_stats, indent=2), encoding="utf-8")
 
-    fig_dir = REPO_ROOT / "figures"
+    fig_dir = PAPER_ROOT / "figures"
     fig_dir.mkdir(parents=True, exist_ok=True)
 
     # Precision-recall curve
