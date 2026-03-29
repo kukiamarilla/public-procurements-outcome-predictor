@@ -1,0 +1,206 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\title{Preliminary Evidence that Large Language Model Representations of Public Tender Documents Support Outcome Prediction}
+\author{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This short paper reports preliminary results on a binary classification task over public procurement documents. The goal is to assess whether transfer learning from a large language model (LLM) can provide useful information for predicting whether a tender will end in a successful outcome. The proposed pipeline converts each bidding document (\emph{Pliego de Bases y Condiciones}, PBC) into a sequence of chunk-level embeddings using a pretrained causal LLM and feeds those embeddings into a lightweight transformer-based classifier. Labels are derived from the procurement status: \texttt{complete} is mapped to a successful outcome, while \texttt{unsuccessful} and \texttt{cancelled}/\texttt{canceled} are mapped to a non-successful outcome.
+
+The experiments use an updated procurement snapshot produced by our data pipeline and containing 10{,}628 procurement records. The effective supervised subset comprises 1{,}162 procurements for which a PBC was available, text extraction succeeded, embeddings were present, and the status matched one of the target classes. The resulting class distribution is 844 positive and 318 negative examples, with an average document length of 7.46 chunks (median 3, maximum 245). Under deterministic stratified 5-fold cross-validation, the model achieves a mean ROC AUC of 0.755, a mean PR AUC of 0.886, a mean F1-score of 0.858, and a mean balanced accuracy of 0.636. Because the positive class prevalence is high (approximately 0.726), PR AUC is interpreted relative to prevalence, yielding an average excess of 0.160 over that reference level. These findings support the claim that tender specifications contain predictive signal that can be exploited through LLM-based transfer learning, while also indicating the importance of calibration, threshold analysis, leakage auditing, and comparison against classical baselines in future work.
+\end{abstract}
+
+\begin{IEEEkeywords}
+public procurement, tender documents, large language models, transfer learning, outcome prediction, document classification
+\end{IEEEkeywords}
+
+\section{Introduction}
+Public procurement processes are strongly shaped by the content of bidding documents, which specify requirements, administrative conditions, technical constraints, delivery expectations, and qualification criteria. In principle, these documents may encode information associated with the eventual success or failure of the procurement process. Such information does not necessarily imply a direct causal mechanism, but it may still be useful for predictive modeling. A practical question therefore arises: can modern language representations derived from large pretrained models capture document-level patterns that help forecast procurement outcomes?
+
+This paper addresses that question in the context of tender documents written in Spanish and associated with public procurements. The working hypothesis is that transfer learning from a large language model can support the inference of whether a tender will be successful or not, using only the text of its bidding document. Rather than fine-tuning the entire LLM end-to-end, the current approach uses the LLM as a frozen encoder that produces chunk-level semantic representations. Those representations are then aggregated by a smaller downstream model trained specifically for binary outcome prediction.
+
+This design is attractive for at least three reasons. First, procurement documents are typically long, heterogeneous, and often noisy after PDF extraction. Pretrained language models offer a flexible way to convert such inputs into dense representations without manual feature engineering. Second, freezing the base model reduces GPU memory requirements compared with full fine-tuning. Third, the resulting system yields a modular pipeline in which document extraction, representation learning, and supervised classification can be evaluated separately.
+
+The contribution of this short paper is modest but concrete. It presents: (i) a reproducible document-level classification pipeline based on LLM embeddings and a cross-chunk transformer classifier; (ii) a preliminary evaluation under stratified 5-fold cross-validation with deterministic training controls; and (iii) an interpretation of the results that explicitly considers positive class prevalence, calibration, and threshold effects. The goal is not to claim a final production-ready system, but rather to establish whether the research hypothesis is empirically plausible.
+
+\section{Task Definition}
+The prediction task is binary classification over procurements for which both a usable bidding document and an outcome label are available. Each example corresponds to one procurement process paired with one extracted PBC document. The target variable is operationalized from the procurement status field as follows:
+
+\begin{itemize}
+  \item Successful outcome ($y=1$): \texttt{complete}
+  \item Non-successful outcome ($y=0$): \texttt{unsuccessful}, \texttt{cancelled}, or \texttt{canceled}
+\end{itemize}
+
+Records with other statuses are excluded from supervised training and evaluation. This definition is intentionally simple and directly grounded in the available data source. It should be understood as an operational proxy for procurement success rather than as an exhaustive institutional notion of performance.
+
+\section{Method}
+\subsection{Document Representation}
+Each PBC document is first converted from PDF to text by the upstream extraction pipeline. The resulting text is tokenized and split into overlapping chunks. In the current implementation, the chunk length is 4096 tokens with a stride of 2048 tokens. A pretrained causal language model, \texttt{openai/gpt-oss-20b}, is used as a frozen document encoder. Chunks are processed in micro-batches to reduce GPU memory pressure.
+
+For every chunk, the system extracts the hidden representation associated with the last valid token. The output for one procurement document is therefore a sequence of chunk embeddings:
+\[
+\mathbf{E} = [\mathbf{e}_1, \mathbf{e}_2, \dots, \mathbf{e}_N], \qquad \mathbf{e}_i \in \mathbb{R}^{d_{in}},
+\]
+where $N$ is the number of chunks in the document and $d_{in}$ is determined by the hidden size of the pretrained model. This means that long documents are represented as variable-length sequences of dense vectors rather than as a single averaged embedding.
+
+\subsection{Predictor Architecture}
+The downstream classifier, \texttt{TenderSuccessPredictor}, is a lightweight transformer over chunk embeddings. Let $\mathbf{E} \in \mathbb{R}^{N \times d_{in}}$ denote the chunk sequence of a document. The model applies:
+
+\begin{enumerate}
+  \item A linear projection from $d_{in}$ to a trainable latent dimension $d_{model}$.
+  \item The insertion of a learned \texttt{[CLS]} token at the beginning of the sequence.
+  \item A transformer encoder over the full sequence of chunk vectors.
+  \item A small multilayer classification head on top of the final \texttt{[CLS]} representation.
+\end{enumerate}
+
+In the current experiments, the downstream hyperparameters are: $d_{model}=128$, $n_{heads}=4$, feed-forward dimension $=512$, dropout $=0.3$, and one encoder layer. Padding masks are used so that different numbers of chunks can be batched together safely.
+
+The model outputs a single logit per document. A sigmoid transformation converts this logit into a probability of success:
+\[
+\hat{p}(y=1 \mid \mathbf{E}) = \sigma(z).
+\]
+Training uses binary cross-entropy with logits.
+
+\subsection{Training and Reproducibility}
+Training is performed with AdamW, learning rate $10^{-4}$, weight decay $0.01$, batch size $8$, and up to $50$ epochs. Early stopping monitors validation loss with patience set to $5$, and the best validation checkpoint is restored at the end of each fold.
+
+Because this study is intended for academic reporting, reproducibility is treated as a first-class concern. The training script fixes seeds for Python, NumPy, and PyTorch; configures deterministic cuDNN behavior; uses a fixed random generator for the training dataloader; and reinitializes the random state independently at the beginning of every fold. As a result, repeated runs with the same seed, data, and software environment are expected to produce the same splits and the same training trajectory, modulo rare low-level differences across hardware or driver stacks.
+
+\section{Experimental Setup}
+\subsection{Dataset}
+The metadata snapshot used in this paper was produced by our procurement data pipeline and contains 10{,}628 procurement records in an OCDS-like schema, together with references to associated PBC files. The supervised subset used for modeling is smaller because several filtering steps are required: a procurement must have an available PBC, successful text extraction, precomputed embeddings, and a status belonging to the final binary target classes. After applying these constraints, the effective dataset contains 1{,}162 examples.
+
+Class distribution is moderately imbalanced: 844 procurements ($72.63\%$) are labeled as successful (\texttt{complete}) and 318 ($27.37\%$) as non-successful (\texttt{unsuccessful}/\texttt{cancelled}/\texttt{canceled}). The average represented document length is 7.46 chunks per procurement, with a standard deviation of 13.52, a median of 3 chunks, and a maximum of 245 chunks. These values indicate a highly skewed length distribution, with many short documents and a smaller number of substantially longer documents. The embedding dimension inherited from the frozen base LLM is 2880.
+
+\subsection{Leakage Handling}
+Potential leakage is partially mitigated by design, although not eliminated. First, the model input is restricted to the extracted PBC text only. Structured procurement metadata such as \texttt{status}, \texttt{awardIds}, and other non-text fields are never provided to the classifier. Second, labels are derived only from finalized procurement statuses (\texttt{complete}, \texttt{unsuccessful}, \texttt{cancelled}/\texttt{canceled}), while intermediate states are excluded from supervised training. Third, the document encoder operates on the PBC text referenced by the document key and does not consume downstream administrative fields or manually engineered post-award indicators.
+
+These heuristics reduce obvious leakage channels, but they do not completely rule out ex post information embedded in some documents themselves. For example, a posted file could in principle contain content added after the original tender stage. Therefore, the present results should be interpreted as preliminary evidence under partial leakage mitigation rather than as a definitive leakage-free benchmark.
+
+\subsection{Evaluation Protocol}
+The model is evaluated with stratified 5-fold cross-validation. This choice reflects a standard trade-off between robustness of performance estimates and computational cost. Stratification is important here because the positive class is not balanced: approximately 72.6\% of the validation examples correspond to successful outcomes. By preserving class proportions across folds, the protocol reduces unnecessary variance in threshold-sensitive metrics such as F1-score, balanced accuracy, and PR AUC.
+
+For each fold, the model is trained on four partitions and evaluated on the held-out partition. The final reported values are the mean and standard deviation across folds. This reporting strategy is preferable to a single train/test split for a preliminary study because it reduces dependence on an arbitrary partition.
+
+\subsection{Metrics}
+The evaluation uses the following metrics:
+
+\begin{itemize}
+  \item \textbf{ROC AUC}, to measure ranking quality independently of the decision threshold.
+  \item \textbf{PR AUC} (average precision), to assess ranking quality with explicit attention to the positive class.
+  \item \textbf{F1-score}, using a probability threshold of 0.5.
+  \item \textbf{Balanced accuracy}, also with threshold 0.5.
+  \item \textbf{Brier score}, to measure probabilistic calibration quality.
+  \item \textbf{Log loss}, as a proper scoring rule over predicted probabilities.
+\end{itemize}
+
+Because PR AUC can be misleading when the positive class is frequent, it is interpreted together with the positive prevalence $\pi$ in the validation folds. In the current implementation, the system therefore also logs \texttt{positive\_prevalence} and \texttt{pr\_auc\_excess\_over\_prevalence}, where the latter is defined as PR AUC minus $\pi$. This quantity provides a compact estimate of how much the model improves over the positive-class frequency as a reference level commonly used when discussing no-skill PR behavior in imbalanced settings.
+
+\section{Preliminary Results}
+Table~\ref{tab:results} summarizes the current cross-validated performance. The model achieves a mean ROC AUC of 0.755 with relatively small fold-to-fold variation. This indicates consistent ranking performance above chance. The mean PR AUC reaches 0.886, which is high in absolute terms; however, the positive prevalence is also high at 0.726. For this reason, PR AUC should not be interpreted in isolation. The more informative quantity is the excess PR AUC over prevalence, which is approximately 0.160. This suggests that the model is not merely benefiting from class imbalance, but is learning document-level information that improves positive-class ranking beyond the prevalence baseline.
+
+The thresholded metrics show a more nuanced picture. The mean F1-score is 0.858, which is encouraging and suggests that a threshold of 0.5 already yields a favorable precision-recall trade-off for the majority positive class. By contrast, balanced accuracy is lower at 0.636. This discrepancy is consistent with class imbalance and with a decision rule that is biased toward predicting the positive class more often. In practical terms, the model appears better at capturing successful procurements than at maintaining symmetric sensitivity and specificity across both classes.
+
+Brier score and log loss also support the conclusion that the model is learning non-trivial signal, although they leave room for better calibration. To make this more explicit, Fig.~\ref{fig:pr} shows the mean precision-recall curve across folds together with the prevalence baseline, while Fig.~\ref{fig:calibration} presents a reliability diagram based on pooled out-of-fold predictions. The PR curve confirms that the model stays meaningfully above the prevalence baseline over a broad recall range. The calibration curve, however, indicates that predicted probabilities should still be interpreted cautiously and may benefit from additional calibration procedures.
+
+\begin{table}[t]
+\centering
+\caption{Preliminary 5-fold cross-validation results (mean $\pm$ standard deviation). Lower is better for Brier score and log loss; higher is better for the remaining metrics.}
+\label{tab:results}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.48\linewidth} >{\raggedleft\arraybackslash}p{0.28\linewidth}}
+\toprule
+Metric & Value \\
+\midrule
+ROC AUC & $0.755 \pm 0.024$ \\
+PR AUC & $0.886 \pm 0.018$ \\
+PR AUC excess over prevalence & $0.160 \pm 0.018$ \\
+Positive prevalence & $0.726 \pm 0.002$ \\
+F1-score & $0.858 \pm 0.011$ \\
+Balanced accuracy & $0.636 \pm 0.026$ \\
+Brier score & $0.162 \pm 0.004$ \\
+Log loss & $0.499 \pm 0.015$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/pr_curve_cv.png}
+  \caption{Mean precision-recall curve across the five validation folds. The dashed horizontal line marks the positive prevalence baseline ($\pi \approx 0.726$). Shaded area denotes fold-to-fold variability.}
+  \label{fig:pr}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/calibration_curve_cv.png}
+  \caption{Calibration curve (reliability diagram) computed from pooled out-of-fold predictions. The diagonal line indicates perfect calibration. Deviations from the diagonal suggest that probability calibration remains imperfect despite useful ranking performance.}
+  \label{fig:calibration}
+\end{figure}
+
+\section{Discussion}
+The preliminary findings support the core research hypothesis in a qualified way. The evidence suggests that transfer learning from a large language model can indeed be used to derive document representations that help infer whether a procurement process will end in a successful or non-successful outcome. The signal is not overwhelming, but it is also not trivial: a ROC AUC around 0.75 and a PR AUC about 0.16 above prevalence are difficult to dismiss as pure noise.
+
+At the same time, several caveats are essential. First, this study evaluates predictive usefulness, not causality. A strong predictive association between document content and procurement status does not imply that the document \emph{causes} the outcome in a narrow sense; it only indicates that the document encodes information correlated with the observed result. Second, although obvious leakage channels are partially mitigated by restricting the input to PBC text and excluding structured post-outcome fields, residual leakage inside the documents themselves cannot yet be fully excluded.
+
+Third, the current model should be compared against simpler baselines. In particular, TF--IDF features with logistic regression would provide a strong and interpretable classical benchmark. Such baselines are not yet included in the present short paper and should be treated as immediate future work rather than as optional extensions.
+
+Fourth, the difference between F1 and balanced accuracy suggests that threshold choice deserves more attention. Because F1 is threshold-dependent and favors the positive class trade-off, a fixed threshold of 0.5 may not be optimal if the application values class balance more explicitly. Future work should therefore examine threshold tuning on validation folds and possibly calibration-aware decision rules.
+
+Finally, the present study uses frozen embeddings and a lightweight classifier rather than full fine-tuning of the LLM. This is a deliberate engineering and research choice. It reduces computational cost and makes experimentation feasible on limited hardware. However, it also leaves open the possibility that task-adaptive fine-tuning or parameter-efficient adaptation could further improve performance. The supervised subset is also much smaller than the full metadata snapshot, so the reported results should be understood as conditional on procurements with usable documents and successful preprocessing.
+
+\section{Conclusion}
+This short paper presented preliminary evidence that LLM-based transfer learning can support the prediction of public procurement outcomes from bidding documents. The proposed pipeline transforms each PBC into a sequence of chunk-level embeddings using a pretrained causal language model and then aggregates those embeddings with a lightweight transformer classifier. On an updated S3 snapshot of procurement metadata, the effective supervised subset contains 1{,}162 procurements with usable documents and labels. Under deterministic stratified 5-fold cross-validation, the system obtains a mean ROC AUC of 0.755 and a mean PR AUC of 0.886. When interpreted relative to the positive prevalence of 0.726, the model still shows a meaningful PR gain of about 0.160.
+
+Taken together, these results support the claim that tender specifications contain information relevant for outcome inference and that pretrained language representations are a viable way to exploit that information. The evidence should nonetheless be treated as preliminary. Immediate next steps are clear: add TF--IDF plus logistic-regression baselines, audit the remaining leakage risk more thoroughly, and study thresholding and calibration in greater depth. Even in its current form, however, the study provides a credible empirical basis for the broader thesis hypothesis that transfer learning from large language models can contribute to procurement outcome prediction from textual documents.
+
+\begin{thebibliography}{9}
+
+\bibitem{devlin2019bert}
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova.
+\newblock BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.
+\newblock In \emph{Proceedings of NAACL-HLT}, 2019.
+
+\bibitem{radford2019language}
+Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and Ilya Sutskever.
+\newblock Language Models are Unsupervised Multitask Learners.
+\newblock OpenAI Technical Report, 2019.
+
+\bibitem{saito2015precision}
+Takaya Saito and Marc Rehmsmeier.
+\newblock The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets.
+\newblock \emph{PLOS ONE}, 10(3), 2015.
+
+\bibitem{caruana2006empirical}
+Rich Caruana and Alexandru Niculescu-Mizil.
+\newblock An Empirical Comparison of Supervised Learning Algorithms.
+\newblock In \emph{Proceedings of ICML}, 2006.
+
+\bibitem{goodfellow2016deep}
+Ian Goodfellow, Yoshua Bengio, and Aaron Courville.
+\newblock \emph{Deep Learning}.
+\newblock MIT Press, 2016.
+
+\end{thebibliography}
+
+\end{document}
