@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.27)  29 MAR 2026 19:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.27)  25 APR 2026 11:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -573,42 +573,37 @@ Package microtype Info: Loading generic protrusion settings for font family
 Package microtype Info: Character `029' is missing
 (microtype)             in font `T1/lmr/m/sc/10'.
 (microtype)             Ignoring protrusion settings for this character.
- [1{/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{
-/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}
-
-
-]
 LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 5
-8.
+6.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 5
-8.
+6.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-58.
+56.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-58.
+56.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 58.
+(Font)              <10> on input line 56.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 58.
+(Font)              <7> on input line 56.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 58.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 58.
+(Font)              <5> on input line 56.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 56.
 
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/amsfonts/umsa.fd
@@ -617,7 +612,7 @@ File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 58.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 56.
 
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/amsfonts/umsb.fd
@@ -626,42 +621,47 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-Underfull \hbox (badness 10000) in paragraph at lines 75--76
+[1{/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/
+usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}
+
+
+{/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr
+/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/loca
+l/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}]
+Underfull \hbox (badness 10000) in paragraph at lines 73--74
 []\T1/lmr/m/n/10 (+20) The main down-stream clas-si-fier,
  []
 
-[2{/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/u
-sr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/lo
-cal/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}]
-Underfull \hbox (badness 3635) in paragraph at lines 138--139
+[2]
+Underfull \hbox (badness 3635) in paragraph at lines 136--137
 []\T1/lmr/m/n/10 (+20) Because PR AUC can be mis-lead-ing when the
  []
 
 
-Underfull \hbox (badness 1688) in paragraph at lines 138--139
+Underfull \hbox (badness 1688) in paragraph at lines 136--137
 \T1/lmr/m/n/10 (+20) pos-i-tive class is fre-quent, it is in-ter-preted to-geth
 er
  []
 
 
-Underfull \hbox (badness 5787) in paragraph at lines 138--139
+Underfull \hbox (badness 5787) in paragraph at lines 136--137
 \T1/lmr/m/n/10 (+20) with the pos-i-tive preva-lence $\OML/lmm/m/it/10 ^^Y$ \T1
 /lmr/m/n/10 (+20) in the val-i-da-tion
  []
 
 
-Underfull \hbox (badness 5862) in paragraph at lines 138--139
+Underfull \hbox (badness 5862) in paragraph at lines 136--137
 \T1/lmr/m/n/10 (+20) folds. In the cur-rent im-ple-men-ta-tion, the sys-tem
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 138--139
+Underfull \hbox (badness 10000) in paragraph at lines 136--137
 \T1/lmr/m/n/10 (+20) there-fore also logs \T1/lmtt/m/n/10 positive_prevalence \
 T1/lmr/m/n/10 (+20) and
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 138--139
+Underfull \hbox (badness 10000) in paragraph at lines 136--137
 \T1/lmtt/m/n/10 pr_auc_excess_over_prevalence\T1/lmr/m/n/10 (+20) , where the l
 at-ter
  []
@@ -671,26 +671,26 @@ Package microtype Info: Character `029' is missing
 (microtype)             in font `T1/lmr/m/sc/8'.
 (microtype)             Ignoring protrusion settings for this character.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 157.
+(Font)              <8> on input line 155.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 157.
-<figures/pr_curve_cv.png, id=141, 368.577pt x 281.00276pt>
+(Font)              <6> on input line 155.
+<figures/pr_curve_cv.png, id=142, 368.577pt x 281.00276pt>
 File: figures/pr_curve_cv.png Graphic file (type png)
 <use figures/pr_curve_cv.png>
-Package pdftex.def Info: figures/pr_curve_cv.png  used on input line 196.
+Package pdftex.def Info: figures/pr_curve_cv.png  used on input line 194.
 (pdftex.def)             Requested size: 252.0pt x 192.12984pt.
-<figures/calibration_curve_cv.png, id=143, 368.577pt x 281.00276pt>
+<figures/calibration_curve_cv.png, id=144, 368.577pt x 281.00276pt>
 File: figures/calibration_curve_cv.png Graphic file (type png)
 <use figures/calibration_curve_cv.png>
 Package pdftex.def Info: figures/calibration_curve_cv.png  used on input line 2
-03.
+01.
 (pdftex.def)             Requested size: 252.0pt x 192.12984pt.
-<figures/threshold_sensitivity_comparison.png, id=144, 368.577pt x 259.32176pt>
+<figures/threshold_sensitivity_comparison.png, id=145, 368.577pt x 259.32176pt>
 
 File: figures/threshold_sensitivity_comparison.png Graphic file (type png)
 <use figures/threshold_sensitivity_comparison.png>
 Package pdftex.def Info: figures/threshold_sensitivity_comparison.png  used on 
-input line 210.
+input line 208.
 (pdftex.def)             Requested size: 252.0pt x 177.30591pt.
  [4] [5 <./figures/pr_curve_cv.png> <./figures/calibration_curve_cv.png> <./fig
 ures/threshold_sensitivity_comparison.png>]
@@ -714,11 +714,11 @@ Package rerunfilecheck Info: File `shortpaper.out' has not changed.
 (rerunfilecheck)             Checksum: E707CED0F150A2F44A6476448F727458;2647.
  ) 
 Here is how much of TeX's memory you used:
- 13865 strings out of 469006
- 219598 string characters out of 5454813
- 680424 words of memory out of 5000000
+ 13853 strings out of 469006
+ 219476 string characters out of 5454813
+ 679424 words of memory out of 5000000
  42073 multiletter control sequences out of 15000+600000
- 847561 words of font info for 275 fonts, out of 8000000 for 9000
+ 847003 words of font info for 269 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  75i,11n,79p,1239b,455s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></u
@@ -740,7 +740,7 @@ al/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></usr/local/tex
 live/2026basic/texmf-dist/fonts/type1/public/lm/lmtk10.pfb></usr/local/texlive/
 2026basic/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></usr/local/texlive/2026b
 asic/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on shortpaper.pdf (6 pages, 559421 bytes).
+Output written on shortpaper.pdf (6 pages, 555752 bytes).
 PDF statistics:
  282 PDF objects out of 1000 (max. 8388607)
  222 compressed objects within 3 object streams
