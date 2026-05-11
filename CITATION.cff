@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software or paper artifacts, please cite this repository."
+title: "Public Procurements Outcome Predictor"
+type: software
+authors:
+  - family-names: "Amarilla"
+    given-names: "Kuki"
+repository-code: "https://github.com/kukiamarilla/public-procurements-outcome-predictor"
+abstract: "Code, paper artifacts, and reproducibility documentation for predicting public procurement outcomes from bidding documents in Paraguay using lexical baselines, frozen LLM embeddings, and a cross-chunk transformer."
+keywords:
+  - public procurement
+  - eGovernment
+  - document classification
+  - large language models
+  - reproducible research
+date-released: "2026-05-11"

@@ -2,7 +2,7 @@
 [x] Eliminar The contribution of this short paper is empirical rather than competitive.
 [x] Unificar la descripción de la contribución entre abstract y conclusión.
 [x] Reforzar la conexión con eGovernment / eDemocracy.
-[] Agregar referencia al repositorio abierto.
+[x] Agregar referencia al repositorio abierto.
 [x] Actualizar referencias con literatura más reciente.
 [x] Justificar mejor la elección de openai/gpt-oss-20b.
 [x] Aclarar mejor el protocolo de stratified 5-fold cross-validation.

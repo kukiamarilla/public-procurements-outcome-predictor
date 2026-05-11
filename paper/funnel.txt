@@ -1,9 +1,8 @@
 Funnel de datos para el paper
 =============================
 
-Estado: borrador documentado desde el bucket de DigitalOcean Spaces, este repo
-(`public-procurements-outcome-predictor`) y el repo previo
-(`public-procurements-offerers-tagging`).
+Estado: borrador documentado desde el bucket de DigitalOcean Spaces y este repo
+(`public-procurements-outcome-predictor`).
 
 Importante: este archivo distingue entre (a) artefactos observados en el bucket,
 (b) inferencias razonables a partir del codigo, y (c) puntos que conviene aclarar
@@ -16,17 +15,6 @@ Resumen numerico observado
 Bucket completo inspeccionado:
 - Total de objetos: 11,563.
 - Tamano total aproximado: 7.22 GB.
-
-Artefactos del proyecto previo de tagging de oferentes:
-- `tagging/ids/ids.json`: 10,000 procesos, sin campo `status`.
-- `tagging/ids/checkpoint.json`: `lastPage=100`, `totalPages=104`.
-- `tagging/pdfs/`: 3,783 PDFs observados.
-  - 2,174 terminan en `-ada.pdf` (Acta de Apertura).
-  - 1,608 terminan en `-cco.pdf` (Cuadro Comparativo de Ofertas).
-  - 1 objeto con otro patron.
-- `tagging/results/`: 2,494 JSONs de tagging manual/semimanual.
-  - Los resultados tienen campos como `tenderId`, `ocid`, `awardIds`,
-    `offererCount`, `taggedAt`.
 
 Artefactos del predictor de outcome:
 - `outcome-predictor/procurements/procurements.json`: 10,000 procesos
@@ -77,7 +65,7 @@ Tabla principal:
 
 | Paso | Universo elegible | Intentados con evidencia | OK | No OK con motivo | Sin evidencia de intento / no procesado |
 | ---- | ----------------- | ------------------------ | -- | ---------------- | --------------------------------------- |
-| Materializar `complete` desde `tagging/ids/ids.json` | 10,000 IDs | 10,000 | 10,000 | 0 | 0 |
+| Materializar snapshot inicial `complete` | 10,000 IDs | 10,000 | 10,000 | 0 | 0 |
 | Descargar IDs `unsuccessful` desde DNCP | todas las paginas disponibles (3/3) | 3 paginas | 257 IDs | 0 | 0 |
 | Descargar IDs `cancelled` desde DNCP | todas las paginas disponibles (4/4) | 4 paginas | 371 IDs | 0 | 0 |
 | Merge de IDs por `tenderId` | 10,628 filas | 10,628 | 10,628 | 0 | 0 |
@@ -127,51 +115,19 @@ Detalle de no OK conservado:
 Funnel inferido paso a paso
 ---------------------------
 
-0. Proyecto previo: tagging de numero de oferentes
-
-Fuente:
-- Repo: `https://github.com/kukiamarilla/public-procurements-offerers-tagging`.
-- README del repo previo: generaba IDs desde la API DNCP, descargaba Acta de
-  Apertura (`-ada.pdf`) y Cuadro Comparativo de Ofertas (`-cco.pdf`), y usaba una
-  interfaz web para guardar resultados de tagging con `offererCount`.
-
-Artefactos observados:
-- 10,000 IDs en `tagging/ids/ids.json`.
-- 3,783 PDFs ADA/CCO en `tagging/pdfs/`.
-- 2,494 resultados con `offererCount` en `tagging/results/`.
-
-Inferencia:
-- Este proyecto previo no produjo los PBC usados como input textual del paper
-  actual. Produjo IDs, PDFs de apertura/comparacion de ofertas y resultados para
-  otra tarea: inferir o etiquetar cantidad de oferentes.
-- La conexion principal con el predictor actual es que `tagging/ids/ids.json`
-  fue reutilizado como fuente inicial de procesos `complete`.
-
-[Aclarar]
-- Que filtros exactos tenia `generate-ids` en el repo previo? Confirmar si ya
-  filtraba por obras / clasificacion `72131701` o si esa restriccion se aplico
-  despues.
-- Por que el checkpoint de `tagging/ids` quedo en pagina 100/104 pero el archivo
-  tiene exactamente 10,000 IDs? Probablemente se corto al alcanzar una meta de
-  10,000, pero conviene confirmarlo.
-- Los resultados `tagging/results/*.json` con `offererCount` se usaron en algun
-  experimento posterior o solo pertenecen al proyecto anterior?
-
-
 1. Materializacion de procesos exitosos (`complete`)
 
 Artefactos:
-- Entrada: `tagging/ids/ids.json` con 10,000 procesos sin `status`.
-- Salida: `outcome-predictor/procurements/procurements.json` con los mismos
-  procesos y `status="complete"`.
+- Entrada: snapshot inicial de 10,000 procesos DNCP.
+- Salida: `outcome-predictor/procurements/procurements.json` con 10,000 procesos
+  y `status="complete"`.
 
 Codigo:
 - `scripts/once/materialize_procurements_with_status.py`.
 
 Inferencia:
-- Para el predictor de outcome, los 10,000 procesos provenientes del proyecto
-  previo se tratan como clase positiva inicial porque el script les asigna
-  `complete`.
+- Para el predictor de outcome, estos 10,000 procesos constituyen la clase
+  positiva inicial porque el script les asigna `complete`.
 
 [Aclarar]
 - Confirmar por que esos 10,000 IDs son todos considerados `complete`: si el
@@ -247,8 +203,6 @@ Codigo:
 Inferencia:
 - Este paso intenta descargar Pliego de Bases y Condiciones o carta de invitacion
   desde la API DNCP.
-- Es distinto de los PDFs del proyecto previo: aqui se buscan PBCs; en el repo
-  anterior se bajaban Actas de Apertura y Cuadros Comparativos.
 - Solo 1,845 / 10,628 procesos llegaron a tener PBC PDF en Spaces.
 - La descarga priorizo no exitosas para aumentar la presencia de la clase
   minoritaria en el subset final.
@@ -372,8 +326,8 @@ Inferencia:
 Tabla compacta del funnel actual
 --------------------------------
 
-1. IDs `complete` desde repo anterior:
-   10,000 procesos (`tagging/ids/ids.json` -> `procurements.json`).
+1. Snapshot inicial `complete`:
+   10,000 procesos (`procurements.json`).
 
 2. IDs no exitosos desde DNCP:
    257 `unsuccessful` + 371 `cancelled` = 628 procesos.
@@ -399,8 +353,8 @@ Version corta posible para el paper
 -----------------------------------
 
 The initial procurement pool contained 10,628 processes: 10,000 completed
-processes materialized from a previous DNCP scraping pipeline and 628 additional
-non-successful processes collected by status from the DNCP API. The PBC retrieval
+processes from an initial DNCP snapshot and 628 additional non-successful
+processes collected by status from the DNCP API. The PBC retrieval
 stage obtained 1,845 PDF bidding documents, of which 1,842 were successfully
 converted to text. Embedding generation with the frozen LLM succeeded for 1,162
 documents, yielding the supervised subset used in the experiments: 844 completed
@@ -415,9 +369,5 @@ Notas para no sobreafirmar
 - No decir que el subset final es representativo del universo DNCP.
 - No decir que los 1,845 PBC son todos los PBC disponibles en DNCP; son los PBC
   efectivamente encontrados/descargados por este pipeline.
-- No mezclar `tagging/pdfs` (ADA/CCO del proyecto anterior) con
-  `outcome-predictor/pbcs/pdf` (PBC del paper actual).
-- No usar `tagging/results` como label del paper actual: esos resultados son de
-  `offererCount`, una tarea anterior distinta.
 - Documentar los 680 textos sin embedding como exclusion tecnica observada, no
   como criterio conceptual del diseno experimental.
