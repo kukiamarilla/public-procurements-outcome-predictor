@@ -15,6 +15,6 @@
 [x] Agregar future work sobre validación en otros dominios de contratación pública.
 [x] Agregar future work sobre evaluación con otros encoders.
 [x] Agregar future work sobre baseline Word2Vec.
-[] Agregar funnel de filtrado del dataset.
+[x] Agregar funnel de filtrado del dataset.
 [] Preparar point-by-point response to reviewers.
 [] Preparar paquete camera-ready completo.

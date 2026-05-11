@@ -1,0 +1,423 @@
+Funnel de datos para el paper
+=============================
+
+Estado: borrador documentado desde el bucket de DigitalOcean Spaces, este repo
+(`public-procurements-outcome-predictor`) y el repo previo
+(`public-procurements-offerers-tagging`).
+
+Importante: este archivo distingue entre (a) artefactos observados en el bucket,
+(b) inferencias razonables a partir del codigo, y (c) puntos que conviene aclarar
+manualmente antes de convertir esto en texto final del paper.
+
+
+Resumen numerico observado
+--------------------------
+
+Bucket completo inspeccionado:
+- Total de objetos: 11,563.
+- Tamano total aproximado: 7.22 GB.
+
+Artefactos del proyecto previo de tagging de oferentes:
+- `tagging/ids/ids.json`: 10,000 procesos, sin campo `status`.
+- `tagging/ids/checkpoint.json`: `lastPage=100`, `totalPages=104`.
+- `tagging/pdfs/`: 3,783 PDFs observados.
+  - 2,174 terminan en `-ada.pdf` (Acta de Apertura).
+  - 1,608 terminan en `-cco.pdf` (Cuadro Comparativo de Ofertas).
+  - 1 objeto con otro patron.
+- `tagging/results/`: 2,494 JSONs de tagging manual/semimanual.
+  - Los resultados tienen campos como `tenderId`, `ocid`, `awardIds`,
+    `offererCount`, `taggedAt`.
+
+Artefactos del predictor de outcome:
+- `outcome-predictor/procurements/procurements.json`: 10,000 procesos
+  materializados con `status="complete"`.
+- `outcome-predictor/procurements/ids_unsuccessful.json`: 257 procesos.
+- `outcome-predictor/procurements/ids_cancelled.json`: 371 procesos.
+- `outcome-predictor/procurements/checkpoint_unsuccessful.json`:
+  `lastPage=3`, `totalPages=3`.
+- `outcome-predictor/procurements/checkpoint_cancelled.json`:
+  `lastPage=4`, `totalPages=4`.
+- `outcome-predictor/procurements/procurements_dataset.json`: 10,628 filas.
+  - `complete`: 10,000.
+  - `unsuccessful`: 257.
+  - `cancelled`: 371.
+- `outcome-predictor/pbcs/pdf/`: 1,845 PBC PDFs.
+- `outcome-predictor/pbcs/txt/`: 1,842 textos extraidos.
+- `outcome-predictor/pbcs/embeddings/`: 1,162 archivos `.pt`.
+- `outcome-predictor/mlflow/`: 3 artefactos JSON observados en Spaces
+  (baseline dummy, baseline TF-IDF, threshold selection). La metadata principal
+  de MLflow parece haber quedado local en SQLite, segun el README/codigo.
+
+Decision de priorizacion:
+- Para reducir lo mas posible el desbalance de clases, la descarga y el
+  procesamiento de documentos priorizaron las licitaciones no exitosas
+  (`unsuccessful` y `cancelled`) antes que las `complete`.
+- Esto coincide con el orden del merge/cola de descarga en el codigo:
+  `ids_unsuccessful.json` -> `ids_cancelled.json` -> `procurements.json`.
+- Por eso las tasas de procesamiento son mucho mas altas para las clases no
+  exitosas que para `complete`.
+
+
+Funnel operativo: intentos, OK y no OK
+--------------------------------------
+
+Criterio usado:
+- "OK" significa que existe el artefacto esperado o el flag correspondiente en
+  `procurements_dataset.json` esta en `True`.
+- "No OK con motivo" significa que el dataset conserva un `*_skip_reason` o
+  `*_error`.
+- "Sin evidencia de intento / no procesado" significa que no hay artefacto final
+  ni motivo de fallo conservado en el JSON. Para la descarga de PBC PDFs, esto se
+  atribuye a falta de tiempo por rate limiting de la DNCP al consultar tenders y
+  descargar documentos. En etapas posteriores, si no hay motivo conservado, se
+  mantiene como falta de tiempo o recursos computacionales salvo evidencia
+  posterior.
+
+Tabla principal:
+
+| Paso | Universo elegible | Intentados con evidencia | OK | No OK con motivo | Sin evidencia de intento / no procesado |
+| ---- | ----------------- | ------------------------ | -- | ---------------- | --------------------------------------- |
+| Materializar `complete` desde `tagging/ids/ids.json` | 10,000 IDs | 10,000 | 10,000 | 0 | 0 |
+| Descargar IDs `unsuccessful` desde DNCP | todas las paginas disponibles (3/3) | 3 paginas | 257 IDs | 0 | 0 |
+| Descargar IDs `cancelled` desde DNCP | todas las paginas disponibles (4/4) | 4 paginas | 371 IDs | 0 | 0 |
+| Merge de IDs por `tenderId` | 10,628 filas | 10,628 | 10,628 | 0 | 0 |
+| Descargar PBC PDF | 10,628 procesos | 1,887 con evidencia (1,845 OK + 42 no OK con motivo) | 1,845 | 42 | 8,741 |
+| Extraer texto desde PBC PDF | 1,845 PDFs PBC | 1,845 | 1,842 | 3 | 0 |
+| Generar embeddings desde texto | 1,842 textos | 1,842 | 1,162 | 680 | 0 |
+| Dataset supervisado final | 1,162 embeddings con `y` | 1,162 | 1,162 | 0 | 0 |
+
+Detalle por status en etapas principales:
+
+| Status | Dataset inicial | PBC PDF OK | Texto OK | Embedding OK |
+| ------ | --------------- | ---------- | -------- | ------------ |
+| `complete` | 10,000 | 1,273 | 1,270 | 844 |
+| `unsuccessful` | 257 | 246 | 246 | 204 |
+| `cancelled` | 371 | 326 | 326 | 114 |
+| Total | 10,628 | 1,845 | 1,842 | 1,162 |
+
+Detalle de no OK conservado:
+- Descarga PBC PDF:
+  - 42 procesos sin PDF tienen algun `pbc_skip_reason` conservado.
+  - 12 tienen razon compacta `no_pdf_pliego`.
+  - Los demas motivos conservados son mensajes del tipo "No se encontro documento
+    PBC o carta de invitacion en ZIP..." con lista de archivos disponibles.
+  - Estos 42 casos tambien pueden incluir fallas HTTP/red u otros errores de
+    descarga registrados en `pbc_skip_reason` / `pbc_error`, segun el mensaje
+    particular de cada fila.
+  - 8,741 procesos sin PDF no conservan motivo en el JSON final; para esta
+    documentacion se tratan como no procesados por falta de tiempo debido al rate
+    limiting de la DNCP al consultar tenders y descargar PBCs.
+- Extraccion texto:
+  - 3 PDFs PBC no tienen `.txt` correspondiente.
+  - Estos 3 fallos se deben a documentos escaneados: el extractor de texto no
+    soporta OCR.
+- Embeddings:
+  - 671 fallos `embed:OutOfMemoryError`.
+  - 9 fallos `embed:ValueError`.
+  - OOM significa "out of memory": la GPU/CUDA no tuvo memoria suficiente para
+    ejecutar el modelo sobre el micro-batch de chunks. El codigo reintenta
+    reduciendo `chunk_batch_size` por mitades hasta llegar a 1; si aun con
+    `chunk_batch_size=1` no entra en memoria, la fila queda marcada como
+    `embed:OutOfMemoryError`.
+  - La generacion de embeddings se corrio una sola vez sobre el conjunto
+    disponible. Los documentos que fallaron no se reprocesaron con mas memoria ni
+    con infraestructura alternativa por limites de costo/infraestructura.
+
+
+Funnel inferido paso a paso
+---------------------------
+
+0. Proyecto previo: tagging de numero de oferentes
+
+Fuente:
+- Repo: `https://github.com/kukiamarilla/public-procurements-offerers-tagging`.
+- README del repo previo: generaba IDs desde la API DNCP, descargaba Acta de
+  Apertura (`-ada.pdf`) y Cuadro Comparativo de Ofertas (`-cco.pdf`), y usaba una
+  interfaz web para guardar resultados de tagging con `offererCount`.
+
+Artefactos observados:
+- 10,000 IDs en `tagging/ids/ids.json`.
+- 3,783 PDFs ADA/CCO en `tagging/pdfs/`.
+- 2,494 resultados con `offererCount` en `tagging/results/`.
+
+Inferencia:
+- Este proyecto previo no produjo los PBC usados como input textual del paper
+  actual. Produjo IDs, PDFs de apertura/comparacion de ofertas y resultados para
+  otra tarea: inferir o etiquetar cantidad de oferentes.
+- La conexion principal con el predictor actual es que `tagging/ids/ids.json`
+  fue reutilizado como fuente inicial de procesos `complete`.
+
+[Aclarar]
+- Que filtros exactos tenia `generate-ids` en el repo previo? Confirmar si ya
+  filtraba por obras / clasificacion `72131701` o si esa restriccion se aplico
+  despues.
+- Por que el checkpoint de `tagging/ids` quedo en pagina 100/104 pero el archivo
+  tiene exactamente 10,000 IDs? Probablemente se corto al alcanzar una meta de
+  10,000, pero conviene confirmarlo.
+- Los resultados `tagging/results/*.json` con `offererCount` se usaron en algun
+  experimento posterior o solo pertenecen al proyecto anterior?
+
+
+1. Materializacion de procesos exitosos (`complete`)
+
+Artefactos:
+- Entrada: `tagging/ids/ids.json` con 10,000 procesos sin `status`.
+- Salida: `outcome-predictor/procurements/procurements.json` con los mismos
+  procesos y `status="complete"`.
+
+Codigo:
+- `scripts/once/materialize_procurements_with_status.py`.
+
+Inferencia:
+- Para el predictor de outcome, los 10,000 procesos provenientes del proyecto
+  previo se tratan como clase positiva inicial porque el script les asigna
+  `complete`.
+
+[Aclarar]
+- Confirmar por que esos 10,000 IDs son todos considerados `complete`: si el
+  filtro original de DNCP ya traia solo procesos completos o si hubo otra
+  validacion externa.
+
+
+2. Descarga de procesos no exitosos (`unsuccessful`, `cancelled`)
+
+Artefactos:
+- `ids_unsuccessful.json`: 257 procesos.
+- `ids_cancelled.json`: 371 procesos.
+- Checkpoints completos:
+  - unsuccessful: pagina 3/3.
+  - cancelled: pagina 4/4.
+
+Codigo:
+- `scripts/etl/fetch_ids_by_status.py`.
+
+Inferencia:
+- Este paso consulta la API DNCP con `tender.status` y la clasificacion
+  `72131701`.
+- El objetivo por defecto del script era obtener hasta 1,000 IDs por estado, pero
+  la API devolvio menos para estos filtros: 257 unsuccessful y 371 cancelled.
+
+[Aclarar]
+- Confirmar si `cancelled` y `canceled` se trataron como equivalentes solo en el
+  target de entrenamiento o si ambos aparecen en fuentes originales. En el
+  dataset observado aparece `cancelled`.
+
+
+3. Dataset unificado antes de documentos PBC
+
+Artefacto:
+- `outcome-predictor/procurements/procurements_dataset.json`: 10,628 filas.
+
+Composicion:
+- 10,000 `complete`.
+- 257 `unsuccessful`.
+- 371 `cancelled`.
+
+Codigo:
+- `scripts/etl/merge_and_download_pbcs.py`.
+
+Inferencia:
+- El merge se hace por `tenderId` en orden:
+  1. `ids_unsuccessful.json`
+  2. `ids_cancelled.json`
+  3. `procurements.json`
+- Ese orden prioriza no exitosas tanto ante posibles duplicados como en la cola
+  de descarga/procesamiento, para mitigar el desbalance de datos.
+
+[Aclarar]
+- Confirmar si hubo duplicados reales entre estados o si el total 10,628 ya es
+  simplemente 10,000 + 257 + 371 sin colisiones.
+
+
+4. Descarga de PBC PDFs
+
+Artefactos:
+- `outcome-predictor/pbcs/pdf/`: 1,845 PDFs.
+- En `procurements_dataset.json`, `pbc_downloaded=True`: 1,845 filas.
+
+Conteo por status:
+- `complete`: 1,273 PDFs PBC.
+- `unsuccessful`: 246 PDFs PBC.
+- `cancelled`: 326 PDFs PBC.
+
+Codigo:
+- `scripts/etl/merge_and_download_pbcs.py`.
+- `scripts/etl/pbc_simple.py`.
+
+Inferencia:
+- Este paso intenta descargar Pliego de Bases y Condiciones o carta de invitacion
+  desde la API DNCP.
+- Es distinto de los PDFs del proyecto previo: aqui se buscan PBCs; en el repo
+  anterior se bajaban Actas de Apertura y Cuadros Comparativos.
+- Solo 1,845 / 10,628 procesos llegaron a tener PBC PDF en Spaces.
+- La descarga priorizo no exitosas para aumentar la presencia de la clase
+  minoritaria en el subset final.
+
+Observacion:
+- El campo `pbc_skip_reason` no documenta de forma completa los 8,783 procesos
+  sin PBC PDF. En el JSON observado, la mayoria de filas tiene razon vacia, por
+  lo que el conteo fino de motivos de descarte no es confiable sin revisar logs
+  historicos.
+
+[Aclarar]
+- Entre los procesos sin PBC PDF descargado, los que no conservan motivo se
+  atribuyen a falta de tiempo por rate limiting de la DNCP al consultar tenders y
+  descargar PBCs. Los que si conservan motivo pueden corresponder a fallas
+  HTTP/red, errores de descarga, o a no encontrar PBC/carta de invitacion PDF con
+  el patron detectado por `pbc_simple.py`.
+- Confirmar si se omitieron DOC/DOCX deliberadamente en alguna corrida
+  (`--omit-doc-docx`) o si simplemente el pipeline final solo aceptaba PDF.
+
+
+5. Extraccion PDF -> texto
+
+Artefactos:
+- `outcome-predictor/pbcs/txt/`: 1,842 `.txt`.
+- 3 PDFs PBC no tienen texto correspondiente.
+- No se observaron textos sin PDF correspondiente.
+
+Conteo por status:
+- `complete`: 1,270 textos.
+- `unsuccessful`: 246 textos.
+- `cancelled`: 326 textos.
+
+Codigo:
+- `scripts/etl/extract_pbcs_to_txt.py`.
+- `src/doc_extract/reader.py`.
+
+Inferencia:
+- La extraccion usa `doc_extract.PDFReader`, basado en `pdfplumber` para texto y
+  `camelot` para tablas.
+- Esta etapa conserva casi todos los PBC descargados: 1,842 / 1,845. Los 3
+  fallos corresponden a documentos escaneados no procesables por el extractor
+  actual porque no incorpora OCR.
+
+[Aclarar]
+- Identificar los 3 PDFs sin texto y, si hace falta, citar que eran documentos
+  escaneados no procesables sin OCR.
+- Confirmar si las tablas eran necesarias para el texto final o si bastaba con el
+  texto plano de pdfplumber.
+
+
+6. Texto -> embeddings por chunks
+
+Artefactos:
+- `outcome-predictor/pbcs/embeddings/`: 1,162 `.pt`.
+- 680 textos no tienen embedding `.pt`.
+
+Conteo final por status entre embeddings:
+- `complete`: 844.
+- `unsuccessful`: 204.
+- `cancelled`: 114.
+- Clase positiva final (`y=1`, complete): 844.
+- Clase negativa final (`y=0`, unsuccessful/cancelled): 318.
+- Total supervisado usado en el paper: 1,162.
+
+Codigo:
+- `scripts/etl/embed_pbcs.py`.
+- `src/models/embedder.py`.
+- `src/data/procurement_target.py`.
+
+Parametros relevantes:
+- Encoder: `openai/gpt-oss-20b`.
+- Chunk max length: 4096 tokens.
+- Stride: 2048 tokens.
+- Se guarda un `.pt` por proceso, con embeddings de chunks y target `y`.
+
+Motivos observados de no embedding entre textos extraidos:
+- `embed:OutOfMemoryError`: 671.
+- `embed:ValueError`: 9.
+
+Inferencia:
+- La mayor reduccion despues de la extraccion ocurre por fallos de embedding,
+  principalmente OOM en documentos largos o costosos de procesar. Aunque el
+  pipeline procesa chunks en micro-batches CPU->GPU y desactiva la KV cache del
+  modelo para ahorrar memoria, cada chunk puede tener hasta 4096 tokens y el
+  encoder congelado es grande; algunos documentos siguen excediendo la memoria
+  disponible.
+- El subset experimental del paper corresponde a los 1,162 procesos con PBC
+  descargado, texto extraido, embedding generado y etiqueta binaria usable.
+
+[Aclarar]
+- Si hubo corridas con `--max-doc-tokens`, `--shard`, multiples GPUs o cambios de
+  `chunk-batch-size`.
+- Los 680 textos sin embedding se consideran exclusion tecnica por limites de
+  memoria GPU/costo de infraestructura despues de una unica pasada de embedding.
+
+
+7. Sincronizacion local y entrenamiento
+
+Artefactos:
+- Los `.pt` se sincronizan localmente a `data/chunk_embeddings/` para entrenar.
+- MLflow subio algunos artefactos a `outcome-predictor/mlflow/`.
+
+Codigo:
+- `scripts/sync_embeddings_for_training.py`.
+- `scripts/train_cv_mlflow.py`.
+- Scripts de baselines en `scripts/` y `paper/scripts/`.
+
+Inferencia:
+- El entrenamiento y las metricas del paper se basan en los 1,162 embeddings con
+  `y`.
+- El tracking store principal de MLflow parece ser SQLite local (`data/mlflow.db`)
+  y Spaces se uso para artefactos pesados o JSONs especificos.
+
+[Aclarar]
+- Confirmar que el PDF/paper final reporta metricas calculadas con exactamente
+  estos 1,162 `.pt`.
+- Confirmar si hay artefactos MLflow locales no presentes en Spaces que deban
+  preservarse para reproducibilidad.
+
+
+Tabla compacta del funnel actual
+--------------------------------
+
+1. IDs `complete` desde repo anterior:
+   10,000 procesos (`tagging/ids/ids.json` -> `procurements.json`).
+
+2. IDs no exitosos desde DNCP:
+   257 `unsuccessful` + 371 `cancelled` = 628 procesos.
+
+3. Dataset unificado:
+   10,628 procesos.
+
+4. PBC PDF descargado:
+   1,845 procesos.
+
+5. Texto extraido:
+   1,842 procesos.
+
+6. Embedding generado:
+   1,162 procesos.
+
+7. Dataset supervisado final:
+   1,162 procesos = 844 positivos (`complete`) + 318 negativos
+   (`unsuccessful`/`cancelled`).
+
+
+Version corta posible para el paper
+-----------------------------------
+
+The initial procurement pool contained 10,628 processes: 10,000 completed
+processes materialized from a previous DNCP scraping pipeline and 628 additional
+non-successful processes collected by status from the DNCP API. The PBC retrieval
+stage obtained 1,845 PDF bidding documents, of which 1,842 were successfully
+converted to text. Embedding generation with the frozen LLM succeeded for 1,162
+documents, yielding the supervised subset used in the experiments: 844 completed
+and 318 non-successful procurements. The main loss between text extraction and
+the final experimental subset was due to embedding failures, mostly GPU
+out-of-memory errors on long documents.
+
+
+Notas para no sobreafirmar
+--------------------------
+
+- No decir que el subset final es representativo del universo DNCP.
+- No decir que los 1,845 PBC son todos los PBC disponibles en DNCP; son los PBC
+  efectivamente encontrados/descargados por este pipeline.
+- No mezclar `tagging/pdfs` (ADA/CCO del proyecto anterior) con
+  `outcome-predictor/pbcs/pdf` (PBC del paper actual).
+- No usar `tagging/results` como label del paper actual: esos resultados son de
+  `offererCount`, una tarea anterior distinta.
+- Documentar los 680 textos sin embedding como exclusion tecnica observada, no
+  como criterio conceptual del diseno experimental.
