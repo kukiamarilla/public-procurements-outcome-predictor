@@ -73,8 +73,9 @@ The processing funnel and failure modes are documented in `paper/funnel.txt`.
 ## Suggested Zenodo Metadata
 
 - Upload type: Software
-- Title: Public Procurements Outcome Predictor
-- Creator: Kuki Amarilla
+- Title: Lexical and LLM-Based Representations for Public Tender Outcome Prediction: A Comparative Study
+- Creators: Isaac Gabriel Amarilla Benitez; Luis Fernando Caballero Ramoa; Julio Manuel Paciello Coronel; Juan Ignacio Pane Fernandez
+- Affiliation: Universidad Nacional de Asunción
 - Related identifier: `https://github.com/kukiamarilla/public-procurements-outcome-predictor`
 - Keywords: public procurement, eGovernment, document classification, LLM embeddings, reproducible research
 - Description: Code, paper artifacts, and reproducibility documentation for predicting public procurement outcomes from bidding documents in Paraguay.

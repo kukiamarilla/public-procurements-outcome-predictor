@@ -25,10 +25,15 @@
 }
 
 \title{Lexical and LLM-Based Representations for Public Tender Outcome Prediction: A Comparative Study}
-\author{}
+\author{\IEEEauthorblockN{Isaac Gabriel Amarilla Benitez, Luis Fernando Caballero Ramoa,\\
+Julio Manuel Paciello Coronel, and Juan Ignacio Pane Fernandez}
+\IEEEauthorblockA{\footnotesize Universidad Nacional de Asunci\'on\\
+sc.amarilla@fpuna.edu.py, luisfercaballero27@fpuna.edu.py,\\
+julio.paciello@pol.una.py, jpane@pol.una.py}}
 
 \begin{document}
 \maketitle
+\vspace{-1.4em}
 
 \begin{abstract}
 This short paper compares lexical and LLM-based representations for predicting public tender outcomes from bidding documents. Using a processed subset of 1{,}162 road-construction procurements from public procurement data in Paraguay, we evaluate dummy baselines, TF--IDF with logistic regression, mean-pooled LLM embeddings, and a lightweight transformer over LLM chunk embeddings under deterministic stratified 5-fold cross-validation. TF--IDF with logistic regression provides the strongest ranking performance, reaching mean ROC AUC 0.814 and mean PR AUC 0.899. The cross-chunk transformer does not improve ranking over this lexical baseline, but achieves the best calibration, with mean Brier score 0.162, and shows the greatest stability under threshold tuning. Overall, this empirical and interpretive comparison indicates that bidding documents contain useful ex ante predictive signal and that ranking, calibration, and threshold behavior should be evaluated separately in public procurement monitoring.
@@ -187,21 +192,21 @@ Cross-chunk transformer: $\Delta$F1 / $\Delta$ Bal. Acc. & $+0.002 / +0.002$ \\
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{figures/pr_curve_cv.png}
+  \includegraphics[width=0.94\linewidth]{figures/pr_curve_cv.png}
   \caption{Comparative precision-recall curves from pooled out-of-fold predictions for the strongest lexical baseline (TF--IDF + logistic regression), the strongest mean-pooled dense baseline (MeanPool + MLP), and the cross-chunk transformer. The dashed horizontal line marks the positive prevalence baseline ($\pi \approx 0.726$). TF--IDF shows the strongest precision-recall trade-off overall, while both LLM-based models remain substantially above the no-skill baseline.}
   \label{fig:pr}
 \end{figure}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{figures/calibration_curve_cv.png}
+  \includegraphics[width=0.94\linewidth]{figures/calibration_curve_cv.png}
   \caption{Comparative calibration curves from pooled out-of-fold predictions for TF--IDF + logistic regression, MeanPool + MLP, and the cross-chunk transformer. The diagonal line indicates perfect calibration. Ranking and calibration do not coincide: the transformer remains closest to a useful calibrated probability signal, while TF--IDF is stronger as a ranking model than as a probability estimator.}
   \label{fig:calibration}
 \end{figure}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{figures/threshold_sensitivity_comparison.png}
+  \includegraphics[width=0.94\linewidth]{figures/threshold_sensitivity_comparison.png}
   \caption{Mean change in test-fold F1 and balanced accuracy after replacing the default threshold of $0.5$ with the F1-maximizing threshold selected on an inner validation split. Threshold tuning strongly improves F1 for TF--IDF + logistic regression, has mixed effects for mean-pooled models, and changes the cross-chunk transformer only marginally, indicating greater operating-point stability.}
   \label{fig:threshold-sensitivity}
 \end{figure}
@@ -231,7 +236,7 @@ Fourth, the main residual concern is not direct leakage from final outcome infor
 \section{Conclusion}
 This short paper presented a comparative study of lexical and LLM-based representations for public procurement outcome prediction from bidding documents. The results show that tender documents contain substantial predictive signal, but they also show that the strongest ranking model in the current setting is a classical lexical baseline, TF--IDF plus logistic regression. At the same time, the cross-chunk transformer over LLM embeddings achieves the best calibration and the strongest stability under threshold changes.
 
-The comparison also indicates that much of the useful dense signal is already present in the frozen chunk embeddings, since mean-pooled embedding baselines remain close to the transformer. This suggests that explicit cross-chunk interaction modeling does not currently provide a clear ranking advantage, although it may still offer practical value through more reliable probability estimates and more stable decision behavior. Future work should test other procurement domains and frozen encoders, while adding intermediate static-embedding baselines such as averaged Word2Vec representations \cite{mikolov2013word2vec}.
+The comparison also indicates that much of the useful dense signal is already present in the frozen chunk embeddings, since mean-pooled embedding baselines remain close to the transformer. This suggests that explicit cross-chunk interaction modeling does not currently provide a clear ranking advantage, although it may still offer practical value through more reliable probability estimates and more stable decision behavior. Future work should test other procurement domains and frozen encoders.
 
 The main contribution of the study is therefore this empirical and interpretive comparison. It shows that lexical features capture a large share of the predictive signal in this domain, that pretrained dense representations remain useful, and that ranking quality, calibration, and threshold sensitivity should be analyzed separately. These findings connect the machine-learning benchmark to the needs of digital public governance: before predictive tools can support procurement transparency, accountability, or civic oversight, their signals, limitations, and operating behavior must be made explicit.
 
@@ -256,11 +261,6 @@ Sida Wang and Christopher D. Manning.
 R. A. Alva Principe, N. Chiarini, and M. Viviani.
 \newblock Long Document Classification in the Transformer Era: A Survey on Challenges, Advances and Open Issues.
 \newblock \emph{WIREs Data Mining and Knowledge Discovery}, 15(2):e70019, 2025.
-
-\bibitem{mikolov2013word2vec}
-Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean.
-\newblock Efficient Estimation of Word Representations in Vector Space.
-\newblock \emph{arXiv preprint arXiv:1301.3781}, 2013.
 
 \bibitem{agarwal2025gptoss}
 S. Agarwal et al.
