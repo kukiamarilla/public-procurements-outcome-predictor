@@ -88,3 +88,7 @@ uv run python scripts/etl/merge_and_download_pbcs.py --dry-run
 uv run python scripts/etl/merge_and_download_pbcs.py
 uv run python scripts/etl/merge_and_download_pbcs.py --limit 30   # prueba con las primeras 30 licitaciones
 ```
+
+## Paper (LaTeX / ICEDEG)
+
+El artículo IEEE y material de envío vive bajo **`paper/`**. Resumen de carpetas: manuscrito y `figures/`, plantillas IEEE de referencia en **`paper/vendor/`**, y el paquete listo para EasyChair en **`paper/submission/camera_ready_ICEDEG/`** (ver `paper/README.md` y `paper/camera_ready_README.txt`).
