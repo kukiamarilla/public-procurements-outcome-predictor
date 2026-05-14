@@ -38,6 +38,7 @@ mlartifacts/
 
 # LaTeX (local noise)
 paper/missfont.log
+paper/*.blg
 
 # OS / IDE
 .DS_Store
