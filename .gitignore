@@ -36,6 +36,9 @@ mlartifacts/
 # Jupyter
 .ipynb_checkpoints/
 
+# LaTeX (local noise)
+paper/missfont.log
+
 # OS / IDE
 .DS_Store
 .idea/
