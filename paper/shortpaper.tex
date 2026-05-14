@@ -1,39 +1,42 @@
 \documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\renewcommand{\ttdefault}{cmtt}
+% Formatting follows the IEEE conference \LaTeX{} template (IEEE-conference-template-062824, Jun.\ 2024) with the matching \texttt{IEEEtran.cls}.
 
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{lmodern}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{array}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{hyperref}
-\usepackage{microtype}
-\usepackage{xcolor}
-\setlength{\textfloatsep}{8pt plus 1pt minus 2pt}
-\setlength{\floatsep}{6pt plus 1pt minus 2pt}
-\setlength{\intextsep}{8pt plus 1pt minus 2pt}
-\setlength{\abovecaptionskip}{4pt}
-\setlength{\belowcaptionskip}{0pt}
-
-\hypersetup{
-  colorlinks=true,
-  linkcolor=blue!50!black,
-  citecolor=blue!50!black,
-  urlcolor=blue!50!black
-}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \title{Lexical and LLM-Based Representations for Public Tender Outcome Prediction: A Comparative Study}
-\author{\IEEEauthorblockN{Isaac Gabriel Amarilla Benitez, Luis Fernando Caballero Ramoa,\\
-Julio Manuel Paciello Coronel, and Juan Ignacio Pane Fernandez}
-\IEEEauthorblockA{\footnotesize Universidad Nacional de Asunci\'on\\
-sc.amarilla@fpuna.edu.py, luisfercaballero27@fpuna.edu.py,\\
-julio.paciello@pol.una.py, jpane@pol.una.py}}
+\author{\IEEEauthorblockN{Isaac Gabriel Amarilla Benitez}
+\IEEEauthorblockA{\textit{Universidad Nacional de Asunci\'on}\\
+Asunci\'on, Paraguay\\
+sc.amarilla@fpuna.edu.py}
+\and
+\IEEEauthorblockN{Luis Fernando Caballero Ramoa}
+\IEEEauthorblockA{\textit{Universidad Nacional de Asunci\'on}\\
+Asunci\'on, Paraguay\\
+luisfercaballero27@fpuna.edu.py}
+\and
+\IEEEauthorblockN{Julio Manuel Paciello Coronel}
+\IEEEauthorblockA{\textit{Universidad Nacional de Asunci\'on}\\
+Asunci\'on, Paraguay\\
+julio.paciello@pol.una.py}
+\and
+\IEEEauthorblockN{Juan Ignacio Pane Fernandez}
+\IEEEauthorblockA{\textit{Universidad Nacional de Asunci\'on}\\
+Asunci\'on, Paraguay\\
+jpane@pol.una.py}
+}
 
 \begin{document}
 \maketitle
-\vspace{-1.4em}
 
 \begin{abstract}
 This short paper compares lexical and LLM-based representations for predicting public tender outcomes from bidding documents. Using a processed subset of 1{,}162 road-construction procurements from public procurement data in Paraguay, we evaluate dummy baselines, TF--IDF with logistic regression, mean-pooled LLM embeddings, and a lightweight transformer over LLM chunk embeddings under deterministic stratified 5-fold cross-validation. TF--IDF with logistic regression provides the strongest ranking performance, reaching mean ROC AUC 0.814 and mean PR AUC 0.899. The cross-chunk transformer does not improve ranking over this lexical baseline, but achieves the best calibration, with mean Brier score 0.162, and shows the greatest stability under threshold tuning. Overall, this empirical and interpretive comparison indicates that bidding documents contain useful ex ante predictive signal and that ranking, calibration, and threshold behavior should be evaluated separately in public procurement monitoring.
@@ -50,7 +53,7 @@ This paper studies that question through a direct comparison between sparse lexi
 
 Our pipeline uses a pretrained causal LLM as a frozen encoder to produce chunk-level embeddings from Spanish tender documents. We compare two simple aggregation strategies over these embeddings, based on mean pooling, against a lightweight transformer that models cross-chunk interactions. These LLM-based approaches are evaluated alongside TF--IDF plus logistic regression and trivial dummy baselines. This design makes it possible to separate representation effects from downstream modeling effects.
 
-This study provides a reproducible comparison across lexical, dummy, pooled-embedding, and cross-chunk transformer baselines under deterministic 5-fold cross-validation. It also analyzes ranking performance, calibration, and threshold sensitivity separately. The central result is nuanced: TF--IDF plus logistic regression is the strongest ranking model, while the cross-chunk transformer offers the best calibration and the most stable behavior under threshold changes. This is useful evidence for the broader question of how textual signal is distributed in public tender documents. The associated artifacts are archived on Zenodo: \href{https://doi.org/10.5281/zenodo.20128769}{doi:10.5281/zenodo.20128769}.
+This study provides a reproducible comparison across lexical, dummy, pooled-embedding, and cross-chunk transformer baselines under deterministic 5-fold cross-validation. It also analyzes ranking performance, calibration, and threshold sensitivity separately. The central result is nuanced: TF--IDF plus logistic regression is the strongest ranking model, while the cross-chunk transformer offers the best calibration and the most stable behavior under threshold changes. This is useful evidence for the broader question of how textual signal is distributed in public tender documents. The associated artifacts are archived on Zenodo (doi:10.5281/zenodo.20128769).
 
 \section{Task Definition}
 The prediction task is binary classification over procurements for which both a usable bidding document and an outcome label are available. Each example corresponds to one procurement process paired with one extracted PBC document. The target variable is operationalized from the procurement status field as follows:
