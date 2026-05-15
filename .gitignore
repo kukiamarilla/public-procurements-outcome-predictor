@@ -39,6 +39,13 @@ mlartifacts/
 # LaTeX (local noise)
 paper/missfont.log
 paper/*.blg
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/test_auth.*
+paper/submission/**/*.aux
+paper/submission/**/*.log
+paper/submission/**/*.out
 
 # OS / IDE
 .DS_Store
