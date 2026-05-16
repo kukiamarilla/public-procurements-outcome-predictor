@@ -1,4 +1,5 @@
 \documentclass[conference]{IEEEtran}
+<<<<<<< HEAD
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -26,11 +27,52 @@
 
 \title{Lexical and LLM-Based Representations for Public Tender Outcome Prediction: A Comparative Study}
 \author{}
+=======
+\IEEEoverridecommandlockouts
+\renewcommand{\ttdefault}{cmtt}
+% Formatting follows the IEEE conference \LaTeX{} template (see paper/vendor/IEEE-conference-template-062824) with the matching \texttt{IEEEtran.cls}.
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\title{Lexical and LLM-Based Representations for Public Tender Outcome Prediction: A Comparative Study}
+\author{\IEEEauthorblockN{Isaac Gabriel Amarilla Benitez}
+\IEEEauthorblockA{\textit{Universidad Nacional de Asunci\'on}\\
+Asunci\'on, Paraguay\\
+sc.amarilla@fpuna.edu.py}
+\and
+\IEEEauthorblockN{Luis Fernando Caballero Ramoa}
+\IEEEauthorblockA{\textit{Universidad Nacional de Asunci\'on}\\
+Asunci\'on, Paraguay\\
+luisfercaballero27@fpuna.edu.py}
+\and
+\IEEEauthorblockN{Julio Manuel Paciello Coronel}
+\IEEEauthorblockA{\textit{Universidad Nacional de Asunci\'on}\\
+Asunci\'on, Paraguay\\
+julio.paciello@pol.una.py}
+\and
+\makebox[\textwidth][c]{%
+\begin{tabular}{c}
+{\sublargesize Juan Ignacio Pane Fernandez}\\[0.3ex]
+{\normalsize\textit{Universidad Nacional de Asunci\'on}}\\
+{\normalsize Asunci\'on, Paraguay}\\
+{\normalsize jpane@pol.una.py}
+\end{tabular}}
+}
+>>>>>>> paper-camera-ready-from-submission
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
+<<<<<<< HEAD
 This short paper compares lexical and LLM-based representations for predicting public tender outcomes from bidding documents. Using a processed subset of 1{,}162 road-construction procurements from Paraguay's Dirección Nacional de Contrataciones Públicas, we evaluate dummy baselines, TF--IDF with logistic regression, mean-pooled LLM embeddings, and a lightweight transformer over LLM chunk embeddings under deterministic stratified 5-fold cross-validation. TF--IDF with logistic regression provides the strongest ranking performance, reaching mean ROC AUC 0.814 and mean PR AUC 0.899. The cross-chunk transformer does not improve ranking over this lexical baseline, but achieves the best calibration, with mean Brier score 0.162, and shows the greatest stability under threshold tuning. The results indicate that bidding documents contain useful ex ante predictive signal and that ranking, calibration, and threshold behavior should be evaluated separately in public procurement monitoring.
 \end{abstract}
 
@@ -46,6 +88,23 @@ This paper studies that question through a direct comparison between sparse lexi
 Our pipeline uses a pretrained causal LLM as a frozen encoder to produce chunk-level embeddings from Spanish tender documents. We compare two simple aggregation strategies over these embeddings, based on mean pooling, against a lightweight transformer that models cross-chunk interactions. These LLM-based approaches are evaluated alongside TF--IDF plus logistic regression and trivial dummy baselines. This design makes it possible to separate representation effects from downstream modeling effects.
 
 This study contributes a reproducible empirical comparison across lexical, dummy, pooled-embedding, and cross-chunk transformer baselines under deterministic 5-fold cross-validation. It also analyzes ranking performance, calibration, and threshold sensitivity separately. The central result is nuanced: TF--IDF plus logistic regression is the strongest ranking model, while the cross-chunk transformer offers the best calibration and the most stable behavior under threshold changes. This is useful evidence for the broader question of how textual signal is distributed in public tender documents.
+=======
+We compare lexical and LLM-based text representations for predicting public tender outcomes from bidding documents in a processed subset of 1{,}162 road-construction procurements (Paraguay). Under stratified 5-fold cross-validation, TF--IDF with logistic regression yields the strongest ranking (mean ROC AUC 0.814, PR AUC 0.899), while a lightweight cross-chunk transformer over frozen LLM chunk embeddings achieves the best calibration (Brier 0.162) and the most stable behavior under threshold tuning. The study highlights that procurement documents carry ex ante predictive signal and that ranking, calibration, and threshold sensitivity should be assessed separately for monitoring. Artifacts: doi:10.5281/zenodo.20128769.
+\end{abstract}
+
+\begin{IEEEkeywords}
+public procurement, eGovernment, eDemocracy, tender documents, large language models, outcome prediction
+\end{IEEEkeywords}
+
+\section{Introduction}
+Public procurement is a core eGovernment process: it translates public budgets into contracts, works, and services through increasingly digital platforms. It is also relevant to eDemocracy because open procurement records expand the capacity of oversight bodies, journalists, firms, and citizens to scrutinize how public resources are allocated. These capabilities align with digital-government agendas on open data and accountable analytics for public-sector oversight. Recent public-sector work frames procurement analytics as a tool for risk-based oversight \cite{salazar2024vigia}. Bidding documents are central to this setting because they define administrative conditions, technical requirements, qualification rules, and delivery constraints before the final outcome is known. Recent procurement-domain evidence also shows that call descriptions can predict competition and cost-effectiveness outcomes \cite{acikalin2024procurementcalls}. The relevant question is therefore not only whether tender outcomes can be predicted from document text, but also which representation of that text is most informative for accountable public-procurement monitoring.
+
+This paper studies that question through a direct comparison between sparse lexical features and LLM-based dense representations. The analysis focuses on road construction tenders, whose bidding documents are often relatively structured and standardized. Sparse lexical models remain strong and interpretable baselines in document classification \cite{wang2012baselines}, and recent long-document work confirms that lexical or hybrid representations can remain competitive rather than being uniformly dominated by transformer architectures \cite{alvaprincipe2025survey}. At the same time, embedding research has expanded toward LLM-based dense representations \cite{wang2024improvingembeddings}. In the present setting, the goal is not to establish a universally superior model family, but to understand how much predictive signal can be recovered from lexical cues, how much is already captured in frozen dense embeddings, and whether explicit cross-chunk modeling provides additional value.
+
+Our pipeline uses a pretrained causal LLM as a frozen encoder to produce chunk-level embeddings from Spanish tender documents. We compare two simple aggregation strategies over these embeddings, based on mean pooling, against a lightweight transformer that models cross-chunk interactions. These LLM-based approaches are evaluated alongside TF--IDF plus logistic regression and trivial dummy baselines. This design makes it possible to separate representation effects from downstream modeling effects.
+
+This study provides a reproducible comparison across lexical, dummy, pooled-embedding, and cross-chunk transformer baselines under deterministic 5-fold cross-validation. It also analyzes ranking performance, calibration, and threshold sensitivity separately. The central result is nuanced: TF--IDF plus logistic regression is the strongest ranking model, while the cross-chunk transformer offers the best calibration and the most stable behavior under threshold changes. This is useful evidence for the broader question of how textual signal is distributed in public tender documents. The associated artifacts are archived on Zenodo (doi:10.5281/zenodo.20128769).
+>>>>>>> paper-camera-ready-from-submission
 
 \section{Task Definition}
 The prediction task is binary classification over procurements for which both a usable bidding document and an outcome label are available. Each example corresponds to one procurement process paired with one extracted PBC document. The target variable is operationalized from the procurement status field as follows:
@@ -59,7 +118,11 @@ Records with other statuses are excluded from supervised training and evaluation
 
 \section{Method}
 \subsection{Document Representation}
+<<<<<<< HEAD
 Each PBC document is first converted from PDF to text by the upstream extraction pipeline. The resulting text is tokenized and split into overlapping chunks. In the current implementation, the chunk length is 4096 tokens with a stride of 2048 tokens. A pretrained causal language model, \texttt{openai/gpt-oss-20b}, is used as a frozen document encoder. It was selected as a high-capacity general-purpose encoder that avoids task-specific fine-tuning and keeps the comparison focused on document representations and downstream aggregation under limited computational resources. Chunks are processed in micro-batches to reduce GPU memory pressure.
+=======
+Each PBC document is first converted from PDF to text by the upstream extraction pipeline. The resulting text is tokenized and split into overlapping chunks. In the current implementation, the chunk length is 4096 tokens with a stride of 2048 tokens. A pretrained causal language model, \texttt{openai/gpt-oss-20b}, is used as a frozen document encoder \cite{agarwal2025gptoss}. This model was selected as a practical open-weight LLM for extracting dense representations from Spanish procurement text while keeping the experimental pipeline reproducible. Freezing the encoder also avoids fine-tuning a large model on a modest dataset and makes the comparison focus on how much signal is available in the pretrained representations and how it is aggregated downstream, consistent with recent work on LLM-based text embeddings \cite{wang2024improvingembeddings}. Chunks are processed in micro-batches to reduce GPU memory pressure.
+>>>>>>> paper-camera-ready-from-submission
 
 For every chunk, the system extracts the hidden representation associated with the last valid token. The output for one procurement document is therefore a sequence of chunk embeddings:
 \[
@@ -90,11 +153,16 @@ To interpret the LLM-based results, we evaluate three classes of baselines.
 
 First, we use two dummy references: a majority-class classifier and a random classifier with positive rate matched to the empirical class prevalence. These baselines establish the expected no-skill region, where ROC AUC should be near $0.5$ and PR AUC should be near the positive prevalence.
 
+<<<<<<< HEAD
 Second, we use a lexical baseline based on TF--IDF features with up to 50{,}000 unigram and bigram features, minimum document frequency $5$, and a logistic-regression classifier with balanced class weights. Linear bag-of-words baselines of this kind are standard, strong references in text classification \cite{wang2012baselines,joulin2017bag}.
+=======
+Second, we use a lexical baseline based on TF--IDF features with up to 50{,}000 unigram and bigram features, minimum document frequency $5$, and a logistic-regression classifier with balanced class weights. We use TF--IDF rather than static dense embeddings such as Word2Vec because it provides a strong, interpretable bag-of-words reference that remains competitive in long-document settings \cite{wang2012baselines,alvaprincipe2025survey} and isolates the comparison against frozen LLM representations without adding another trainable embedding stage on limited supervision. Linear bag-of-words baselines of this kind are standard references in text classification \cite{wang2012baselines}, and recent long-document evidence suggests that lexical representations remain competitive in some settings \cite{alvaprincipe2025survey}.
+>>>>>>> paper-camera-ready-from-submission
 
 Third, we define two intermediate LLM baselines using the same pretrained chunk embeddings as the main system but replacing the cross-chunk transformer with simpler document-level aggregation. In the first variant, chunk embeddings are mean-pooled and fed to logistic regression. In the second, the same mean-pooled representation is fed to a small multilayer perceptron with one hidden layer. These baselines isolate the value of the representation from the value of explicit cross-chunk interaction modeling.
 
 \subsection{Training and Reproducibility}
+<<<<<<< HEAD
 Training is performed with AdamW, learning rate $10^{-4}$, weight decay $0.01$, batch size $8$, and up to $50$ epochs. Early stopping monitors validation loss with patience set to $5$, and the best validation checkpoint is restored at the end of each fold.
 
 Because this study is intended for academic reporting, reproducibility is treated as a first-class concern. The training script fixes seeds for Python, NumPy, and PyTorch; configures deterministic cuDNN behavior; uses a fixed random generator for the training dataloader; and reinitializes the random state independently at the beginning of every fold. As a result, repeated runs with the same seed, data, and software environment are expected to produce the same splits and the same training trajectory, modulo rare low-level differences across hardware or driver stacks.
@@ -104,6 +172,15 @@ Because this study is intended for academic reporting, reproducibility is treate
 The metadata snapshot used in this paper was constructed from public procurement records published by the Dirección Nacional de Contrataciones Públicas (DNCP) of Paraguay and retrieved through the official open-data API endpoint \texttt{v3/doc/search/processes}. The initial query restricted the sample to processes with status \texttt{complete} and to items classified under catalog code \texttt{72131701}, which corresponds to the road construction and paving domain. The resulting dataset is therefore domain-specific to road construction tenders and combines structured procurement metadata with associated PDF documents, including PBC files and additional public documents from the same source used to support labeling. The full snapshot contains 10{,}628 procurement records in an OCDS-like schema, together with references to associated PBC files.
 
 The supervised subset used for modeling is smaller because each procurement must have an available PBC, successful text extraction, precomputed embeddings, and a status belonging to the final binary target classes. After applying these constraints, the effective dataset contains 1{,}162 examples. The collection process was automated rather than manually curated, and the resulting subset was shaped by document availability, extraction success, embedding-generation feasibility, and processing constraints rather than by a sampling design targeted at representativeness. The conclusions therefore apply to the processed subset rather than automatically to the full procurement population.
+=======
+Training uses AdamW, learning rate $10^{-4}$, weight decay $0.01$, batch size $8$, and up to $50$ epochs. Within each cross-validation round, an epoch is one full pass over that round's training portion. After each epoch, validation loss is computed on the held-out portion for that round; if it does not improve for five consecutive epochs, training stops and the best checkpoint is restored. Reproducibility is controlled through fixed seeds, deterministic cuDNN behavior, seeded dataloaders, and independent random-state resets at the beginning of each fold.
+
+\section{Experimental Setup}
+\subsection{Dataset}
+The metadata snapshot used in this paper was constructed from public procurement records published by the Dirección Nacional de Contrataciones Públicas (DNCP) of Paraguay and retrieved through the official open-data API endpoint \texttt{v3/doc/search/processes}. The initial pool contains 10{,}628 road-construction procurements under catalog code \texttt{72131701}: 10{,}000 completed processes materialized from a previous DNCP scraping pipeline and 628 additional non-successful processes collected by status. To reduce class imbalance, retrieval and processing prioritized non-successful procurements before completed ones.
+
+The supervised subset is smaller because several filtering steps are required. The largest reduction occurs before text processing: only 1{,}845 PBC PDFs were retrieved, mainly because DNCP rate limits made exhaustive tender lookup and document download infeasible within the available time. The pipeline then extracted text from 1{,}842 PDFs and generated frozen-LLM embeddings for 1{,}162 documents. The three text-extraction failures corresponded to scanned documents unsupported by the non-OCR extractor, while most embedding failures were GPU out-of-memory errors after a single pass constrained by infrastructure cost. The conclusions therefore apply to this processed subset rather than automatically to the full procurement population.
+>>>>>>> paper-camera-ready-from-submission
 
 Class distribution in the processed subset is moderately imbalanced: 844 procurements ($72.63\%$) are labeled as successful (\texttt{complete}) and 318 ($27.37\%$) as non-successful (\texttt{unsuccessful}/\texttt{cancelled}/\texttt{canceled}). The average represented document length is 7.46 chunks per procurement, with a standard deviation of 13.52, a median of 3 chunks, and a maximum of 245 chunks. These values indicate a highly skewed length distribution, with many short documents and a smaller number of substantially longer documents. The embedding dimension inherited from the frozen base LLM is 2880.
 
@@ -115,9 +192,15 @@ The model operates exclusively on information available at inference time. All i
 Accordingly, the main remaining validity concern is not obvious post hoc target leakage. Rather, the more plausible concerns are indirect predictive correlations and limited representativeness. Tender documents may encode structural, institutional, or stylistic regularities that are predictive of outcome without being causal in themselves. Such regularities are legitimate for ex ante prediction because they are available at decision time, but they should not be interpreted as direct causal drivers of procurement success or failure.
 
 \subsection{Evaluation Protocol}
+<<<<<<< HEAD
 The model is evaluated with stratified 5-fold cross-validation. This choice reflects a standard trade-off between robustness of performance estimates and computational cost. Stratification is important here because the positive class is not balanced: approximately 72.6\% of the validation examples correspond to successful outcomes. By preserving class proportions across folds, the protocol reduces unnecessary variance in threshold-sensitive metrics such as F1-score, balanced accuracy, and PR AUC.
 
 For each fold, the model is trained on four partitions and evaluated on the held-out partition; reported performance is therefore cross-validated rather than based on a single fixed test set. The paper figures use out-of-fold predictions, so every plotted prediction corresponds to a procurement held out from the model that produced it. In a second analysis, threshold sensitivity is examined with a nested procedure: inside each outer training fold, an inner validation split selects the F1-maximizing threshold, which is then evaluated on the held-out outer fold.
+=======
+The model is evaluated with stratified 5-fold cross-validation. The 1{,}162-example processed subset is divided into five label-preserving folds, so each round uses roughly four fifths of the data for model fitting and one fifth as a held-out out-of-fold (OOB) evaluation partition. In concrete terms, each round trains on about 930 procurements and evaluates on about 232 procurements that were not used to fit that round's model.
+
+Stratification is important because the positive class is not balanced: approximately 72.6\% of the processed subset corresponds to successful outcomes. Preserving this prevalence across folds reduces avoidable variation in F1-score, balanced accuracy, and PR AUC. The final reported values are the mean and standard deviation across the five held-out folds. For the threshold-sensitivity analysis, the four training folds of each round are split once more into an inner training portion and an inner validation portion; the threshold that maximizes F1 on the inner validation portion is then applied to the same round's OOB evaluation fold.
+>>>>>>> paper-camera-ready-from-submission
 
 \subsection{Metrics}
 The evaluation uses the following metrics:
@@ -131,7 +214,11 @@ The evaluation uses the following metrics:
   \item \textbf{Log loss}, as a proper scoring rule over predicted probabilities.
 \end{itemize}
 
+<<<<<<< HEAD
 Because PR AUC can be misleading when the positive class is frequent, it is interpreted together with the positive prevalence $\pi$ in the validation folds. In the current implementation, the system therefore also logs \texttt{positive\_prevalence} and \texttt{pr\_auc\_excess\_over\_prevalence}, where the latter is defined as PR AUC minus $\pi$. This quantity provides a compact estimate of how much the model improves over the positive-class frequency as a reference level commonly used when discussing no-skill PR behavior in imbalanced settings.
+=======
+Metric choice under imbalance depends on the operational objective: PR-based summaries emphasize positive-class retrieval, while ROC AUC and PR AUC respond differently to prevalence and should be interpreted in context \cite{richardson2024roc}. Because PR AUC can be misleading when the positive class is frequent, it is interpreted together with the positive prevalence $\pi$ in the held-out cross-validation folds. In the current implementation, the system therefore also logs \texttt{positive\_prevalence} and \texttt{pr\_auc\_excess\_over\_prevalence}, where the latter is defined as PR AUC minus $\pi$. This quantity provides a compact estimate of how much the model improves over the positive-class frequency as a reference level commonly used when discussing no-skill PR behavior in imbalanced settings.
+>>>>>>> paper-camera-ready-from-submission
 
 \section{Results}
 \subsection{Ranking Performance}
@@ -143,7 +230,11 @@ Among the non-trivial models, TF--IDF plus logistic regression yields the strong
 Threshold-sensitive behavior reveals a different pattern. At the default threshold of $0.5$, the cross-chunk transformer attains the highest F1-score ($0.858$ in the original 5-fold evaluation). However, the dedicated threshold-sensitivity experiment shows that not all models react similarly to threshold optimization. For TF--IDF plus logistic regression, selecting the validation threshold that maximizes F1 increases test-fold F1 by $0.103$ on average, but does not improve balanced accuracy on average. Mean-pooled logistic regression shows only a modest F1 gain ($+0.014$) and a mean decrease in balanced accuracy ($-0.049$). By contrast, the cross-chunk transformer changes little under threshold tuning (mean $\Delta$F1 $=+0.002$, mean $\Delta$ balanced accuracy $=+0.002$), suggesting that the default threshold of $0.5$ is already near a stable operating point. The mean-pooled MLP is intermediate: its F1 barely changes, but its balanced accuracy improves on average when the threshold is tuned. Fig.~\ref{fig:threshold-sensitivity} summarizes this contrast visually and makes clear that threshold optimization mostly benefits the lexical model's F1 rather than all models uniformly.
 
 \subsection{Calibration}
+<<<<<<< HEAD
 Calibration tells a different story from ranking. The cross-chunk transformer achieves the best Brier score ($0.162$), followed by the mean-pooled MLP ($0.165$), while TF--IDF plus logistic regression is weaker ($0.179$) and mean-pooled logistic regression is substantially worse ($0.201$). This pattern indicates that lexical features can be highly effective for ranking examples, but that LLM-based dense representations provide more reliable probabilities. Fig.~\ref{fig:calibration} is consistent with this interpretation: among the three most informative model families, the transformer remains closest to the diagonal across much of the probability range, while TF--IDF shows stronger ranking than calibration. This matters because model selection in public-procurement monitoring may depend not only on ranking but also on whether predicted probabilities can support downstream triage or risk scoring \cite{guo2017calibration}.
+=======
+Calibration tells a different story from ranking. The cross-chunk transformer achieves the best Brier score ($0.162$), followed by the mean-pooled MLP ($0.165$), while TF--IDF plus logistic regression is weaker ($0.179$) and mean-pooled logistic regression is substantially worse ($0.201$). This pattern indicates that lexical features can be highly effective for ranking examples, but that LLM-based dense representations provide more reliable probabilities. Fig.~\ref{fig:calibration} is consistent with this interpretation: among the three most informative model families, the transformer remains closest to the diagonal across much of the probability range, while TF--IDF shows stronger ranking than calibration. This matters because model selection in public-procurement monitoring may depend not only on ranking but also on whether predicted probabilities can support downstream triage or risk scoring \cite{silvafilho2023calibration}.
+>>>>>>> paper-camera-ready-from-submission
 
 \subsection{Representation Comparison}
 The comparison between mean-pooled embeddings and the cross-chunk transformer is informative in its own right. If the main value of the LLM representation came only from cross-chunk interactions, one would expect the transformer to dominate the mean-pooled baselines. That does not happen. Mean-pooled MLP slightly exceeds the transformer on ROC AUC and PR AUC, while mean-pooled logistic regression achieves substantially higher balanced accuracy. These results suggest that a large fraction of the predictive information is already encoded in the frozen chunk embeddings themselves, and that explicit cross-chunk modeling provides only limited gains in the current setup. The main advantage of the transformer appears to be calibration and stable threshold behavior rather than clearly superior ranking.
@@ -189,21 +280,33 @@ Cross-chunk transformer: $\Delta$F1 / $\Delta$ Bal. Acc. & $+0.002 / +0.002$ \\
 
 \begin{figure}[t]
   \centering
+<<<<<<< HEAD
   \includegraphics[width=\linewidth]{figures/pr_curve_cv.png}
+=======
+  \includegraphics[width=0.94\linewidth]{figures/pr_curve_cv.png}
+>>>>>>> paper-camera-ready-from-submission
   \caption{Comparative precision-recall curves from pooled out-of-fold predictions for the strongest lexical baseline (TF--IDF + logistic regression), the strongest mean-pooled dense baseline (MeanPool + MLP), and the cross-chunk transformer. The dashed horizontal line marks the positive prevalence baseline ($\pi \approx 0.726$). TF--IDF shows the strongest precision-recall trade-off overall, while both LLM-based models remain substantially above the no-skill baseline.}
   \label{fig:pr}
 \end{figure}
 
 \begin{figure}[t]
   \centering
+<<<<<<< HEAD
   \includegraphics[width=\linewidth]{figures/calibration_curve_cv.png}
+=======
+  \includegraphics[width=0.94\linewidth]{figures/calibration_curve_cv.png}
+>>>>>>> paper-camera-ready-from-submission
   \caption{Comparative calibration curves from pooled out-of-fold predictions for TF--IDF + logistic regression, MeanPool + MLP, and the cross-chunk transformer. The diagonal line indicates perfect calibration. Ranking and calibration do not coincide: the transformer remains closest to a useful calibrated probability signal, while TF--IDF is stronger as a ranking model than as a probability estimator.}
   \label{fig:calibration}
 \end{figure}
 
 \begin{figure}[t]
   \centering
+<<<<<<< HEAD
   \includegraphics[width=\linewidth]{figures/threshold_sensitivity_comparison.png}
+=======
+  \includegraphics[width=0.94\linewidth]{figures/threshold_sensitivity_comparison.png}
+>>>>>>> paper-camera-ready-from-submission
   \caption{Mean change in test-fold F1 and balanced accuracy after replacing the default threshold of $0.5$ with the F1-maximizing threshold selected on an inner validation split. Threshold tuning strongly improves F1 for TF--IDF + logistic regression, has mixed effects for mean-pooled models, and changes the cross-chunk transformer only marginally, indicating greater operating-point stability.}
   \label{fig:threshold-sensitivity}
 \end{figure}
@@ -219,20 +322,32 @@ The cross-chunk transformer nevertheless retains an important advantage: calibra
 
 Some of the predictive signal may reflect document complexity, institutional writing practices, procedural standardization, or other latent textual regularities. Such signals are legitimate for prediction because they are available ex ante, at the time the document is issued. However, they should not be interpreted as causal drivers of procurement outcomes.
 
+<<<<<<< HEAD
 Overall, the comparison is informative even without a single dominant winner. It shows that lexical models are very competitive in this domain, that frozen LLM embeddings already capture much of the useful dense signal, and that the principal comparative advantage of the transformer lies in calibration and threshold stability rather than in raw ranking performance.
 
 \section{Limitations}
 Several limitations should qualify the interpretation of these results. First, the supervised dataset is a processed subset rather than a representative sample of the full procurement population. Inclusion required document availability, successful text extraction, successful embedding generation, and one of the two final target statuses. These requirements may exclude procurements in non-random ways, so the conclusions should be understood as applying to the processed subset.
+=======
+Overall, the comparison is informative even without a single dominant winner. For eGovernment and eDemocracy applications, this is precisely the point: procurement monitoring systems require more than a high ranking score. They also need calibrated probabilities, transparent baselines, and thresholds whose behavior can be explained before they are used to prioritize human attention. The results show that lexical models are very competitive in this domain, that frozen LLM embeddings already capture much of the useful dense signal, and that the principal comparative advantage of the transformer lies in calibration and threshold stability rather than in raw ranking performance.
+
+\section{Limitations}
+Several limitations should qualify the interpretation of these results. First, the supervised dataset is a processed subset rather than a representative sample of the full procurement population. Inclusion required document availability, successful text extraction, successful embedding generation, and one of the two final target statuses. Because this filtering was driven mainly by time and budget constraints in extraction and processing, the conclusions should be understood as applying to the processed subset.
+>>>>>>> paper-camera-ready-from-submission
 
 Second, the processed subset is less imbalanced than the real-world procurement population. The experimental data contain roughly $73\%$ positive examples, whereas the broader population is much more skewed toward successful outcomes, on the order of roughly $94\%$ positive. This difference matters because threshold-dependent metrics and prevalence-sensitive interpretations are not invariant to class balance. Reported operating points should therefore not be treated as directly deployable without recalibration in the target environment.
 
 Third, threshold non-transferability is a practical concern. Validation-optimized thresholds improve some metrics in the present sample, especially for TF--IDF plus logistic regression, but those thresholds may shift under different prevalences, institutional settings, or error-cost assumptions. Threshold tuning should therefore be interpreted as an analysis tool for this dataset rather than as a universal prescription.
 
+<<<<<<< HEAD
 Fourth, the main residual concern is not direct leakage from final outcome information. Because the documents are produced during the call-for-tender stage, such direct leakage appears unlikely. The more relevant risks are indirect predictive correlations, shortcut learning, limited representativeness, and distribution mismatch. For example, models may exploit institutional or stylistic regularities that are predictive in this dataset but less stable across agencies, periods, or procurement categories. The findings may also be domain-specific to road construction procurement; future validation should therefore examine other domains, encoders, and outcome prevalences before treating the reported operating points as transferable.
+=======
+Fourth, the main residual concern is not direct leakage from final outcome information. Because the documents are produced during the call-for-tender stage, such direct leakage appears unlikely. The more relevant risks are indirect predictive correlations, shortcut learning, limited representativeness, and distribution mismatch. For example, models may exploit institutional or stylistic regularities that are predictive in this dataset but less stable across agencies, periods, or procurement categories. The findings may also be domain-specific to road construction procurement and may not transfer unchanged to other procurement categories.
+>>>>>>> paper-camera-ready-from-submission
 
 \section{Conclusion}
 This short paper presented a comparative study of lexical and LLM-based representations for public procurement outcome prediction from bidding documents. The results show that tender documents contain substantial predictive signal, but they also show that the strongest ranking model in the current setting is a classical lexical baseline, TF--IDF plus logistic regression. At the same time, the cross-chunk transformer over LLM embeddings achieves the best calibration and the strongest stability under threshold changes.
 
+<<<<<<< HEAD
 The comparison also indicates that much of the useful dense signal is already present in the frozen chunk embeddings, since mean-pooled embedding baselines remain close to the transformer. This suggests that explicit cross-chunk interaction modeling does not currently provide a clear ranking advantage, although it may still offer practical value through more reliable probability estimates and more stable decision behavior.
 
 The main contribution of the study is a reproducible empirical comparison of document representations for this task. It shows that lexical features capture a large share of the predictive signal in this domain, that pretrained dense representations remain useful, and that ranking quality, calibration, and threshold sensitivity should be analyzed separately. These findings provide a more precise basis for understanding what current tender-document models are learning and how their behavior should be interpreted under realistic deployment constraints.
@@ -295,5 +410,13 @@ Ian Goodfellow, Yoshua Bengio, and Aaron Courville.
 \newblock MIT Press, 2016.
 
 \end{thebibliography}
+=======
+The comparison also indicates that much of the useful dense signal is already present in the frozen chunk embeddings, since mean-pooled embedding baselines remain close to the transformer. This suggests that explicit cross-chunk interaction modeling does not currently provide a clear ranking advantage, although it may still offer practical value through more reliable probability estimates and more stable decision behavior. Future work should test other procurement domains and frozen encoders.
+
+The main contribution of the study is therefore this empirical and interpretive comparison. It shows that lexical features capture a large share of the predictive signal in this domain, that pretrained dense representations remain useful, and that ranking quality, calibration, and threshold sensitivity should be analyzed separately. These findings connect the machine-learning benchmark to the needs of digital public governance: before predictive tools can support procurement transparency, accountability, or civic oversight, their signals, limitations, and operating behavior must be made explicit.
+
+\bibliographystyle{IEEEtran}
+\bibliography{shortpaper}
+>>>>>>> paper-camera-ready-from-submission
 
 \end{document}

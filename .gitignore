@@ -36,6 +36,25 @@ mlartifacts/
 # Jupyter
 .ipynb_checkpoints/
 
+# LaTeX (local noise)
+paper/missfont.log
+paper/*.blg
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/test_auth.*
+paper/submission/**/*.aux
+paper/submission/**/*.log
+paper/submission/**/*.out
+
+# ICEDEG submission bundle (local/EasyChair only; may include payment, reviews, zips)
+paper/submission/
+paper/**/peer-review.txt
+paper/ICEDEG_response_to_reviewers_README.md
+paper/submission/**/*.zip
+paper/submission/**/Invoice*
+paper/submission/**/ICEDEG_response_to_reviewers.*
+
 # OS / IDE
 .DS_Store
 .idea/
