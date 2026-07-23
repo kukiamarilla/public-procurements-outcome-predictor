@@ -1,0 +1,38 @@
+\section{Representación documental}
+Cada documento PBC se convierte primero de PDF a texto mediante la canalización de extracción previa. El texto resultante se tokeniza y divide en fragmentos superpuestos. En la implementación actual, cada fragmento tiene una longitud de 4096 tokens y un desplazamiento de 2048 tokens. Se utiliza el modelo de lenguaje causal preentrenado \texttt{openai/gpt-oss-20b} como codificador documental congelado \cite{agarwal2025gptoss}. Este modelo se seleccionó como un LLM práctico de pesos abiertos para extraer representaciones densas de textos de contratación en español y, a la vez, mantener reproducible la canalización experimental. Congelar el codificador también evita ajustar un modelo grande sobre un conjunto de datos modesto y permite que la comparación se concentre en cuánta señal existe en las representaciones preentrenadas y cómo se agrega posteriormente, en consonancia con trabajos recientes sobre embeddings textuales basados en LLM \cite{wang2024improvingembeddings}. Los fragmentos se procesan en microlotes para reducir la presión sobre la memoria de la GPU.
+
+Para cada fragmento, el sistema extrae la representación oculta asociada al último token válido. La salida correspondiente a un documento de contratación es, por tanto, una secuencia de embeddings de fragmentos:
+\[
+\mathbf{E} = [\mathbf{e}_1, \mathbf{e}_2, \dots, \mathbf{e}_N], \qquad \mathbf{e}_i \in \mathbb{R}^{d_{in}},
+\]
+donde $N$ es la cantidad de fragmentos del documento y $d_{in}$ está determinado por el tamaño oculto del modelo preentrenado. Esta configuración permite comparar dos estrategias de representación basadas en LLM: un vector documental simple obtenido mediante el promedio de los fragmentos y un modelo secuencial que aprende las interacciones entre ellos.
+
+\section{Arquitectura del predictor}
+El clasificador principal, \texttt{TenderSuccessPredictor}, es un transformer liviano aplicado sobre los embeddings de los fragmentos. Sea $\mathbf{E} \in \mathbb{R}^{N \times d_{in}}$ la secuencia de fragmentos de un documento. El modelo aplica:
+
+\begin{enumerate}
+  \item Una proyección lineal de $d_{in}$ a una dimensión latente entrenable $d_{model}$.
+  \item La inserción de un token aprendido \texttt{[CLS]} al comienzo de la secuencia.
+  \item Un codificador transformer sobre la secuencia completa de vectores de fragmentos.
+  \item Una pequeña cabeza de clasificación multicapa sobre la representación final de \texttt{[CLS]}.
+\end{enumerate}
+
+En los experimentos actuales, los hiperparámetros posteriores son: $d_{model}=128$, $n_{heads}=4$, dimensión de la red prealimentada $=512$, dropout $=0.3$ y una capa de codificación. Se emplean máscaras de relleno para agrupar de forma segura documentos con diferentes cantidades de fragmentos.
+
+El modelo produce un único logit por documento. Una transformación sigmoide convierte este logit en una probabilidad de éxito:
+\[
+\hat{p}(y=1 \mid \mathbf{E}) = \sigma(z).
+\]
+El entrenamiento utiliza entropía cruzada binaria con logits.
+
+\section{Líneas base}
+Para interpretar los resultados basados en LLM, se evalúan tres clases de líneas base.
+
+En primer lugar, se emplean dos referencias triviales: un clasificador de clase mayoritaria y un clasificador aleatorio cuya tasa positiva coincide con la prevalencia empírica. Estas líneas base establecen la región esperada sin capacidad predictiva, donde ROC AUC debería situarse cerca de $0.5$ y PR AUC cerca de la prevalencia positiva.
+
+En segundo lugar, se utiliza una línea base léxica con características TF--IDF de hasta 50.000 unigramas y bigramas, frecuencia documental mínima de $5$ y un clasificador de regresión logística con pesos de clase balanceados. Se utiliza TF--IDF en lugar de embeddings densos estáticos como Word2Vec porque proporciona una referencia sólida e interpretable de bolsa de palabras que sigue siendo competitiva en documentos extensos \cite{wang2012baselines,alvaprincipe2025survey}. Además, permite aislar la comparación con representaciones congeladas de LLM sin añadir otra etapa entrenable de embeddings bajo supervisión limitada. Las líneas base lineales de bolsa de palabras son referencias habituales en clasificación de textos \cite{wang2012baselines}, y la evidencia reciente sobre documentos extensos indica que las representaciones léxicas aún son competitivas en algunos escenarios \cite{alvaprincipe2025survey}.
+
+En tercer lugar, se definen dos líneas base intermedias basadas en LLM que utilizan los mismos embeddings preentrenados de fragmentos que el sistema principal, pero sustituyen el transformer entre fragmentos por una agregación documental más simple. En la primera variante, se promedian los embeddings de los fragmentos y se suministran a una regresión logística. En la segunda, la misma representación promedio alimenta un pequeño perceptrón multicapa con una capa oculta. Estas líneas base aíslan el valor de la representación del valor aportado por el modelado explícito de las interacciones entre fragmentos.
+
+\section{Entrenamiento y reproducibilidad}
+El entrenamiento utiliza AdamW, una tasa de aprendizaje de $10^{-4}$, decaimiento de pesos de $0.01$, lotes de tamaño $8$ y hasta $50$ épocas. Dentro de cada ronda de validación cruzada, una época corresponde a un recorrido completo por la porción de entrenamiento de esa ronda. Después de cada época se calcula la pérdida de validación sobre la porción reservada; si no mejora durante cinco épocas consecutivas, el entrenamiento se detiene y se restaura el mejor punto de control. La reproducibilidad se controla mediante semillas fijas, comportamiento determinista de cuDNN, cargadores de datos con semilla y reinicios independientes del estado aleatorio al comienzo de cada pliegue.

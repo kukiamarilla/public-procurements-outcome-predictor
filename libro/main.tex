@@ -10,14 +10,14 @@
 \usepackage{array}
 \usepackage{float}
 \usepackage{url}
-\usepackage{acronym}
+\usepackage[nohyperlinks]{acronym}
 \usepackage{csquotes}
 \usepackage[backend=bibtex,style=numeric,sorting=none]{biblatex}
 \addbibresource{references.bib}
 
 \graphicspath{{figures/}{Figuras/}}
 \setlength{\headheight}{26pt}
-\hypersetup{colorlinks=false,urlcolor=black}
+\hypersetup{hidelinks}
 
 \thesistitle{Representaciones léxicas y basadas en LLM para la predicción de resultados de licitaciones públicas: un estudio comparativo}
 \authors{Isaac Gabriel Amarilla Benítez y Luis Fernando Caballero Ramoa}
@@ -90,7 +90,12 @@
 \mainmatter
 \selectlanguage{spanish}
 \pagestyle{fancy}
-\input{Capitulos/p0010contenido}
+\input{Capitulos/p0010Introduccion}
+\input{Capitulos/p0020MTeorico}
+\input{Capitulos/p0030TrabajosRelacionados}
+\input{Capitulos/p0040PropuestaExperimento}
+\input{Capitulos/p0050Resultados}
+\input{Capitulos/p0060Conclusion}
 
 \clearpage
 \selectlanguage{spanish}

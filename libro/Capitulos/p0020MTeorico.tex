@@ -1,0 +1,213 @@
+\clearpage
+\lhead{\emph{Marco teórico}}
+\chapter{Marco teórico}
+\label{sec:marco_teorico}
+
+Este capítulo presenta los conceptos necesarios para interpretar el problema, los modelos y las métricas. Primero se describe la contratación pública como un proceso digital y se ubica al PBC dentro de ese ciclo. Luego se introducen las representaciones léxicas y densas, el procesamiento de documentos extensos y la arquitectura transformer. Finalmente se desarrollan los fundamentos de clasificación binaria, desbalance, calibración y validación experimental.
+
+\section{Contratación pública y cadena de suministro en Paraguay}
+
+La Ley N.º 7021/2022 crea el Sistema Nacional de Suministro Público y regula al Sistema Nacional de Contrataciones Públicas como parte de una cadena integrada \cite{ley7021paraguay}. Esta formulación amplía el foco desde el acto de adjudicar hacia una sucesión de actividades: planificación de la necesidad, estimación, estrategia de adquisición, convocatoria, evaluación, contratación, ejecución y cierre. Cada etapa produce datos y documentos con distinto momento de disponibilidad.
+
+La temporalidad es central para un problema predictivo. Los datos de planificación y convocatoria están disponibles antes del resultado; los datos de adjudicación y contrato aparecen después. Si el propósito es estimar un desenlace antes de que ocurra, las variables deben limitarse a información accesible en ese momento. Utilizar campos posteriores aumentaría artificialmente el desempeño y constituiría fuga de información. Por ello, esta investigación utiliza texto de PBC y excluye del vector de entrada la adjudicación, la evaluación posterior y el estado final que define la etiqueta.
+
+El SICP es el soporte informático donde se registran y publican actuaciones del proceso paraguayo. La DNCP expone una API de servicios para datos actuales y archivos estáticos para reconstrucción histórica desde 2010 \cite{dncpOpenContracting}. La propia DNCP advierte que los conjuntos publicados reproducen la información remitida por las entidades convocantes y que la responsabilidad sobre su veracidad recae en ellas \cite{dncpDatosAbiertos}. Esta característica importa metodológicamente: un registro abierto es una fuente oficial de publicación, pero no garantiza por sí solo ausencia de errores, campos faltantes o diferencias de calidad entre instituciones.
+
+\section{Datos abiertos y Estándar de Datos para las Contrataciones Abiertas}
+
+El Estándar de Datos para las Contrataciones Abiertas (OCDS) propone un modelo común para divulgar información y documentos durante todo el proceso de contratación. Organiza la información en etapas de licitación, adjudicación, contrato e implementación, y permite registrar sucesivas publicaciones de un mismo proceso \cite{ocdsPrimer,ocdsReference}. La estandarización facilita combinar fuentes, reconstruir cambios y reutilizar herramientas analíticas; no reemplaza, sin embargo, al sistema transaccional que origina los datos \cite{ocdsDataStandard}.
+
+En OCDS, una publicación o \textit{release} representa información correspondiente a un evento del ciclo. Varias publicaciones pueden compilarse en un registro que resume el proceso. Entidades compradoras, proveedores, valores, períodos, artículos, documentos y estados se expresan mediante estructuras y listas controladas. Paraguay adopta este estándar con extensiones locales y ofrece endpoints de consulta sobre procesos completos \cite{dncpOpenContracting,dncpDatosAbiertos}.
+
+Para este trabajo son relevantes tres niveles de información:
+
+\begin{enumerate}
+  \item \textbf{Metadatos del proceso}: identificador de contratación, OCID, estado y clasificación del objeto.
+  \item \textbf{Metadatos documentales}: título, tipo, formato y URL de los adjuntos asociados a la convocatoria.
+  \item \textbf{Contenido no estructurado}: texto interno del PBC descargado, que no está reducido a los campos del esquema.
+\end{enumerate}
+
+La clasificación de catálogo \texttt{72131701} delimita los procesos de construcción de carreteras. El código se utiliza como filtro técnico de la consulta y no como una inferencia posterior. La elección reduce heterogeneidad temática, dado que compara documentos de un mismo ámbito, pero también restringe la validez externa a otras obras, bienes o servicios.
+
+\section{Pliego de Bases y Condiciones}
+
+El PBC comunica a potenciales oferentes las condiciones del procedimiento. OCDS define los documentos de licitación como documentación que describe el objeto y el proceso de presentación de ofertas; separa además las especificaciones técnicas y los criterios de evaluación \cite{ocdsCodelists}. En la práctica, un archivo paraguayo puede integrar varias de estas funciones, junto con formularios y anexos.
+
+Desde la perspectiva del procesamiento del lenguaje natural, el PBC presenta varias propiedades:
+
+\begin{itemize}
+  \item \textbf{Longitud}: puede superar ampliamente el límite de entrada de un codificador convencional.
+  \item \textbf{Estructura semiformateada}: alterna párrafos, títulos, listas y tablas.
+  \item \textbf{Redundancia}: reutiliza cláusulas y plantillas institucionales.
+  \item \textbf{Especialización}: incluye terminología jurídica, administrativa y de ingeniería vial.
+  \item \textbf{Variabilidad}: cambia según convocante, año, modalidad, complejidad y anexos.
+\end{itemize}
+
+Estas propiedades explican por qué no existe una representación obviamente superior. La repetición puede favorecer n-gramas; la equivalencia semántica entre formulaciones puede favorecer embeddings; y la dispersión de información a lo largo del documento puede justificar modelos jerárquicos.
+
+\section{Clasificación supervisada y variable objetivo}
+
+En clasificación supervisada se dispone de pares $(x_i,y_i)$, donde $x_i$ representa un documento y $y_i$ su etiqueta. Para este estudio, $y_i\in\{0,1\}$ y la clase positiva se define por el estado \texttt{complete}. Los estados \texttt{unsuccessful}, \texttt{cancelled} y \texttt{canceled} integran la clase negativa. La función aprendida produce un puntaje o una probabilidad estimada:
+
+\begin{equation}
+  f(x_i)=\hat p_i \approx P(y_i=1\mid x_i).
+\end{equation}
+
+La etiqueta es una operacionalización y debe interpretarse en esos términos. Un proceso completo no implica necesariamente máximo valor público, y uno cancelado puede responder a causas legítimas. La clasificación mide la posibilidad de anticipar el estado registrado, no una definición normativa exhaustiva de éxito, eficiencia o integridad.
+
+\input{Capitulos/shortpaper_fragments/definicion_tarea}
+
+\section{Procesamiento de documentos}
+
+\subsection{Extracción de texto desde PDF}
+
+PDF describe la disposición visual de una página y no necesariamente conserva una secuencia textual limpia. La extracción debe reconstruir palabras y líneas a partir de objetos posicionados. El repositorio utiliza \texttt{pdfplumber} para texto y contempla \texttt{Camelot} para tablas. Los documentos compuestos únicamente por imágenes requieren reconocimiento óptico de caracteres, capacidad que no forma parte de la ejecución documentada. Por eso, tres PDF escaneados no generaron texto y quedaron fuera de etapas posteriores.
+
+Los errores de extracción pueden alterar saltos, orden de columnas, caracteres y tablas. En un modelo léxico, estas alteraciones modifican términos y n-gramas; en un tokenizador subléxico, cambian la segmentación. Documentar las pérdidas evita atribuir al modelo limitaciones originadas en la digitalización.
+
+\subsection{Tokenización}
+
+Un tokenizador transforma texto en identificadores del vocabulario del modelo. Los modelos preentrenados suelen usar unidades subléxicas: una palabra puede corresponder a uno o varios tokens. Esto permite representar vocabulario abierto, pero significa que el número de palabras no coincide con la longitud computacional. La configuración del proyecto tokeniza sin truncamiento inicial, conserva la secuencia en CPU y transfiere a GPU únicamente microlotes de fragmentos.
+
+\subsection{Fragmentación con solapamiento}
+
+Sea una secuencia de $T$ tokens, un tamaño máximo de fragmento $L$ y un desplazamiento $S$. Los comienzos se ubican en $0,S,2S,\ldots$ hasta cubrir el documento. Cuando $S<L$, fragmentos consecutivos comparten $L-S$ tokens. En este estudio $L=4096$ y $S=2048$, de modo que el solapamiento nominal es del $50\%$.
+
+El solapamiento reduce la probabilidad de cortar una relación justo en una frontera, aunque incrementa la cantidad de cómputo y introduce contenido repetido. La cantidad aproximada de fragmentos para $T>L$ es:
+
+\begin{equation}
+  N \approx 1 + \left\lceil\frac{T-L}{S}\right\rceil.
+\end{equation}
+
+La implementación no impone por defecto un máximo documental adicional. En consecuencia, documentos muy extensos producen secuencias de muchos embeddings y demandan más memoria tanto en codificación como en la agregación posterior.
+
+\section{Representación léxica}
+
+\subsection{Modelo de espacio vectorial}
+
+Una representación de bolsa de palabras describe un documento mediante la presencia o frecuencia de términos y omite el orden global. Si el vocabulario contiene $V$ términos, cada documento se transforma en $x\in\mathbb{R}^{V}$. La matriz resultante es dispersa porque cada documento utiliza solo una fracción del vocabulario.
+
+La frecuencia de término $tf(t,d)$ mide cuántas veces aparece el término $t$ en el documento $d$. La frecuencia inversa de documento reduce el peso de términos presentes en muchos documentos. Una forma habitual es:
+
+\begin{equation}
+  idf(t)=\log\left(\frac{M+1}{df(t)+1}\right)+1,
+\end{equation}
+
+donde $M$ es la cantidad de documentos y $df(t)$ la cantidad que contiene $t$. El peso combinado es:
+
+\begin{equation}
+  tfidf(t,d)=tf(t,d)\,idf(t).
+\end{equation}
+
+La ponderación TF--IDF pertenece a una familia de esquemas de importancia de términos estudiada en recuperación de información; Salton y Buckley mostraron que la elección del esquema de ponderación es decisiva para el desempeño de representaciones de términos individuales \cite{salton1988termweighting}. En clasificación, unigramas capturan vocabulario y bigramas preservan patrones locales como expresiones administrativas frecuentes.
+
+\subsection{Regresión logística}
+
+La regresión logística define la probabilidad positiva mediante:
+
+\begin{equation}
+  \hat p(y=1\mid x)=\sigma(w^\top x+b), \qquad
+  \sigma(z)=\frac{1}{1+e^{-z}}.
+\end{equation}
+
+Los coeficientes $w$ asocian dimensiones léxicas con el logaritmo de las razones de probabilidades. Esta linealidad facilita inspeccionar términos con pesos altos o bajos, aunque la interpretación requiere cautela ante correlaciones, n-gramas redundantes y regularización.
+
+El modelo del proyecto limita el vocabulario a 50.000 características, incluye unigramas y bigramas, descarta términos con frecuencia documental inferior a cinco y usa pesos balanceados por clase. Los pesos modifican la contribución de cada clase a la función de pérdida, sin cambiar la prevalencia real del conjunto de evaluación.
+
+\section{Representaciones densas y modelos de lenguaje}
+
+Una representación densa asigna el texto a un vector de dimensión fija cuyo contenido se aprende durante el preentrenamiento. A diferencia de TF--IDF, las dimensiones no corresponden directamente a términos. BERT demostró que representaciones bidireccionales preentrenadas podían adaptarse a múltiples tareas con pocas capas específicas \cite{devlin2019bert}. Trabajos posteriores extendieron el uso de modelos grandes para producir embeddings generales mediante aprendizaje contrastivo o instrucciones \cite{wang2024improvingembeddings,e5multilingual2024}.
+
+El proyecto utiliza \texttt{openai/gpt-oss-20b}, un modelo causal de pesos abiertos, como codificador congelado \cite{agarwal2025gptoss}. Para cada fragmento se extrae el estado oculto del último token válido. Al congelar el codificador, sus parámetros no se actualizan con las etiquetas; el aprendizaje supervisado ocurre únicamente en el agregador o clasificador posterior. Esto reduce el costo de entrenamiento repetido y separa la representación preentrenada del efecto del clasificador.
+
+Un embedding útil no garantiza automáticamente el mejor resultado para todos los dominios. La calidad depende del idioma, el tipo documental, el objetivo de preentrenamiento, el método de pooling y la correspondencia entre las tareas de origen y destino. Por ello, el valor de la representación debe medirse empíricamente frente a líneas base apropiadas.
+
+\section{Arquitectura transformer}
+
+El transformer reemplaza recurrencia por atención y capas prealimentadas \cite{vaswani2017attention}. Para consultas $Q$, claves $K$ y valores $V$, la atención de producto punto escalado se expresa como:
+
+\begin{equation}
+  \operatorname{Attention}(Q,K,V)=operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
+\end{equation}
+
+La atención multicabeza proyecta las entradas en varios subespacios, calcula atenciones paralelas y concatena los resultados:
+
+\begin{equation}
+  \operatorname{MultiHead}(Q,K,V)=\operatorname{Concat}(head_1,\ldots,head_h)W^O.
+\end{equation}
+
+Cada cabeza puede enfatizar relaciones diferentes. Sin embargo, la matriz $QK^\top$ tiene tamaño cuadrático respecto de la longitud. Longformer reduce este costo combinando ventanas locales y atención global dispersa \cite{beltagy2020longformer}. Otra familia de soluciones adopta una jerarquía: codifica fragmentos por separado y modela luego la secuencia de representaciones. Estudios comparativos muestran que la posibilidad de procesar más texto suele ser beneficiosa, aunque el método óptimo depende del dominio y la distribución de longitudes \cite{dai2022revisiting,mamakas2022legal}.
+
+\section{Agregación de fragmentos}
+
+\subsection{Promedio}
+
+Dados embeddings $e_1,\ldots,e_N$, el promedio documental es:
+
+\begin{equation}
+  \bar e=\frac{1}{N}\sum_{i=1}^{N}e_i.
+\end{equation}
+
+El método es económico e invariante al orden. Esta última propiedad es también su limitación: no distingue qué fragmento apareció primero ni modela relaciones entre secciones. Aun así, líneas base de pooling simple han demostrado ser competitivas en múltiples tareas, por lo que omitirlas puede exagerar el valor de arquitecturas más complejas \cite{shen2018swem}.
+
+\subsection{Transformer entre fragmentos}
+
+El predictor principal proyecta cada $e_i\in\mathbb{R}^{2880}$ a $d_{model}=128$, inserta un vector \texttt{[CLS]} entrenable y aplica una capa de codificador con cuatro cabezas, dimensión interna 512 y dropout 0,3. El vector final \texttt{[CLS]} alimenta una cabeza multicapa. A diferencia del promedio, este mecanismo puede asignar pesos contextuales y modelar interacciones; a diferencia de aplicar el LLM completo durante cada pliegue, reutiliza embeddings congelados.
+
+Las máscaras de relleno distinguen fragmentos reales de posiciones añadidas para formar lotes. Sin ellas, el modelo podría atender a valores de relleno y aprender artefactos asociados a la longitud. La arquitectura implementada utiliza normalización previa y activación GELU, conforme a la capa \texttt{TransformerEncoderLayer} disponible en PyTorch.
+
+\input{Capitulos/shortpaper_fragments/metodo}
+
+\section{Desbalance de clases}
+
+Un conjunto está desbalanceado cuando las clases tienen frecuencias distintas. La exactitud simple puede ser engañosa: un clasificador que predice siempre la mayoría obtiene una exactitud igual a su prevalencia sin separar casos. La exactitud balanceada promedia la sensibilidad de cada clase:
+
+\begin{equation}
+  BA=\frac{1}{2}\left(\frac{TP}{TP+FN}+\frac{TN}{TN+FP}\right).
+\end{equation}
+
+El puntaje F1 combina precisión y exhaustividad de la clase positiva:
+
+\begin{equation}
+  F1=2\frac{Precision\cdot Recall}{Precision+Recall}.
+\end{equation}
+
+F1 depende de cuál clase se declara positiva y del umbral. En este estudio la clase positiva es además la mayoritaria del subconjunto procesado, por lo que PR AUC debe compararse con la prevalencia y no con cero. Richardson et al. subrayan que ROC y PR responden de manera distinta al balance y que su interpretación debe ajustarse a la pregunta de evaluación \cite{richardson2024roc}.
+
+\section{Ordenamiento y umbral de decisión}
+
+ROC AUC estima la probabilidad de que un ejemplo positivo reciba un puntaje mayor que uno negativo. No requiere fijar un umbral. PR AUC resume precisión y exhaustividad al variar el umbral, y su referencia sin habilidad se relaciona con la prevalencia positiva. Ambas evalúan ordenamiento; no garantizan probabilidades calibradas.
+
+Para obtener una clase se aplica un umbral $\tau$:
+
+\begin{equation}
+  \hat y=\mathbb{I}(\hat p\geq\tau).
+\end{equation}
+
+El valor 0,5 es convencional, pero no universalmente óptimo. La selección debe realizarse con datos distintos del conjunto donde se informa el resultado, pues elegir $\tau$ sobre el pliegue de prueba sobreajustaría la métrica. El protocolo usa una partición interna de validación y aplica el umbral elegido al pliegue externo sin modificarlo.
+
+\section{Calibración probabilística}
+
+Un clasificador está calibrado si, entre casos con probabilidad predicha cercana a $p$, la frecuencia observada del evento es aproximadamente $p$. Guo et al. mostraron que redes modernas pueden lograr buena exactitud y, al mismo tiempo, producir confianzas mal calibradas \cite{guo2017calibration}. Por ello, ordenamiento y calibración son propiedades distintas.
+
+El puntaje de Brier binario es:
+
+\begin{equation}
+  BS=\frac{1}{M}\sum_{i=1}^{M}(\hat p_i-y_i)^2.
+\end{equation}
+
+La pérdida logarítmica es:
+
+\begin{equation}
+  LL=-\frac{1}{M}\sum_{i=1}^{M}\left[y_i\log\hat p_i+(1-y_i)\log(1-\hat p_i)\right].
+\end{equation}
+
+Ambas son reglas propias: favorecen probabilidades honestas bajo sus supuestos. Sin embargo, el Brier combina componentes de confiabilidad y resolución; un valor menor no debe interpretarse como medida pura de calibración sin considerar discriminación y curvas de confiabilidad \cite{silvafilho2023calibration}. En consecuencia, este estudio acompaña los puntajes con diagramas de calibración.
+
+\section{Validación cruzada y reproducibilidad}
+
+La validación cruzada de $K$ pliegues divide los datos en $K$ subconjuntos. En cada ronda se entrena con $K-1$ y se evalúa con el restante. La estratificación conserva aproximadamente la proporción de clases. Al agregar predicciones externas de todas las rondas, cada ejemplo es evaluado por un modelo que no lo utilizó para ajustarse.
+
+El código fija semilla global y semillas independientes por pliegue, activa comportamiento determinista de cuDNN, inicializa cargadores de datos con generadores controlados y restaura el mejor punto de control mediante detención temprana. AdamW desacopla el decaimiento de pesos del paso adaptativo de optimización \cite{loshchilov2019adamw}. MLflow registra parámetros, métricas y artefactos; la trazabilidad permite verificar que comparaciones distintas utilizaron las mismas particiones y reglas de etiqueta.
+
+La reproducibilidad no elimina toda variación. Diferencias de hardware, bibliotecas, kernels o implementaciones pueden producir cambios numéricos. El propósito de las medidas adoptadas es reducir fuentes evitables y hacer explícita la configuración, no prometer identidad absoluta bajo cualquier plataforma.

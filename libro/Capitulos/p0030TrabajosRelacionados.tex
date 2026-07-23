@@ -1,0 +1,118 @@
+\clearpage
+\lhead{\emph{Trabajos relacionados y estado del arte}}
+\chapter{Trabajos relacionados y estado del arte}
+\label{sec:trabajos_relacionados}
+
+En este capítulo se revisarán trabajos vinculados con la apertura y el análisis de contrataciones públicas, la predicción de resultados a partir de datos administrativos y texto, y la clasificación de documentos extensos. Paraguay constituye el contexto central; los estudios de otros países se utilizarán para comparar objetivos, fuentes y métodos, sin asumir que sus patrones se transfieren automáticamente al SICP.
+
+\section{Instituciones y fuentes relacionadas en Paraguay}
+
+\subsection{Dirección Nacional de Contrataciones Públicas}
+
+La DNCP administra el portal de contrataciones y publica datos derivados de la información remitida por organismos y entidades del Estado. Su portal ofrece servicios de procesos, descargas históricas, diccionarios y documentación para desarrolladores \cite{dncpDatosAbiertos}. La institución adoptó OCDS para divulgar información de planificación, convocatoria, adjudicación, contratos y modificaciones mediante una API y archivos estáticos \cite{dncpOpenContracting}.
+
+La Ley N.º 7021/2022 asigna al registro digital un papel estructural dentro de la cadena de suministro. La reforma incorpora principios de eficiencia, competencia, transparencia, integridad y valor por dinero, y se acompaña de reglamentaciones sobre comunicación de procedimientos, ofertas electrónicas y seguimiento contractual \cite{dncpLey7021,dncpReglamentaciones}. Para esta investigación, la DNCP es simultáneamente la fuente de metadatos, estados y documentos de convocatoria.
+
+La plataforma de ofertas electrónicas ilustra la digitalización progresiva del ciclo: permite presentar y abrir ofertas mediante el SICP cuando corresponde, con el objetivo institucional de agilizar procedimientos y optimizar el trabajo de convocantes y proveedores \cite{dncpOfertasElectronicas}. Aunque el presente estudio no utiliza ofertas como entrada, este proceso confirma que una proporción creciente de evidencia administrativa se origina y conserva digitalmente.
+
+\subsection{Sistema de Información de las Contrataciones Públicas}
+
+El SICP concentra la publicación operativa de los procedimientos. Para análisis masivos, la capa de datos abiertos evita depender únicamente de interfaces destinadas a consulta humana. El endpoint utilizado por el proyecto devuelve registros con una publicación compilada, de la cual se extraen el identificador del tender, el OCID y los identificadores de adjudicación. La consulta filtra por estado y código de clasificación.
+
+El proyecto no descarga un conjunto tabular cerrado y luego le atribuye documentos por semejanza. Conserva el \texttt{tenderId} como clave de unión entre la respuesta de la API, el PBC, el texto y el archivo de embeddings. Este diseño reduce errores de emparejamiento y permite auditar el recorrido de cada ejemplo.
+
+\subsection{Gobierno electrónico y control público}
+
+El Ministerio de Tecnologías de la Información y Comunicación ubica el portal único de datos abiertos, la interoperabilidad y el acceso a información entre las líneas de gobierno electrónico de Paraguay \cite{miticGobiernoElectronico}. La Contraloría General de la República mantiene además un portal de rendición de cuentas cuyo propósito declarado es fomentar transparencia, eficiencia y participación ciudadana \cite{cgrDatosAbiertos}. Estas iniciativas muestran que el análisis de contratación forma parte de un ecosistema de datos estatales más amplio.
+
+La existencia de datos abiertos permite desarrollar indicadores y modelos fuera de la institución publicadora. No obstante, las decisiones de control permanecen sujetas a competencias legales, verificación documental y debido proceso. Una puntuación de aprendizaje automático no reemplaza estos procedimientos.
+
+\section{Analítica de contratación pública}
+
+La analítica de contratación puede orientarse a descripción, detección de anomalías, estimación de competencia, pronóstico de demoras, sobrecostos, quejas o estados finales. Estas tareas difieren en la variable objetivo y en el momento de predicción. Un modelo que utiliza información contractual posterior no es comparable con otro que opera únicamente durante la convocatoria.
+
+Los indicadores de riesgo basados en reglas suelen codificar señales definidas por especialistas: único oferente, plazos inusuales, concentración de adjudicaciones o modificaciones. Los modelos supervisados, en cambio, aprenden relaciones a partir de ejemplos etiquetados. Ambos enfoques pueden complementarse. VigIA combina índices de riesgo con modelos de aprendizaje automático para anticipar sobrecostos y demoras en Bogotá, priorizando casos para supervisión \cite{salazar2024vigia}. Sus variables más importantes incluyen valor, tiempos contractuales, antigüedad del proveedor y sector; son metadatos estructurados, no texto completo de la convocatoria.
+
+Gallego, Rivero y Martínez desarrollaron un modelo de advertencia temprana sobre irregularidades en contratación, enfatizando la prevención y la asignación limitada de recursos de control \cite{gallego2021earlywarning}. Aldana, Falcón-Cortés y Larralde propusieron para México un ensamble de bosques aleatorios orientado a identificar contratos asociados a corrupción; encontraron que variables sobre relaciones entre compradores y proveedores podían ser más informativas que rasgos individuales del contrato \cite{aldana2022mexico}. Estos trabajos muestran el potencial de los datos administrativos, pero responden a etiquetas y marcos institucionales distintos al estado final utilizado en Paraguay.
+
+\section{Predicción a partir del texto de convocatorias}
+
+El antecedente más cercano por tipo de entrada es el trabajo de Acikalin et al., que estudió si las descripciones de convocatorias públicas permitían predecir resultados asociados con competencia y costo-efectividad \cite{acikalin2024procurementcalls}. Sus experimentos aportan evidencia de que el lenguaje publicado antes del resultado contiene señal predictiva. La unidad textual, el país, las etiquetas y la extensión documental difieren del presente estudio, por lo que la contribución no se replica de forma directa: se traslada la pregunta general a PBC completos de construcción vial paraguaya.
+
+Una descripción breve y un PBC no son equivalentes. La primera suele condensar el objeto; el segundo incluye condiciones, criterios y anexos. Esta riqueza puede aportar señal adicional, pero también ruido y costo computacional. Por ello, el presente trabajo compara una representación capaz de considerar el vocabulario global con estrategias jerárquicas sobre fragmentos.
+
+\section{Clasificación de documentos extensos}
+
+Dai et al. compararon transformers de atención dispersa con enfoques jerárquicos en cuatro conjuntos de clasificación de documentos extensos. Sus resultados mostraron beneficios al procesar mayor cantidad de texto y señalaron que decisiones como tamaño de ventana, atención global y estrategia de división afectan el desempeño \cite{dai2022revisiting}. El trabajo sustenta la necesidad de tratar la fragmentación como una decisión metodológica y no como un detalle de implementación.
+
+Mamakas et al. estudiaron documentos jurídicos que superaban incluso los límites de modelos de atención dispersa. Compararon extensiones de Longformer, codificadores jurídicos jerárquicos y representaciones TF--IDF; observaron una relación entre desempeño y costo, y confirmaron que las líneas base dispersas conservaban utilidad \cite{mamakas2022legal}. Los PBC comparten con documentos jurídicos su extensión, estructura formal y lenguaje especializado, aunque su finalidad institucional es diferente.
+
+Tuteja y González-Jucá evaluaron transformers y estrategias de selección de párrafos sobre seis conjuntos jurídicos con mediana superior a mil palabras, incluyendo una línea base TF--IDF \cite{tuteja2023longtext}. Lu et al. investigaron modelos de espacio de estados como alternativa a la atención para clasificación extensa \cite{lu2023statespace}. Han et al. señalaron que la variación de longitud puede afectar la generalización y propusieron kernels sensibles a longitud \cite{han2024lengthaware}. En conjunto, la literatura reciente no establece un único método dominante para todos los documentos extensos; recomienda evaluar líneas base, cobertura de texto, eficiencia y robustez entre longitudes.
+
+\section{Representaciones dispersas frente a densas}
+
+Las representaciones TF--IDF continúan siendo referencias relevantes porque procesan documentos completos, son eficientes y ofrecen coeficientes inspeccionables. Wang y Manning mostraron que líneas base lineales con unigramas y bigramas podían ser muy competitivas en clasificación textual \cite{wang2012baselines}. Shen et al. demostraron que mecanismos simples de pooling sobre embeddings también podían competir con redes más complejas en múltiples conjuntos \cite{shen2018swem}. Estas observaciones justifican incluir tanto TF--IDF como promedio de embeddings.
+
+Las representaciones densas preentrenadas buscan capturar similitud y contexto más allá de coincidencias exactas. E5 utiliza preentrenamiento contrastivo débilmente supervisado para producir vectores transferibles a recuperación y clasificación \cite{wang2022e5}; su variante multilingüe extiende la cobertura a varios idiomas \cite{e5multilingual2024}. Wang et al. exploraron el uso de LLM para mejorar embeddings mediante datos sintéticos y entrenamiento contrastivo \cite{wang2024improvingembeddings}. Esta línea respalda la hipótesis de que un modelo grande congelado puede aportar información útil incluso sin ajuste completo.
+
+Sin embargo, la comparación debe distinguir la calidad del embedding de la del agregador. Si se cambia simultáneamente codificador, longitud y cabeza, no puede atribuirse la diferencia a un componente. El diseño de este trabajo mantiene fijos los embeddings por fragmento y compara promedio más regresión logística, promedio más MLP y transformer entre fragmentos.
+
+\section{Evaluación y calibración en trabajos predictivos}
+
+Los trabajos de contratación suelen priorizar métricas de detección o ranking, porque la capacidad de ordenar casos puede apoyar inspecciones. Para un uso probabilístico, la calibración es igualmente importante. Guo et al. documentaron que redes con buen desempeño de clasificación podían estar mal calibradas y evaluaron métodos de posprocesamiento como escalamiento de temperatura \cite{guo2017calibration}. Silva Filho et al. revisaron métodos y métricas de calibración, destacando que el puntaje de Brier combina más de un aspecto de calidad predictiva \cite{silvafilho2023calibration}.
+
+En contratación pública, una probabilidad mal calibrada puede llevar a interpretar incorrectamente una diferencia de puntajes como diferencia de riesgo absoluto. El presente estudio no propone desplegar sus probabilidades, pero informa Brier, pérdida logarítmica y curvas de calibración para caracterizar esta dimensión desde la etapa experimental.
+
+\section{Estado del arte}
+\label{sec:estado_del_arte}
+
+El estado del arte relevante puede sintetizarse en tres corrientes convergentes.
+
+\subsection{Sistemas predictivos para supervisión pública}
+
+La primera corriente utiliza datos de contratación para anticipar ineficiencias, irregularidades o resultados. Los sistemas más maduros combinan modelos con conocimiento institucional, índices de riesgo y participación de analistas. VigIA es representativo porque fue diseñado con una agencia de supervisión y seleccionó variables buscando conservar explicabilidad \cite{salazar2024vigia}. Los trabajos de México y otros países incorporan relaciones en redes de compradores y proveedores, mostrando que la estructura del mercado puede ser más informativa que un contrato aislado \cite{aldana2022mexico}.
+
+El límite de esta corriente para el presente problema es temporal y documental. Muchos modelos utilizan datos disponibles durante ejecución o después de adjudicar. Aquí se busca una señal estrictamente anterior, basada en el PBC. Esta restricción reduce variables, pero hace más realista una advertencia temprana durante la convocatoria.
+
+\subsection{Modelos para texto extenso}
+
+La segunda corriente reemplaza el truncamiento por mecanismos capaces de cubrir documentos largos. Longformer reduce el crecimiento de la atención mediante ventanas locales y posiciones globales \cite{beltagy2020longformer}; los modelos jerárquicos codifican fragmentos y agregan representaciones; modelos de espacio de estados ofrecen otra vía de complejidad favorable \cite{lu2023statespace}. Evaluaciones amplias concluyen que cubrir más texto ayuda, pero también que la estrategia de fragmentación, la ubicación de la evidencia y la longitud condicionan los resultados \cite{dai2022revisiting,han2024lengthaware}.
+
+El transformer entre fragmentos de este trabajo pertenece a la familia jerárquica. Su aporte no es proponer un nuevo mecanismo general de atención, sino evaluar si una capa liviana sobre embeddings congelados mejora frente a agregaciones más simples en PBC paraguayos.
+
+\subsection{Embeddings de modelos grandes y líneas base léxicas}
+
+La tercera corriente desarrolla embeddings reutilizables a partir de modelos preentrenados. Los avances contrastivos y multilingües han mejorado la transferencia \cite{wang2022e5,e5multilingual2024}, mientras que LLM de mayor escala abren la posibilidad de extraer representaciones densas sin ajustar todos sus parámetros \cite{wang2024improvingembeddings}. No obstante, la literatura de documentos extensos sigue encontrando escenarios donde TF--IDF o soluciones híbridas son competitivas \cite{mamakas2022legal,tuteja2023longtext}.
+
+El estado del arte no permite asumir que mayor escala implica automáticamente mejor desempeño. La evaluación adecuada requiere comparar contra referencias dispersas, separar ranking de calibración y considerar el costo de procesar documentos completos.
+
+\subsection{Brecha identificada}
+
+La revisión no identifica, entre las fuentes consultadas, una comparación publicada que reúna simultáneamente: PBC completos de Paraguay, predicción del estado final con información \textit{ex ante}, TF--IDF, embeddings congelados de un LLM, agregación por promedio, modelado entre fragmentos y análisis conjunto de ranking, calibración y umbrales. Esta ausencia no demuestra inexistencia absoluta de trabajos no indexados; delimita la brecha respecto del corpus revisado.
+
+El presente estudio cubre esa brecha empírica. Su contribución se concentra en el contexto paraguayo y en la comparación controlada de representaciones. Los resultados de Colombia, México, Turquía o conjuntos jurídicos internacionales se utilizan para formular expectativas y criterios de evaluación, no para validar externamente el modelo paraguayo.
+
+\section{Posicionamiento del trabajo}
+
+La Tabla~\ref{tab:comparacion_trabajos} resume diferencias entre antecedentes seleccionados. La columna ``momento'' indica cuándo están disponibles las variables principales respecto del desenlace.
+
+\begin{table}[H]
+\centering
+\caption{Posicionamiento frente a trabajos relacionados seleccionados.}
+\label{tab:comparacion_trabajos}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.4cm}}
+\toprule
+\textbf{Trabajo} & \textbf{Contexto} & \textbf{Entrada principal} & \textbf{Objetivo} & \textbf{Momento} \\
+\midrule
+Acikalin et al. \cite{acikalin2024procurementcalls} & Turquía & Descripción de convocatoria & Competencia y costo-efectividad & Ex ante \\
+VigIA \cite{salazar2024vigia} & Colombia & Metadatos e índices & Sobrecostos, demoras e irregularidades & Mixto \\
+Aldana et al. \cite{aldana2022mexico} & México & Contratos y relaciones & Identificación de corrupción & Posterior/mixto \\
+Dai et al. \cite{dai2022revisiting} & Multidominio & Documentos extensos & Clasificación documental & No aplica \\
+Este trabajo & Paraguay & PBC completos & Estado final operacionalizado & Ex ante \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Esta comparación evidencia que la similitud metodológica no equivale a igualdad institucional. Las definiciones de resultado, las normas, la calidad de datos y las prevalencias varían por país. Cualquier transferencia futura deberá repetir validación, calibración y análisis de cobertura con datos del destino.

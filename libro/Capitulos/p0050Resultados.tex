@@ -1,0 +1,103 @@
+\clearpage
+\lhead{\emph{Pruebas experimentales y resultados}}
+\chapter{Pruebas experimentales y análisis de resultados computacionales}
+\label{sec:resultados}
+
+Este capítulo presenta los resultados obtenidos mediante las particiones y modelos definidos anteriormente. El análisis se organiza en cuatro bloques: controles sin capacidad predictiva, comparación de ranking, comportamiento dependiente del umbral y calidad probabilística. Luego se estudia el efecto de la representación y se discuten los resultados en relación con el contexto paraguayo y los antecedentes.
+
+\section{Comprobaciones previas}
+
+Antes de comparar modelos se verificó que todos operaran sobre los mismos 1.162 identificadores y la misma regla de etiqueta. La prevalencia positiva fue aproximadamente 0,726. Por ello, una PR AUC cercana a 0,726 no expresa una mejora sustantiva sobre puntuaciones aleatorias; debe compararse con esa referencia. La ROC AUC de los controles se mantuvo cerca de 0,5, lo que es consistente con un ordenamiento sin habilidad.
+
+Los resultados triviales también sirven para detectar errores. Una ROC AUC muy distinta de 0,5 en el clasificador mayoritario o una PR AUC incompatible con la prevalencia habría requerido revisar etiquetas, particiones o cálculo de métricas. No se observó ese patrón.
+
+\input{Capitulos/shortpaper_fragments/resultados}
+
+\section{Lectura comparativa por criterio}
+
+\subsection{Ranking}
+
+TF--IDF más regresión logística alcanzó ROC AUC 0,814 y PR AUC 0,899, los mayores valores medios informados. La diferencia con los modelos densos indica que, en el subconjunto procesado, el vocabulario y los bigramas contienen una señal especialmente útil para ordenar procesos exitosos y no exitosos.
+
+Este resultado es compatible con la naturaleza de los PBC. Al pertenecer todos a construcción vial, las variaciones léxicas pueden reflejar plantillas, requisitos o estilos institucionales dentro de un dominio relativamente homogéneo. La explicación es una hipótesis interpretativa, no una atribución causal: el experimento no identifica qué cláusulas producen un desenlace.
+
+El transformer entre fragmentos no superó al promedio con MLP en ranking. Por tanto, los resultados no apoyan la afirmación de que modelar explícitamente relaciones entre fragmentos sea necesario para extraer la mayor parte de la señal densa en esta configuración.
+
+\subsection{Desempeño con umbral 0,5}
+
+El mayor F1 a umbral fijo correspondió al transformer entre fragmentos, con 0,858. Sin embargo, su exactitud balanceada fue 0,636, inferior a la regresión logística con promedio y a TF--IDF. La diferencia revela el efecto de una clase positiva frecuente: un modelo puede obtener F1 alto favoreciendo predicciones positivas y, al mismo tiempo, distinguir peor la clase negativa.
+
+La exactitud balanceada de 0,728 de TF--IDF fue la mayor de la tabla principal. Como promedia la sensibilidad de ambas clases, ofrece una lectura complementaria al F1. Ninguna de las dos métricas debe interpretarse sin especificar la clase positiva y el umbral.
+
+\subsection{Calibración}
+
+El transformer obtuvo el menor Brier, 0,162, seguido por el MLP con promedio, 0,165. TF--IDF, pese a su mejor ranking, obtuvo 0,179. Esta divergencia es esperable: una transformación monótona puede conservar el orden de los ejemplos y cambiar la correspondencia entre puntajes y probabilidades.
+
+La curva de calibración permite observar el comportamiento por intervalos, pero sus puntos no poseen igual cantidad de datos ni intervalos de confianza en la figura actual. La conclusión se restringe a que el transformer produjo la mejor combinación observada bajo Brier y la curva agregada; no se afirma calibración perfecta ni transferencia automática a otra prevalencia.
+
+\section{Análisis de sensibilidad al umbral}
+
+La selección interna del umbral modificó principalmente el F1 de TF--IDF: el incremento medio fue 0,103. Su exactitud balanceada no aumentó en promedio. Esto muestra que maximizar una métrica en validación no garantiza mejorar otra; el objetivo de selección determina el punto operativo.
+
+Para el transformer, las variaciones medias de F1 y exactitud balanceada fueron 0,002. El resultado sugiere estabilidad alrededor de 0,5 en estas particiones. No demuestra que 0,5 vaya a mantenerse como umbral adecuado si cambia la prevalencia de positivos, el costo relativo de falsos positivos y negativos o la institución de origen.
+
+La regresión logística con promedio mejoró ligeramente F1 y redujo exactitud balanceada. El MLP con promedio mantuvo F1 y mejoró exactitud balanceada. Estos patrones justifican presentar deltas por modelo en lugar de una recomendación general de ``ajustar siempre'' el umbral.
+
+\section{Comparación entre hipótesis experimentales}
+
+\subsection{Señal textual frente a controles}
+
+Todos los modelos no triviales superaron a los controles en ROC AUC y PR AUC. Esta evidencia responde afirmativamente, dentro del subconjunto, a la primera pregunta: los PBC contienen señal predictiva sobre la etiqueta operacionalizada.
+
+La evidencia no permite conocer cuánto proviene de contenido técnico, fórmulas administrativas, organismo convocante o año. Un análisis de ablación por secciones y una validación agrupada por institución serían necesarios para separar estas fuentes.
+
+\subsection{Representación léxica frente a densa}
+
+La representación léxica fue superior en ranking, mientras que las densas fueron competitivas y dos de ellas obtuvieron menor Brier. No existe un ganador único para todos los criterios. La selección dependerá del uso: priorización ordenada, clasificación binaria o puntuación probabilística.
+
+Este hallazgo coincide con trabajos de documentos extensos que recomiendan mantener líneas base TF--IDF y evaluar costo además de desempeño \cite{mamakas2022legal,tuteja2023longtext}. El resultado local es particularmente relevante porque el LLM utilizado tiene una escala muy superior a la regresión logística, pero esa escala no produjo el mayor AUC.
+
+\subsection{Interacciones entre fragmentos}
+
+El transformer mejoró calibración respecto de los otros agregadores, pero no ranking. La hipótesis de que las interacciones entre fragmentos aportarían una ventaja general no queda respaldada. Una explicación posible es que el embedding de cada fragmento ya condense suficiente información y el conjunto sea pequeño para aprender interacciones adicionales. Otra posibilidad es que el último token válido no sea el pooling óptimo. Ambas explicaciones requieren experimentos y se formulan como líneas futuras, no como hechos demostrados.
+
+\section{Costo y complejidad experimental}
+
+La comparación de desempeño debe considerar el costo de obtener cada entrada. TF--IDF utiliza el texto extraído y se ajusta con operaciones dispersas. Los modelos densos requieren ejecutar una vez un LLM de 20 mil millones de parámetros sobre fragmentos de hasta 4096 tokens. Esa etapa produjo la principal pérdida técnica del embudo: 680 documentos sin embedding, 671 de ellos por memoria.
+
+Después de generar embeddings, el entrenamiento de agregadores es comparativamente liviano y puede reutilizar los archivos \texttt{.pt}. Sin embargo, una evaluación de extremo a extremo debe contabilizar la codificación inicial y la selección que induce. El mejor Brier del transformer se obtuvo sobre documentos que sí pudieron codificarse; no hay evidencia de su desempeño en los 680 excluidos.
+
+\section{Discusión de resultados}
+
+\input{Capitulos/shortpaper_fragments/discusion}
+
+\subsection{Implicaciones para Paraguay}
+
+El resultado más inmediato es metodológico: en PBC paraguayos de construcción vial, una línea base léxica bien configurada debe preceder a modelos más costosos. Esto no implica descartar LLM. Indica que cualquier propuesta basada en ellos debe demostrar una ventaja vinculada al objetivo operativo, como calibración, transferencia o análisis semántico, y no apoyarse únicamente en su complejidad.
+
+Un sistema de apoyo a la DNCP o a un organismo de control podría usar ranking para ordenar expedientes y revisión humana para interpretar causas. Antes de ello sería necesario validar sobre períodos posteriores, incluir organismos no vistos, recuperar PBC faltantes y definir el evento que realmente se desea anticipar. La etiqueta \texttt{complete} frente a estados no exitosos es útil para investigación, pero una política pública puede requerir objetivos más específicos.
+
+La Ley N.º 7021/2022 enfatiza eficiencia, competencia, transparencia e integridad \cite{dncpLey7021}. Una predicción de estado no mide por sí sola esos principios. Cualquier integración institucional debería mantener separadas la señal estadística, la evaluación normativa y la decisión administrativa.
+
+\subsection{Comparación con otros países}
+
+Acikalin et al. encontraron señal predictiva en descripciones de convocatorias \cite{acikalin2024procurementcalls}; este estudio encuentra señal en PBC paraguayos completos. La coincidencia apoya la idea general de que el lenguaje ex ante informa sobre desenlaces, pero no permite equiparar variables objetivo ni magnitudes.
+
+VigIA utiliza metadatos e índices orientados a sobrecostos, demoras e irregularidades en Colombia \cite{salazar2024vigia}. El presente trabajo usa texto y un estado final más amplio. Los enfoques podrían complementarse en el futuro, pero su unión requeriría un conjunto paraguayo donde ambos tipos de variables estén disponibles en el mismo momento.
+
+Los modelos mexicanos centrados en corrupción usan información relacional de compradores y proveedores \cite{aldana2022mexico}. Como el presente experimento no incorpora redes, no puede evaluar esa dimensión. La comparación confirma que ``analítica de contratación'' comprende tareas heterogéneas y que las métricas solo son comparables cuando coinciden etiqueta, momento y población.
+
+\section{Síntesis de hallazgos}
+
+Los hallazgos pueden resumirse de la siguiente forma:
+
+\begin{enumerate}
+  \item Los modelos no triviales ordenaron mejor que referencias sin habilidad, lo que evidencia señal textual en el subconjunto.
+  \item TF--IDF más regresión logística logró el mejor ranking y la mayor exactitud balanceada de la tabla principal.
+  \item El transformer entre fragmentos logró el mejor Brier y el mayor F1 a umbral 0,5.
+  \item El promedio de embeddings permaneció cerca del transformer, por lo que no se observó una ventaja general del modelado entre fragmentos.
+  \item La optimización de umbral benefició métricas y modelos de manera desigual.
+  \item La pérdida de documentos durante recuperación y embedding limita la extrapolación al universo de la DNCP.
+\end{enumerate}
+
+Estas conclusiones se restringen a la evidencia observada y servirán de base para el capítulo final.

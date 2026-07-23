@@ -1,0 +1,236 @@
+\clearpage
+\lhead{\emph{Propuesta de experimentación}}
+\chapter{Propuesta de experimentación numérica}
+\label{sec:propuesta_experimental}
+
+En este capítulo se describirá el diseño experimental empleado para comparar representaciones textuales en la predicción de resultados de licitaciones públicas paraguayas. Primero se presentarán el ambiente computacional y la procedencia de los datos. Luego se detallarán la descarga de PBC, la extracción de texto, la generación de embeddings, la definición de la etiqueta y los modelos. Finalmente se establecerán la partición, las métricas y las reglas de reproducibilidad que se utilizarán para evaluar cada alternativa.
+
+La descripción se fundamenta en el código versionado del proyecto y en el embudo de artefactos observado. Cuando un detalle de infraestructura no quedó preservado en el repositorio, se indicará expresamente en vez de reconstruirlo mediante suposiciones.
+
+\section{Ambiente computacional}
+
+\subsection{Hardware}
+
+La generación de embeddings se ejecutó con aceleración CUDA. El código selecciona una GPU cuando está disponible, utiliza \texttt{bfloat16} en ese caso y conserva los tokens en CPU hasta transferir cada microlote. La evidencia de ejecución registra 671 fallos \texttt{OutOfMemoryError}, pero el modelo exacto de GPU, su memoria, el procesador y la memoria RAM no se encuentran versionados en los artefactos disponibles. En consecuencia, no se atribuirán especificaciones de hardware no verificables.
+
+Para reproducir el experimento será necesario registrar, además del código, el modelo de GPU, versión del controlador, versión de CUDA, memoria disponible y sistema operativo. Estos datos son relevantes porque determinan el tamaño de microlote que puede procesarse y la probabilidad de fallos en documentos extensos.
+
+\begin{table}[H]
+\centering
+\caption{Información de hardware respaldada por los artefactos del proyecto.}
+\label{tab:hardware}
+\begin{tabular}{p{4.2cm}p{8.2cm}}
+\toprule
+\textbf{Componente} & \textbf{Evidencia disponible} \\
+\midrule
+Acelerador & GPU compatible con CUDA utilizada para generar embeddings \\
+Precisión del LLM & \texttt{bfloat16} cuando CUDA está disponible \\
+Gestión de memoria & Microlotes CPU--GPU, caché KV desactivada y reintentos reduciendo el microlote \\
+Modelo y memoria exacta & No preservados en el repositorio; deben registrarse en una reproducción \\
+Almacenamiento de artefactos & DigitalOcean Spaces mediante API compatible con S3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Software}
+
+El proyecto requiere Python 3.10 o superior y declara sus dependencias en \texttt{pyproject.toml}; \texttt{uv.lock} conserva resoluciones concretas por plataforma. La Tabla~\ref{tab:software} presenta componentes principales observados en el archivo de bloqueo actual. Las versiones efectivamente usadas en la corrida original deben verificarse contra el entorno archivado si se dispone de él, porque el archivo puede actualizarse después de una ejecución.
+
+\begin{table}[H]
+\centering
+\caption{Componentes principales del ambiente de software versionado.}
+\label{tab:software}
+\begin{tabular}{p{4.4cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Componente} & \textbf{Uso} & \textbf{Versión resuelta observada} \\
+\midrule
+Python & ETL y entrenamiento & $\geq 3.10$ \\
+PyTorch & Embeddings y redes & 2.11.0 \\
+Transformers & Carga del LLM/tokenizador & 5.4.0 \\
+scikit-learn & TF--IDF, CV y métricas & 1.7.2/1.8.0 según plataforma \\
+MLflow & Seguimiento experimental & 3.10.1 \\
+pdfplumber & Extracción de texto PDF & 0.11.9 \\
+Camelot & Extracción de tablas & 1.0.9 \\
+pandas & Manipulación tabular & 2.3.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Fuente y procedencia de los datos}
+
+\subsection{API de la DNCP}
+
+Los procesos provienen del servicio de datos abiertos de la DNCP. El script \texttt{fetch\_ids\_by\_status.py} consulta el endpoint:
+
+\begin{center}
+\small\url{https://www.contrataciones.gov.py/datos/api/v3/doc/search/processes}
+\end{center}
+
+La consulta utiliza \texttt{items\_per\_page=100}, el código de clasificación \texttt{72131701}, el estado de la licitación y el número de página. El endpoint forma parte de la publicación paraguaya basada en Open Contracting \cite{dncpOpenContracting,dncpDatosAbiertos}. Se recorrieron las páginas disponibles para \texttt{unsuccessful} y \texttt{cancelled}; cada respuesta se normalizó añadiendo el estado utilizado en la consulta.
+
+De cada registro se recuperaron, cuando estaban disponibles, el OCID, el \texttt{tender.id} y los identificadores de adjudicaciones. Si no aparecía \texttt{tender.id}, el código utilizó el OCID como alternativa. El identificador de tender se mantuvo como clave para unir etapas posteriores.
+
+\subsection{Conjunto inicial}
+
+El conjunto inicial reunió tres fuentes almacenadas en DigitalOcean Spaces:
+
+\begin{enumerate}
+  \item \texttt{procurements.json}, con 10.000 procesos materializados como \texttt{complete} desde una instantánea previa de la DNCP;
+  \item \texttt{ids\_unsuccessful.json}, con 257 procesos recuperados de las tres páginas disponibles;
+  \item \texttt{ids\_cancelled.json}, con 371 procesos recuperados de las cuatro páginas disponibles.
+\end{enumerate}
+
+La unión produjo 10.628 filas. El orden de combinación fue no exitosos, cancelados y completos. Ante identificadores duplicados, la primera capa conservó prioridad y las siguientes rellenaron campos ausentes. El mismo orden definió la cola de descarga, con el propósito de procesar primero la clase minoritaria.
+
+\input{Capitulos/shortpaper_fragments/configuracion_experimental}
+
+\section{Recuperación de documentos PBC}
+
+Para cada proceso, \texttt{merge\_and\_download\_pbcs.py} consultará la información documental asociada e intentará localizar un PBC o carta de invitación. La ejecución documentada aceptó PDF como artefacto final. El código inspecciona título, URL y formato; también contiene rutas auxiliares para archivos comprimidos o documentos de oficina, pero el conjunto final observado está compuesto por PDF.
+
+Los archivos se almacenan bajo la clave lógica:
+
+\begin{center}
+\texttt{outcome-predictor/pbcs/pdf/\{tenderId\}.pdf}
+\end{center}
+
+El proceso es reanudable: antes de descargar, puede comprobar si el objeto existe. El conjunto JSON enriquecido conserva indicadores de descarga, clave remota y, cuando se registró, motivo de omisión o error. Una reconciliación final compara las filas con el listado real de objetos en Spaces para evitar que el JSON declare un PDF inexistente.
+
+Se obtuvieron 1.845 PDF. Esta cifra representa los archivos recuperados por la canalización, no todos los PBC existentes en la DNCP. Para 42 procesos se conservó un motivo de fallo; 8.741 filas no contienen evidencia de intento o causa final y se documentan como no procesadas dentro del tiempo disponible, principalmente por limitación de solicitudes. Esta diferencia exige evitar tasas de disponibilidad calculadas como si toda la población hubiese sido consultada exhaustivamente.
+
+\section{Extracción y normalización del texto}
+
+Los PDF descargados se procesaron con \texttt{PDFReader}. La etapa utiliza \texttt{pdfplumber} para texto y puede utilizar Camelot en modos \textit{lattice} y \textit{stream} para tablas. Cada resultado se almacenó en:
+
+\begin{center}
+\texttt{outcome-predictor/pbcs/txt/\{tenderId\}.txt}
+\end{center}
+
+De 1.845 PDF se obtuvieron 1.842 textos. Los tres fallos correspondieron a documentos escaneados para los que el extractor no incorporaba OCR. No se imputó texto vacío ni se reemplazaron esos documentos por contenido de otra fuente; quedaron excluidos.
+
+La extracción puede conservar ruido de paginación o alterar tablas. El experimento tratará el texto obtenido como entrada efectiva del modelo y no como transcripción perfecta del PBC. Una extensión con OCR deberá evaluarse por separado porque cambiaría la población incluida y la calidad de la entrada.
+
+\section{Generación de embeddings}
+
+\subsection{Codificador congelado}
+
+El script \texttt{embed\_pbcs.py} cargará \texttt{openai/gpt-oss-20b} mediante Hugging Face Transformers y congelará todos sus parámetros. La configuración seleccionará \texttt{bfloat16} en CUDA, desactivará la caché de claves y valores y utilizará el backbone que devuelve el último estado oculto.
+
+La secuencia completa se tokenizará sin truncamiento. Se dividirá en fragmentos de 4096 tokens con desplazamiento de 2048. Cada fragmento se completará hasta la longitud máxima para formar microlotes. El embedding corresponderá al estado oculto del último token válido, no al relleno.
+
+\subsection{Control de memoria}
+
+El tamaño inicial del microlote será cuatro. Ante un error de memoria CUDA, el código vaciará la caché, reducirá el tamaño por mitades y reintentará hasta llegar a uno. Si el error persiste, se registrará y el documento quedará sin embedding. Este procedimiento evita que un fallo detenga toda la colección, aunque induce una selección técnica por longitud y demanda de memoria.
+
+Cada archivo \texttt{.pt} conserva \texttt{tender\_id}, matriz de embeddings, identificador del modelo, longitud, desplazamiento, tamaño de microlote y eventual etiqueta. Se produjeron 1.162 archivos. Entre los 680 textos sin embedding se observaron 671 errores de memoria y nueve \texttt{ValueError}.
+
+\section{Embudo de construcción del conjunto supervisado}
+
+La Tabla~\ref{tab:funnel} presenta el recorrido completo. Los conteos provienen de objetos observados y del JSON consolidado.
+
+\begin{table}[H]
+\centering
+\caption{Embudo de datos desde procesos DNCP hasta el conjunto supervisado.}
+\label{tab:funnel}
+\begin{tabular}{p{5.3cm}rrr}
+\toprule
+\textbf{Etapa} & \textbf{Universo} & \textbf{Resultado válido} & \textbf{Pérdida} \\
+\midrule
+Procesos unificados & 10.628 & 10.628 & 0 \\
+PBC PDF recuperados & 10.628 & 1.845 & 8.783 \\
+Texto extraído & 1.845 & 1.842 & 3 \\
+Embeddings generados & 1.842 & 1.162 & 680 \\
+Ejemplos supervisados & 1.162 & 1.162 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La Tabla~\ref{tab:funnel_status} desagrega etapas por estado. La priorización elevó la proporción de no exitosos respecto de la instantánea completa.
+
+\begin{table}[H]
+\centering
+\caption{Conteos por estado en etapas principales.}
+\label{tab:funnel_status}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Estado} & \textbf{Inicial} & \textbf{PDF} & \textbf{Texto} & \textbf{Embedding} \\
+\midrule
+\texttt{complete} & 10.000 & 1.273 & 1.270 & 844 \\
+\texttt{unsuccessful} & 257 & 246 & 246 & 204 \\
+\texttt{cancelled} & 371 & 326 & 326 & 114 \\
+\midrule
+Total & 10.628 & 1.845 & 1.842 & 1.162 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La pérdida no es aleatoria. Se priorizaron estados minoritarios y los errores de embedding afectaron principalmente documentos costosos. Por ello, el subconjunto final no debe presentarse como muestra representativa del universo paraguayo. El protocolo medirá desempeño interno sobre los 1.162 casos procesados.
+
+\section{Definición de la instancia y etiqueta}
+
+\input{Capitulos/shortpaper_fragments/definicion_tarea}
+
+El mapeo se implementa en \texttt{src/data/procurement\_target.py} y se alinea mediante \texttt{tenderId}. Registros sin uno de los estados admitidos se excluirán. La etiqueta no se extraerá del PBC y no se suministrará al codificador.
+
+\section{Modelos que se evaluarán}
+
+\input{Capitulos/shortpaper_fragments/metodo}
+
+\subsection{Líneas base triviales}
+
+Se incluirá un clasificador de clase mayoritaria y uno aleatorio cuya tasa positiva coincida con la prevalencia. Servirán como control del pipeline: ROC AUC deberá situarse cerca de 0,5 y PR AUC cerca de la prevalencia, dentro de la variación esperable.
+
+\subsection{TF--IDF con regresión logística}
+
+El vectorizador se ajustará exclusivamente con textos de entrenamiento de cada pliegue. Se usarán 50.000 características como máximo, unigramas y bigramas, y frecuencia documental mínima de cinco. La regresión logística utilizará \texttt{class\_weight=balanced}. Transformar el pliegue externo con un vocabulario aprendido solo en entrenamiento evitará fuga por frecuencia documental.
+
+\subsection{Promedio con regresión logística}
+
+Se calculará el promedio de embeddings por documento y se ajustará una regresión logística. Este modelo aislará el contenido de la representación congelada sin introducir una red secuencial.
+
+\subsection{Promedio con MLP}
+
+El mismo promedio alimentará una red con una capa oculta. En el análisis de sensibilidad se utilizó dimensión oculta 256, ReLU, dropout 0,2, AdamW, lotes de 64 y detención temprana. La comparación con regresión logística permitirá observar si una transformación no lineal del promedio aporta valor.
+
+\subsection{Transformer entre fragmentos}
+
+La matriz variable de embeddings se rellenará dentro de cada lote y se acompañará con una máscara. La arquitectura proyectará de 2880 a 128 dimensiones, añadirá \texttt{[CLS]}, utilizará cuatro cabezas, dimensión prealimentada 512, dropout 0,3 y una capa. La cabeza final producirá un logit.
+
+\section{Partición y protocolo de evaluación}
+
+Se utilizará validación cruzada estratificada de cinco pliegues con semilla 42. Cada pliegue conservará aproximadamente la prevalencia. Los modelos comparados emplearán los mismos índices externos. El vectorizador y los clasificadores se ajustarán nuevamente en cada ronda.
+
+Para las métricas a umbral fijo se utilizará $\tau=0.5$. Para el experimento de sensibilidad, los cuatro pliegues externos de entrenamiento se dividirán en entrenamiento interno y validación interna, con una proporción de validación de 0,2. Se seleccionará el umbral que maximice F1 en la partición interna; ante empates se preferirá el más cercano a 0,5 y luego el menor. El umbral se aplicará una sola vez al pliegue externo.
+
+Este anidamiento separará selección y evaluación. No se utilizará el pliegue externo para elegir hiperparámetros, vocabulario o umbral.
+
+\section{Entrenamiento}
+
+El transformer se entrenará con AdamW, tasa $10^{-4}$, decaimiento 0,01, lotes de ocho y hasta 50 épocas. Después de cada época se calculará la pérdida de validación. Si no mejora durante cinco épocas consecutivas, se detendrá el entrenamiento y se restaurará el mejor estado.
+
+La pérdida será entropía cruzada binaria con logits. El uso directo de logits evita aplicar sigmoide antes de una función que implementa de forma estable ambas operaciones. Durante evaluación, la sigmoide transformará logits en probabilidades.
+
+\section{Métricas de evaluación}
+
+Se informarán ROC AUC, PR AUC, F1, exactitud balanceada, Brier y pérdida logarítmica. ROC AUC y PR AUC evaluarán ranking; F1 y exactitud balanceada dependerán del umbral; Brier y pérdida logarítmica evaluarán probabilidades. También se registrará la prevalencia positiva y $PR\ AUC-\pi$.
+
+Las curvas de precisión-exhaustividad se construirán agregando predicciones externas. Las curvas de calibración agruparán probabilidades y compararán predicción media con frecuencia observada. Dado el tamaño limitado, los puntos de bins extremos se interpretarán con cautela.
+
+\section{Trazabilidad y reproducibilidad}
+
+La semilla global será 42 y cada pliegue recibirá una semilla derivada independiente. El código configurará cuDNN determinista, generadores de \texttt{DataLoader} y reinicios de estados aleatorios. MLflow conservará hiperparámetros y métricas. Los objetos pesados residirán en Spaces y los metadatos de seguimiento, por defecto, en SQLite local.
+
+Los artefactos públicos archivados en Zenodo incluyen código, configuración y documentación, pero excluyen datos locales, credenciales y salidas pesadas. La reproducción completa requerirá acceso legítimo a los datos fuente o una nueva descarga desde la DNCP, además del modelo base. Esta limitación deberá declararse al presentar el grado de reproducibilidad.
+
+\section{Amenazas a la validez previstas}
+
+Se considerarán cuatro grupos:
+
+\begin{enumerate}
+  \item \textbf{Validez de constructo}: el estado final es una aproximación operacional al éxito.
+  \item \textbf{Validez interna}: podrían existir duplicados documentales, regularidades institucionales o señales indirectas; el protocolo evita datos posteriores, pero no convierte correlaciones en causalidad.
+  \item \textbf{Validez externa}: el subconjunto está filtrado por disponibilidad y cómputo, y se limita a construcción vial paraguaya.
+  \item \textbf{Validez de conclusión}: cinco pliegues sobre 1.162 ejemplos producen incertidumbre; diferencias pequeñas no deben presentarse como dominancia universal sin pruebas adicionales.
+\end{enumerate}
+
+Estas amenazas guiarán la interpretación del capítulo de resultados y evitarán extrapolar los umbrales del subconjunto a la distribución completa.

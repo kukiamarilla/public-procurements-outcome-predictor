@@ -1,0 +1,73 @@
+\clearpage
+\lhead{\emph{Introducción}}
+\chapter{Introducción}
+\label{sec:introduccion}
+
+La contratación pública articula la planificación estatal con la provisión efectiva de bienes, obras y servicios. En Paraguay, la Ley N.º 7021/2022 define la contratación del suministro público como una secuencia ordenada que comprende la identificación de una necesidad, la estimación del valor, la definición de la estrategia de adquisición, la contratación, la ejecución y, cuando corresponde, la liquidación. La misma norma dispone que esas acciones queden registradas en el Sistema de Información de las Contrataciones Públicas (SICP) \cite{ley7021paraguay}. Por ello, la contratación pública no constituye un evento aislado, sino un proceso trazable cuyo registro digital puede utilizarse para transparencia, control y análisis.
+
+La reforma introducida por la Ley N.º 7021/2022 busca modernizar las compras del Estado paraguayo, fortalecer la competencia, prevenir conflictos de interés y optimizar los controles mediante mecanismos normativos y tecnológicos \cite{dncpLey7021}. Este marco se relaciona con la política nacional de gobierno electrónico, que incluye portales de servicios, interoperabilidad institucional, datos abiertos y acceso ciudadano a la información \cite{miticGobiernoElectronico}. El portal de la Dirección Nacional de Contrataciones Públicas (DNCP) publica información mediante servicios de consulta y archivos históricos; además, adopta el Estándar de Datos para las Contrataciones Abiertas para representar etapas como planificación, convocatoria, adjudicación, contrato e implementación \cite{dncpOpenContracting,ocdsPrimer}.
+
+Dentro de este proceso, el Pliego de Bases y Condiciones (PBC) ocupa una posición particular. Se produce antes de conocerse el resultado y reúne requisitos administrativos, especificaciones técnicas, criterios de evaluación, condiciones de participación, plazos y obligaciones. El estándar OCDS distingue precisamente los documentos de licitación, las especificaciones técnicas y los criterios de evaluación como tipos documentales de la etapa de convocatoria \cite{ocdsCodelists}. En consecuencia, el PBC contiene información disponible \textit{ex ante}: puede ser analizado sin recurrir a adjudicaciones, contratos ni evaluaciones publicadas después del cierre del proceso.
+
+La disponibilidad previa del documento vuelve pertinente una pregunta predictiva: ¿existen regularidades textuales que permitan estimar si un proceso terminará con un resultado exitoso o no exitoso? Esta pregunta no equivale a determinar causalidad, fraude o ilegalidad. Una predicción puede apoyarse en estructuras documentales, patrones de redacción o características institucionales correlacionadas con el resultado sin que estas constituyan causas del mismo. En este libro, la salida del modelo se entiende como una señal analítica para priorización y estudio, no como una decisión administrativa ni como una imputación sobre una entidad o proveedor.
+
+Los sistemas de apoyo a la supervisión requieren esta distinción. El proyecto VigIA, desarrollado para contratación pública en Colombia, combina modelos predictivos e índices de riesgo con el propósito de asignar mejor recursos de control; sus autores presentan la herramienta como apoyo a investigadores y no como sustituto de la revisión institucional \cite{salazar2024vigia}. La literatura sobre advertencias tempranas formula una idea similar: el valor operativo de la predicción reside en anticipar dónde conviene revisar, siempre que se documenten el objetivo, las limitaciones y los errores posibles \cite{gallego2021earlywarning}. En el contexto paraguayo, esta investigación adopta ese enfoque prudente.
+
+\input{Capitulos/shortpaper_fragments/introduccion}
+
+\section{Planteamiento del problema}
+
+El SICP y el portal de datos abiertos permiten recuperar metadatos estructurados, estados y documentos asociados a procesos de contratación. Sin embargo, un PBC es un documento extenso y heterogéneo. Puede contener texto corrido, formularios, cuadros, cláusulas repetidas, anexos y especificaciones propias de una obra. La disponibilidad del archivo no implica que su información sea inmediatamente utilizable por un modelo: primero deben localizarse los documentos, descargarse, extraerse como texto, dividirse en unidades manejables y transformarse en variables numéricas.
+
+La longitud introduce una dificultad adicional. Los transformers convencionales emplean autoatención cuyo costo crece cuadráticamente con la longitud de la secuencia \cite{vaswani2017attention}. La literatura de clasificación documental ha abordado esta limitación mediante truncamiento, atención dispersa y esquemas jerárquicos que dividen el documento en fragmentos y luego agregan sus representaciones \cite{beltagy2020longformer,dai2022revisiting}. En PBC extensos, truncar el comienzo o el final puede omitir secciones relevantes, mientras que procesar todos los tokens de una sola vez puede superar la memoria disponible.
+
+Al mismo tiempo, los documentos de contratación utilizan vocabulario recurrente y fórmulas estandarizadas. Esto favorece modelos léxicos como TF--IDF, capaces de representar unigramas y bigramas de todo el texto sin imponer un límite rígido de contexto. La tensión metodológica es, por tanto, concreta: una representación densa preentrenada puede capturar relaciones semánticas, pero requiere una estrategia de fragmentación y agregación; una representación dispersa puede preservar señales léxicas globales y ser más sencilla, aunque no modele el contexto con la misma riqueza.
+
+El problema experimental consiste en comparar ambas familias bajo particiones equivalentes y múltiples criterios de evaluación. No basta con observar exactitud o F1. Un modelo destinado a ordenar casos puede preferirse por ROC AUC o PR AUC; uno destinado a producir probabilidades puede requerir mejor calibración; y un modelo que toma decisiones binarias puede cambiar sustancialmente al mover el umbral. La investigación separa estas dimensiones para evitar afirmar que una única métrica demuestra superioridad general.
+
+\section{Preguntas de investigación}
+
+El trabajo se organiza alrededor de las siguientes preguntas:
+
+\begin{enumerate}
+  \item ¿Contienen los PBC de obras viales paraguayas una señal textual que permita predecir el estado final operacionalizado de una contratación mejor que referencias sin capacidad predictiva?
+  \item ¿Qué desempeño ofrecen las características léxicas TF--IDF frente a embeddings densos producidos por un LLM congelado?
+  \item ¿El modelado explícito de relaciones entre fragmentos aporta una ventaja frente a promediar los embeddings del mismo codificador?
+  \item ¿Las conclusiones cambian al distinguir ordenamiento, desempeño a umbral fijo, calibración y sensibilidad al umbral?
+  \item ¿Qué limitaciones de cobertura y representatividad deben considerarse antes de trasladar los resultados a un escenario operativo paraguayo?
+\end{enumerate}
+
+Las preguntas se formulan en términos comparativos y no causales. La investigación no intenta demostrar que ciertas palabras provoquen un resultado, ni que una puntuación predicha constituya evidencia jurídica. Busca medir la información predictiva presente en el documento antes del desenlace y caracterizar el comportamiento de diferentes representaciones.
+
+\section{Objetivos}
+
+\subsection{Objetivo general}
+
+Comparar representaciones léxicas y representaciones densas basadas en modelos grandes de lenguaje para predecir resultados de licitaciones públicas de obras viales en Paraguay a partir de PBC publicados antes del resultado final.
+
+\subsection{Objetivos específicos}
+
+\begin{enumerate}
+  \item Construir un subconjunto supervisado que vincule estados de procesos de contratación de la DNCP con PBC descargados, texto extraído y representaciones documentales.
+  \item Implementar líneas base sin capacidad predictiva y una línea base léxica TF--IDF con regresión logística.
+  \item Obtener embeddings por fragmento mediante un LLM congelado y comparar agregación por promedio con un transformer liviano entre fragmentos.
+  \item Evaluar todos los modelos con particiones estratificadas equivalentes y métricas de ordenamiento, clasificación a umbral fijo y calidad probabilística.
+  \item Analizar la sensibilidad al umbral de decisión mediante una selección realizada exclusivamente sobre datos internos de validación.
+  \item Identificar las limitaciones de cobertura documental, extracción, cómputo, prevalencia y transferencia al entorno real.
+\end{enumerate}
+
+\section{Alcance y delimitaciones}
+
+El universo de origen corresponde a procesos paraguayos de construcción vial asociados al código de catálogo \texttt{72131701}. La unidad de análisis es el proceso de contratación emparejado con un PBC. La etiqueta positiva corresponde al estado \texttt{complete}; la clase negativa agrupa \texttt{unsuccessful}, \texttt{cancelled} y su variante ortográfica \texttt{canceled}. Esta operacionalización permite un experimento reproducible, pero no agota la noción administrativa o económica de éxito.
+
+El análisis se delimita al subconjunto que completó todas las etapas técnicas: disponibilidad del PDF, extracción de texto y generación de embeddings. No se incluyen procesos sin documento recuperado, PDF escaneados que requieren reconocimiento óptico de caracteres ni documentos que no pudieron codificarse con la infraestructura utilizada. Estas exclusiones condicionan la representatividad y se cuantificarán en el capítulo de propuesta experimental.
+
+La investigación tampoco desarrolla un sistema de decisión autónoma. Una aplicación futura requeriría validación temporal, recalibración con la prevalencia de despliegue, revisión de sesgos entre organismos, definición explícita de costos de error y mecanismos de supervisión humana. La recomendación de la OCDE sobre contratación pública vincula el uso de sistemas electrónicos y datos con transparencia, integridad, acceso y evaluación del desempeño; este marco respalda el uso analítico, pero también exige gobernanza \cite{oecd2015procurement}.
+
+\section{Contribuciones}
+
+Las contribuciones del trabajo son cuatro. Primero, presenta una canalización reproducible centrada en PBC paraguayos, desde la consulta de procesos hasta la evaluación. Segundo, compara en condiciones homogéneas una representación léxica, dos agregadores de embeddings y un modelo de interacciones entre fragmentos. Tercero, informa métricas de ordenamiento y calibración por separado, evitando reducir la comparación a una sola cifra. Cuarto, documenta el embudo de datos y sus fallos, de modo que la cobertura observada forme parte de la interpretación y no quede oculta como una decisión de preprocesamiento.
+
+\section{Organización del libro}
+
+El Capítulo~\ref{sec:marco_teorico} presentará el marco institucional y conceptual de la contratación pública digital, así como los fundamentos de representación textual, transformers, clasificación, calibración y evaluación. El Capítulo~\ref{sec:trabajos_relacionados} revisará investigaciones de contratación pública y clasificación de documentos extensos, con Paraguay como contexto principal y otros países como comparación. El Capítulo~\ref{sec:propuesta_experimental} describirá la construcción del conjunto de datos, la canalización, los modelos y el protocolo que se empleará. El Capítulo~\ref{sec:resultados} expondrá las pruebas y analizará sus resultados. Finalmente, el Capítulo~\ref{sec:conclusiones} sintetizará las conclusiones y propondrá trabajos futuros.

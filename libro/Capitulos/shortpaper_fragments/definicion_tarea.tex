@@ -1,0 +1,8 @@
+La tarea de predicción consiste en una clasificación binaria sobre contrataciones para las cuales se dispone tanto de un documento de licitación utilizable como de una etiqueta de resultado. Cada ejemplo corresponde a un proceso de contratación emparejado con un documento PBC extraído. La variable objetivo se operacionaliza a partir del campo de estado de la contratación de la siguiente manera:
+
+\begin{itemize}
+  \item Resultado exitoso ($y=1$): \texttt{complete}.
+  \item Resultado no exitoso ($y=0$): \texttt{unsuccessful}, \texttt{cancelled} o \texttt{canceled}.
+\end{itemize}
+
+Los registros con otros estados se excluyen del entrenamiento supervisado y de la evaluación. Esta definición es intencionalmente simple y se fundamenta directamente en la fuente de datos disponible. Debe entenderse como una aproximación operativa al éxito de una contratación y no como una noción institucional exhaustiva de desempeño.

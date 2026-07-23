@@ -1,0 +1,32 @@
+\section{Conjunto de datos}
+La instantánea de metadatos utilizada en este trabajo se construyó a partir de registros de contratación pública publicados por la Dirección Nacional de Contrataciones Públicas (DNCP) de Paraguay y recuperados mediante el endpoint oficial de datos abiertos \texttt{v3/doc/search/processes}. El conjunto inicial contiene 10.628 contrataciones de construcción vial bajo el código de catálogo \texttt{72131701}: 10.000 procesos completados materializados por una canalización previa de extracción de la DNCP y 628 procesos adicionales no exitosos recolectados según su estado. Para reducir el desbalance de clases, la recuperación y el procesamiento priorizaron las contrataciones no exitosas antes que las completadas.
+
+El subconjunto supervisado es menor porque se requieren varios pasos de filtrado. La mayor reducción ocurre antes del procesamiento textual: solo se recuperaron 1.845 PDF de PBC, principalmente porque los límites de solicitudes de la DNCP impidieron realizar una búsqueda y descarga exhaustivas dentro del tiempo disponible. Luego, la canalización extrajo texto de 1.842 PDF y generó embeddings congelados del LLM para 1.162 documentos. Los tres fallos de extracción correspondieron a documentos escaneados no compatibles con el extractor sin OCR, mientras que la mayoría de los fallos de generación de embeddings fueron errores por falta de memoria en la GPU, después de una única ejecución limitada por el costo de infraestructura. Por ello, las conclusiones se aplican a este subconjunto procesado y no automáticamente a toda la población de contrataciones.
+
+La distribución de clases del subconjunto procesado presenta un desbalance moderado: 844 contrataciones ($72.63\%$) están etiquetadas como exitosas (\texttt{complete}) y 318 ($27.37\%$) como no exitosas (\texttt{unsuccessful}/\texttt{cancelled}/\texttt{canceled}). La longitud media representada es de 7,46 fragmentos por contratación, con una desviación estándar de 13,52, una mediana de 3 fragmentos y un máximo de 245. Estos valores indican una distribución de longitudes muy asimétrica, con numerosos documentos cortos y una cantidad menor de documentos considerablemente más largos. La dimensión de los embeddings heredada del LLM base congelado es 2880.
+
+El subconjunto procesado también está menos desbalanceado que la población general de contrataciones. En la instantánea completa, los resultados exitosos son mucho más frecuentes: aproximadamente 10.000 contrataciones exitosas frente a unas 650 no exitosas. Por consiguiente, las métricas dependientes del umbral y las interpretaciones sensibles a la prevalencia deben considerarse válidas para el subconjunto procesado, no como puntos operativos directamente desplegables.
+
+\section{Tratamiento de la fuga de información}
+El modelo opera exclusivamente con información disponible en el momento de la inferencia. Todas las entradas se derivan de documentos de licitación producidos y publicados durante la etapa de convocatoria, antes de que se conozca el resultado final de la contratación. Esto hace que la configuración predictiva sea operativamente realista y reduce sustancialmente el riesgo de fuga directa a partir de contenido explícito sobre el estado final.
+
+En consecuencia, la principal amenaza restante para la validez no es una fuga evidente y posterior de la variable objetivo, sino las correlaciones predictivas indirectas y la representatividad limitada. Los documentos de licitación pueden codificar regularidades estructurales, institucionales o estilísticas que predicen el resultado sin ser causales. Estas regularidades son legítimas para la predicción ex ante porque están disponibles en el momento de la decisión, pero no deben interpretarse como causas directas del éxito o fracaso de una contratación.
+
+\section{Protocolo de evaluación}
+El modelo se evalúa mediante validación cruzada estratificada de cinco pliegues. El subconjunto procesado de 1.162 ejemplos se divide en cinco pliegues que preservan las etiquetas, de modo que cada ronda utiliza aproximadamente cuatro quintas partes de los datos para ajustar el modelo y una quinta parte como partición de evaluación fuera de pliegue. En términos concretos, cada ronda entrena con unas 930 contrataciones y evalúa aproximadamente 232 que no se utilizaron para ajustar el modelo de esa ronda.
+
+La estratificación es importante porque la clase positiva no está balanceada: cerca del $72.6\%$ del subconjunto procesado corresponde a resultados exitosos. Conservar esta prevalencia entre pliegues reduce variaciones evitables en F1, exactitud balanceada y PR AUC. Los valores finales informados son la media y la desviación estándar de los cinco pliegues reservados. Para el análisis de sensibilidad al umbral, los cuatro pliegues de entrenamiento de cada ronda se dividen nuevamente en una porción interna de entrenamiento y otra de validación; el umbral que maximiza F1 en la validación interna se aplica después al pliegue de evaluación externo de esa ronda.
+
+\section{Métricas}
+La evaluación utiliza las siguientes métricas:
+
+\begin{itemize}
+  \item \textbf{ROC AUC}, para medir la calidad del ordenamiento con independencia del umbral de decisión.
+  \item \textbf{PR AUC} (precisión promedio), para evaluar el ordenamiento con atención explícita a la clase positiva.
+  \item \textbf{Puntaje F1}, con un umbral de probabilidad de $0.5$.
+  \item \textbf{Exactitud balanceada}, también con un umbral de $0.5$.
+  \item \textbf{Puntaje de Brier}, para medir la calidad de la calibración probabilística.
+  \item \textbf{Pérdida logarítmica}, como regla de puntuación propia sobre las probabilidades predichas.
+\end{itemize}
+
+La elección de métricas ante el desbalance depende del objetivo operativo: los resúmenes basados en PR enfatizan la recuperación de la clase positiva, mientras que ROC AUC y PR AUC responden de manera distinta a la prevalencia y deben interpretarse en contexto \cite{richardson2024roc}. Debido a que PR AUC puede inducir a error cuando la clase positiva es frecuente, se interpreta junto con la prevalencia positiva $\pi$ en los pliegues reservados. La implementación también registra \texttt{positive\_prevalence} y \texttt{pr\_auc\_excess\_over\_prevalence}; esta última se define como PR AUC menos $\pi$. La cantidad ofrece una estimación compacta de cuánto mejora el modelo sobre la frecuencia de la clase positiva, utilizada habitualmente como referencia al discutir el comportamiento PR sin capacidad predictiva en contextos desbalanceados.
