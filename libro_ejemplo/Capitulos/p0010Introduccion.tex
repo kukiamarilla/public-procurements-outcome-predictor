@@ -1,0 +1,42 @@
+\clearpage % Start a new page
+\lhead{\emph{Introducción}}
+\chapter{Introducción}
+\label{sec:introduccion}
+
+Las vías fluviales son fundamentales para el desarrollo socioeconómico, especialmente en países mediterráneos como Paraguay, donde los ríos actúan como importantes rutas de transporte y comercio, impulsando la economía local y conectando regiones clave para el crecimiento industrial y agrícola \cite{sistema-pronostico-conacyt-14-INV-280}. Las predicciones precisas a corto plazo de los niveles de los ríos son cruciales para gestionar riesgos relacionados con los afluentes, como inundaciones, sequías, interrupciones por innavegabilidad y el uso inadecuado en sistemas de irrigación agrícola. Estas predicciones permiten una toma de decisiones informada, lo que contribuye a la sostenibilidad y a la seguridad de las comunidades que dependen de estos cuerpos de agua. En el caso específico del río Paraguay, las variaciones estacionales en los niveles dependen de factores como los patrones de precipitación en sus afluentes y los cambios en el uso del suelo debido a la expansión agrícola, lo que convierte su predicción precisa y oportuna en un desafío técnico considerable.
+
+La literatura sobre el estudio de los niveles de agua de los ríos es extensa. Se han aplicado diversos métodos y técnicas en este ámbito \cite{doi:10.1080/02626660009492354,s21196504,142442,doi:10.1080/19942060.2021.2019128,Faruq_2020,2964-6390-1-SM,articleMashuri,inproceedings}, así como también en el análisis de niveles de agua en lagos y reservorios \cite{EHTERAM20212193,ijgi9080479,ijeska842150,Piasecki_Adam_Application_2021,10.1117/12.2627470,ijeska896435,su14031843,Filimon}. Uno de los requisitos fundamentales para tales estudios es la existencia de al menos un punto de medición confiable, cuya instalación debe realizarse estratégicamente en función del comportamiento hidrológico del cauce. Para el análisis del río Paraguay, la red de estaciones de monitoreo juega un papel esencial en la recopilación continua de datos históricos \cite{amarilla2023comparative}.
+
+En cuanto a los enfoques metodológicos, pueden distinguirse tres grandes grupos: modelos físicos, modelos estocásticos y modelos basados en inteligencia artificial. Los primeros se fundamentan en ecuaciones diferenciales ordinarias o parciales que representan el flujo de agua. Los segundos aplican modelos estadísticos clásicos como ARIMA, y los últimos emplean técnicas de Machine Learning (ML), entre las que destacan los modelos de Deep Learning (DL), en particular las Redes Neuronales Recurrentes (RNN), por su capacidad de capturar patrones temporales complejos.
+
+Es importante destacar que si bien muchas de estas técnicas han demostrado ser prometedoras, su aplicabilidad efectiva requiere una cuidadosa calibración de parámetros y procesos de validación adecuados, especialmente cuando se busca predecir a diferentes horizontes temporales.
+
+En el contexto del río Paraguay, varios trabajos han abordado la tarea de pronóstico. Entre ellos destaca el proyecto desarrollado por el Consejo Nacional de Ciencia y Tecnología (CONACYT) \cite{sistema-pronostico-conacyt-14-INV-280}, así como otros esfuerzos documentados tanto en el ámbito académico como institucional. Muchos de estos enfoques utilizaron modelos estadísticos o físicos, pero abrieron el camino para explorar técnicas más recientes. Particularmente, el trabajo “Comparative Analysis of Statistical and Recurrent Neural Network Models for Short-Term River Level Forecasting in the Paraguay River” \cite{amarilla2023comparative} fue clave para establecer una base comparativa clara, demostrando que los modelos basados en RNN —especialmente LSTM y GRU— superan el desempeño de métodos clásicos como ARIMA.
+
+Sobre esa base, este trabajo propone una extensión del modelo GRU, incorporando progresivamente mejoras metodológicas que incluyen: reentrenamiento periódico, incorporación de variables exógenas (precipitaciones y caudales), ingeniería de características a partir de acumulados de precipitación, y finalmente, una optimización sistemática de hiperparámetros. El objetivo es predecir el nivel del río Paraguay en el puerto de Asunción, utilizando un enfoque basado en series temporales, con énfasis en modelos recurrentes.
+
+La validación se realiza utilizando un conjunto de datos reales, abarcando desde 1995 hasta 2022, con foco en el periodo de prueba 2013–2022. Este periodo incluye eventos hidrológicos extremos que representan un desafío particular para cualquier modelo de pronóstico. El desempeño de los modelos propuestos se analiza tanto en términos globales como detallados, considerando distintos horizontes de predicción y métricas de error. Los resultados obtenidos permiten concluir que el enfoque basado en GRU, mejorado progresivamente con estrategias adicionales, ofrece un marco robusto y eficaz para el pronóstico a corto plazo del nivel del río en escenarios reales.
+
+El contenido de este trabajo se encuentra organizado de la siguiente manera: el capítulo 2 presenta una base teórica sobre series temporales, incluyendo los conceptos fundamentales necesarios para comprender el enfoque adoptado. El capítulo 3 resume los principales trabajos relacionados con el pronóstico del nivel del río Paraguay, destacando enfoques clásicos y basados en inteligencia artificial. En el capítulo 4 se describe la propuesta experimental, detallando la preparación de los datos, las configuraciones de los modelos utilizados y la metodología de evaluación. El capítulo 5 presenta los resultados obtenidos, acompañados de un análisis exhaustivo que incluye métricas globales y visualizaciones específicas. Finalmente, el capítulo 6 expone las conclusiones generales del trabajo y plantea posibles líneas de investigación futuras.
+
+
+
+
+
+
+
+\section{Objetivos}
+\begin{itemize}
+    \item Objetivo General
+    \begin{enumerate}
+        \item Mejorar modelos predictivos a corto plazo para estimar el nivel del agua en el Río Paraguay utilizando datos de series temporales y técnicas de redes neuronales, con el fin de mejorar la precisión en las predicciones y contribuir al manejo de recursos hídricos.
+    \end{enumerate}
+    \item Objetivos Específicos
+    \begin{enumerate}
+        \item Realizar una revisión exhaustiva de la literatura para identificar las técnicas más prometedoras del estado del arte en la predicción de series temporales aplicadas a niveles de ríos.
+        \item Seleccionar y agregar características relevantes al problema de predicción, como los datos meteorológicos, con el fin de mejorar el rendimiento de los modelos.
+        \item Implementar y comparar los modelos de redes neuronales para la predicción del nivel del río Paraguay, evaluando su desempeño en términos de precisión y capacidad de generalización.
+        \item Ajustar los modelos para realizar reentrenamientos periódicos para optimizar su desempeño a largo plazo.
+        \item Validar las técnicas seleccionadas y las características agregadas a través de experimentos que midan la efectividad de cada modelo. 
+    \end{enumerate}
+\end{itemize}

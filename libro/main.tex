@@ -1,0 +1,100 @@
+\documentclass[11pt,a4paper,oneside]{thesis}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,spanish,es-tabla]{babel}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{float}
+\usepackage{url}
+\usepackage{acronym}
+\usepackage{csquotes}
+\usepackage[backend=bibtex,style=numeric,sorting=none]{biblatex}
+\addbibresource{references.bib}
+
+\graphicspath{{figures/}{Figuras/}}
+\setlength{\headheight}{26pt}
+\hypersetup{colorlinks=false,urlcolor=black}
+
+\thesistitle{Representaciones léxicas y basadas en LLM para la predicción de resultados de licitaciones públicas: un estudio comparativo}
+\authors{Isaac Gabriel Amarilla Benítez y Luis Fernando Caballero Ramoa}
+\degree{Ingeniería en Informática}
+\subject{Predicción de resultados de licitaciones públicas mediante representaciones textuales}
+\keywords{contratación pública, documentos de licitación, modelos de lenguaje, predicción de resultados}
+\university{Universidad Nacional de Asunción}
+\UNIVERSITY{UNIVERSIDAD NACIONAL DE ASUNCIÓN}
+\faculty{Facultad Politécnica}
+\FACULTY{FACULTAD POLITÉCNICA}
+\department{Ingeniería en Informática}
+\DEPARTMENT{INGENIERÍA EN INFORMÁTICA}
+
+\begin{document}
+\selectlanguage{spanish}
+\renewcommand{\listtablename}{Lista de tablas}
+\renewcommand{\bibname}{Referencias}
+\renewcommand{\listfigurename}{Lista de figuras}
+\renewcommand{\contentsname}{Contenidos}
+
+\frontmatter
+\setstretch{1.3}
+\fancyhead{}
+\rhead{\thepage}
+\pagestyle{fancy}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{-1.2in}
+    {\fontsize{14}{15}\bfseries UNIVERSIDAD NACIONAL DE ASUNCIÓN\par}
+    \vspace{0.5cm}
+    {\fontsize{12}{15}\bfseries FACULTAD POLITÉCNICA\par}
+    \vspace{0.15in}
+    INGENIERÍA EN INFORMÁTICA
+    \vspace{0.25in}
+
+    \includegraphics[width=7cm,height=8cm,keepaspectratio]{Figuras/fpuna_logo_institucional.png}
+
+    \vspace{0.15in}
+    {\Large\bfseries REPRESENTACIONES LÉXICAS Y BASADAS EN LLM PARA LA PREDICCIÓN DE RESULTADOS DE LICITACIONES PÚBLICAS: UN ESTUDIO COMPARATIVO\par}
+    \vspace{0.3in}
+    {\large Proyecto Final de Grado\par}
+    \vspace{0.35in}
+    {\bfseries Autores:}\par
+    Isaac Gabriel Amarilla Benítez\par
+    Luis Fernando Caballero Ramoa\par
+    \vfill
+    {\large San Lorenzo -- Paraguay\par}
+    \vspace{0.2in}
+    {\large\bfseries 2026\par}
+  \end{center}
+\end{titlepage}
+
+\input{Capitulos/p0001abstract}
+\input{Capitulos/p0002resumen}
+
+\clearpage
+\pagestyle{fancy}
+\lhead{\emph{Contenidos}}
+\setcounter{tocdepth}{3}
+\tableofcontents
+\clearpage
+\lhead{\emph{Lista de figuras}}
+\listoffigures
+\clearpage
+\lhead{\emph{Lista de tablas}}
+\listoftables
+\input{Capitulos/p0003acronimos}
+
+\mainmatter
+\selectlanguage{spanish}
+\pagestyle{fancy}
+\input{Capitulos/p0010contenido}
+
+\clearpage
+\selectlanguage{spanish}
+\lhead{\emph{Referencias}}
+\addcontentsline{toc}{chapter}{Referencias}
+\printbibliography
+\end{document}

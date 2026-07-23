@@ -1,0 +1,12 @@
+\clearpage % Start a new page
+\resumen{\addtocontents{toc}{\vspace{0.1em}}}
+\addcontentsline{toc}{chapter}{Resumen}
+
+La predicción precisa de niveles fluviales es fundamental para la gestión sostenible de recursos hídricos en Paraguay, particularmente ante eventos extremos. Esta investigación supera las limitaciones de un modelo base —que utilizaba exclusivamente niveles históricos del río sin estrategia de reentrenamiento— mediante un nuevo enfoque que integra variables exógenas como caudales aguas arriba y precipitaciones, complementadas con reentrenamiento periódico adaptativo y predicción multi-horizonte para 7, 14, 21 y 28 días, priorizando el horizonte operativo de 28 días.
+
+La metodología integra series temporales diarias (1995–2022) de seis estaciones estratégicas, donde las precipitaciones fueron acumuladas y luego optimizadas mediante análisis de correlación cruzada y búsqueda bayesiana para identificar ventanas temporales con mayor impacto predictivo. El modelo GRU fue ajustado mediante optimización bayesiana de hiperparámetros y validado mediante validación cruzada temporal con reentrenamiento anual simulado (2013–2022), evaluando métricas hidrológicas estandarizadas: eficiencia de Nash-Sutcliffe (NSE), error cuadrático medio (RMSE), error absoluto medio (MAE) y error porcentual absoluto medio (MAPE).
+
+Los resultados evidencian una mejora significativa frente al modelo base: se alcanzó un NSE de 0.9455 (vs. 0.9177), el MAPE se redujo al 30.85\% (vs. 61.71\%) y se observó una mayor estabilidad en horizontes extendidos, incluso durante eventos hidrológicos extremos como la bajante histórica 2020–2022 asociada al fenómeno La Niña. La inclusión de precipitaciones acumuladas optimizadas demostró capturar efectos retardados y estacionales, contribuyendo significativamente a la precisión predictiva final.
+
+Este trabajo valida la eficacia de integrar datos multifuente con técnicas de aprendizaje profundo adaptativo, ofreciendo una herramienta robusta y práctica para la toma de decisiones en gestión de inundaciones, navegación fluvial y planificación de infraestructuras en cuencas vulnerables.
+
