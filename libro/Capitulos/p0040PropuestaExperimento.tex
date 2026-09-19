@@ -11,7 +11,7 @@ La descripción se fundamenta en el código versionado del proyecto y en el embu
 
 \subsection{Hardware}
 
-La generación de embeddings se ejecutó con aceleración CUDA. El código selecciona una GPU cuando está disponible, utiliza \texttt{bfloat16} en ese caso y conserva los tokens en CPU hasta transferir cada microlote. La evidencia de ejecución registra 671 fallos \texttt{OutOfMemoryError}, pero el modelo exacto de GPU, su memoria, el procesador y la memoria RAM no se encuentran versionados en los artefactos disponibles. En consecuencia, no se atribuirán especificaciones de hardware no verificables.
+La generación de embeddings se ejecutó en una instancia de cómputo acelerado en la nube, provista por RunPod y equipada con una GPU NVIDIA H200 compatible con CUDA. El proveedor se consigna como información de trazabilidad, pero no constituye un requisito de reproducción: una infraestructura equivalente puede utilizarse si ofrece los recursos y el entorno de software necesarios. El código selecciona una GPU cuando está disponible, utiliza \texttt{bfloat16} en ese caso y conserva los tokens en CPU hasta transferir cada microlote. La evidencia de ejecución registra 671 fallos \texttt{OutOfMemoryError}. La variante y la memoria exacta de la GPU, así como el modelo de procesador y la memoria RAM de la instancia, no se encuentran preservados en los artefactos disponibles; por ello, no se atribuyen especificaciones adicionales no verificables.
 
 Para reproducir el experimento será necesario registrar, además del código, el modelo de GPU, versión del controlador, versión de CUDA, memoria disponible y sistema operativo. Estos datos son relevantes porque determinan el tamaño de microlote que puede procesarse y la probabilidad de fallos en documentos extensos.
 
@@ -23,10 +23,11 @@ Para reproducir el experimento será necesario registrar, además del código, e
 \toprule
 \textbf{Componente} & \textbf{Evidencia disponible} \\
 \midrule
-Acelerador & GPU compatible con CUDA utilizada para generar embeddings \\
+Acelerador & GPU NVIDIA H200 compatible con CUDA \\
+Entorno de ejecución & Instancia de cómputo acelerado en la nube provista por RunPod \\
 Precisión del LLM & \texttt{bfloat16} cuando CUDA está disponible \\
 Gestión de memoria & Microlotes CPU--GPU, caché KV desactivada y reintentos reduciendo el microlote \\
-Modelo y memoria exacta & No preservados en el repositorio; deben registrarse en una reproducción \\
+Configuración restante & Variante y memoria exacta de la GPU, procesador y memoria RAM no preservados; deben registrarse en una reproducción \\
 Almacenamiento de artefactos & DigitalOcean Spaces mediante API compatible con S3 \\
 \bottomrule
 \end{tabular}
@@ -174,7 +175,10 @@ El mapeo se implementa en \texttt{src/data/procurement\_target.py} y se alinea m
 
 \section{Modelos que se evaluarán}
 
+\begingroup
+\def\metodoComoSubsecciones{}
 \input{Capitulos/shortpaper_fragments/metodo}
+\endgroup
 
 \subsection{Líneas base triviales}
 
@@ -220,7 +224,9 @@ Las curvas de precisión-exhaustividad se construirán agregando predicciones ex
 
 La semilla global será 42 y cada pliegue recibirá una semilla derivada independiente. El código configurará cuDNN determinista, generadores de \texttt{DataLoader} y reinicios de estados aleatorios. MLflow conservará hiperparámetros y métricas. Los objetos pesados residirán en Spaces y los metadatos de seguimiento, por defecto, en SQLite local.
 
-Los artefactos públicos archivados en Zenodo incluyen código, configuración y documentación, pero excluyen datos locales, credenciales y salidas pesadas. La reproducción completa requerirá acceso legítimo a los datos fuente o una nueva descarga desde la DNCP, además del modelo base. Esta limitación deberá declararse al presentar el grado de reproducibilidad.
+Los artefactos públicos archivados en Zenodo incluyen el código y los 1.162 archivos \texttt{.pt} de embeddings congelados empleados en los experimentos (doi:10.5281/zenodo.20128768). El paquete de embeddings incorpora un manifiesto con el identificador de cada archivo, sus dimensiones y su suma de verificación SHA--256, además de metadatos agregados y documentación de uso. Esto permite reproducir el entrenamiento y la evaluación de los modelos basados en LLM sin volver a ejecutar la costosa etapa de codificación documental.
+
+El depósito excluye credenciales y los datos fuente locales. Por tanto, reproducir los experimentos a partir de los embeddings publicados no requiere acceso a la infraestructura original, pero reconstruir toda la canalización desde los PDF exige obtener legítimamente los documentos desde la DNCP y disponer del modelo base. Esta distinción delimita el grado de reproducibilidad alcanzado.
 
 \section{Amenazas a la validez previstas}
 

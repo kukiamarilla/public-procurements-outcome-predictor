@@ -1,8 +1,10 @@
-La tarea de predicción consiste en una clasificación binaria sobre contrataciones para las cuales se dispone tanto de un documento de licitación utilizable como de una etiqueta de resultado. Cada ejemplo corresponde a un proceso de contratación emparejado con un documento PBC extraído. La variable objetivo se operacionaliza a partir del campo de estado de la contratación de la siguiente manera:
+El estudio busca anticipar el estado con el que cada contratación queda registrada a partir del texto de su PBC. Para ello se utilizan únicamente procesos que cuentan con un documento aprovechable y con uno de los estados finales considerados. Los estados se agrupan en dos resultados:
 
 \begin{itemize}
-  \item Resultado exitoso ($y=1$): \texttt{complete}.
-  \item Resultado no exitoso ($y=0$): \texttt{unsuccessful}, \texttt{cancelled} o \texttt{canceled}.
+  \item Se considera exitoso el proceso registrado como \texttt{complete}.
+  \item Se considera no exitoso el proceso registrado como \texttt{unsuccessful}, \texttt{cancelled} o \texttt{canceled}.
 \end{itemize}
 
-Los registros con otros estados se excluyen del entrenamiento supervisado y de la evaluación. Esta definición es intencionalmente simple y se fundamenta directamente en la fuente de datos disponible. Debe entenderse como una aproximación operativa al éxito de una contratación y no como una noción institucional exhaustiva de desempeño.
+Los términos \texttt{cancelled} y \texttt{canceled} expresan el mismo estado, ``cancelado'', con las grafías británica y estadounidense del inglés; ambos aparecen en los datos de origen y por eso se normalizan dentro del mismo grupo. Reducir los estados a estas dos alternativas convierte el problema en una clasificación binaria: para cada PBC, el modelo estima la probabilidad de que el proceso pertenezca al primer grupo.
+
+Los registros con otros estados se excluyen del entrenamiento y de la evaluación. Esta agrupación es una decisión operativa basada en la fuente disponible. Un proceso \texttt{complete} no implica necesariamente máximo valor público, y una cancelación puede responder a causas legítimas; por tanto, la etiqueta no constituye una evaluación integral de éxito, eficiencia o integridad.

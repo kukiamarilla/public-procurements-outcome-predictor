@@ -3,11 +3,17 @@
 \chapter{Marco teórico}
 \label{sec:marco_teorico}
 
-Este capítulo presenta los conceptos necesarios para interpretar el problema, los modelos y las métricas. Primero se describe la contratación pública como un proceso digital y se ubica al PBC dentro de ese ciclo. Luego se introducen las representaciones léxicas y densas, el procesamiento de documentos extensos y la arquitectura transformer. Finalmente se desarrollan los fundamentos de clasificación binaria, desbalance, calibración y validación experimental.
+Este capítulo presenta los conceptos necesarios para interpretar el problema, los modelos y las métricas. Primero se describe la contratación pública como un proceso administrativo y se explica cómo sus actuaciones se registran y publican mediante sistemas digitales, ubicando al PBC dentro de ese ciclo. Luego se introducen las representaciones léxicas y densas, el procesamiento de documentos extensos y la arquitectura transformer. Finalmente se desarrollan los fundamentos de clasificación binaria, desbalance, calibración y validación experimental.
 
 \section{Contratación pública y cadena de suministro en Paraguay}
 
 La Ley N.º 7021/2022 crea el Sistema Nacional de Suministro Público y regula al Sistema Nacional de Contrataciones Públicas como parte de una cadena integrada \cite{ley7021paraguay}. Esta formulación amplía el foco desde el acto de adjudicar hacia una sucesión de actividades: planificación de la necesidad, estimación, estrategia de adquisición, convocatoria, evaluación, contratación, ejecución y cierre. Cada etapa produce datos y documentos con distinto momento de disponibilidad.
+
+La cadena integrada es más amplia que una licitación concreta. Comienza con la identificación y planificación de necesidades, continúa con la programación presupuestaria y la elaboración del Programa Anual de Contrataciones, e incorpora un estudio de mercado para estimar costos, conocer la oferta disponible y definir la estrategia de adquisición. Estas decisiones determinan el procedimiento de selección, los requisitos de participación y los criterios con los que se evaluarán las ofertas, conforme a los artículos 6, 9, 10, 13 y 25--28 de la Ley N.º 7021/2022 \cite{ley7021paraguay}.
+
+Dentro de la gestión de la contratación, la convocante elabora y aprueba el PBC antes de publicar la convocatoria. Desde ese momento, los potenciales oferentes pueden consultar el documento y solicitar aclaraciones; la convocante puede emitir modificaciones, que pasan a integrar las bases del llamado. Luego se presentan y abren las ofertas técnicas y económicas. Un comité verifica su conformidad con el PBC, analiza los criterios técnicos y económicos y emite un informe que sirve de fundamento para adjudicar, declarar desierto o cancelar el procedimiento. La adjudicación selecciona al oferente con quien se formalizará el contrato, pero todavía no equivale a la ejecución ni al cierre de la contratación. Esta secuencia se encuentra regulada en los artículos 45--55 de la misma ley \cite{ley7021paraguay}.
+
+Después de la adjudicación se formaliza el contrato y se designa a quien controlará su cumplimiento. Durante la ejecución se registran avances, pagos, garantías, modificaciones e incumplimientos. En obras públicas, además, se realizan mediciones, certificaciones, fiscalización y recepciones parciales o definitivas. El ciclo concluye, según corresponda, con la recepción, la liquidación y la evaluación de si la contratación contribuyó a las metas institucionales, de acuerdo con los artículos 58--83 \cite{ley7021paraguay}. Por tanto, el resultado estudiado en este trabajo se ubica dentro de un proceso administrativo más amplio y no representa por sí solo una evaluación integral del contrato ni de la obra.
 
 La temporalidad es central para un problema predictivo. Los datos de planificación y convocatoria están disponibles antes del resultado; los datos de adjudicación y contrato aparecen después. Si el propósito es estimar un desenlace antes de que ocurra, las variables deben limitarse a información accesible en ese momento. Utilizar campos posteriores aumentaría artificialmente el desempeño y constituiría fuga de información. Por ello, esta investigación utiliza texto de PBC y excluye del vector de entrada la adjudicación, la evaluación posterior y el estado final que define la etiqueta.
 
@@ -27,7 +33,7 @@ Para este trabajo son relevantes tres niveles de información:
   \item \textbf{Contenido no estructurado}: texto interno del PBC descargado, que no está reducido a los campos del esquema.
 \end{enumerate}
 
-La clasificación de catálogo \texttt{72131701} delimita los procesos de construcción de carreteras. El código se utiliza como filtro técnico de la consulta y no como una inferencia posterior. La elección reduce heterogeneidad temática, dado que compara documentos de un mismo ámbito, pero también restringe la validez externa a otras obras, bienes o servicios.
+La clasificación de catálogo \texttt{72131701} delimita los procesos de construcción de rutas. El código se utiliza como filtro técnico de la consulta y no como una inferencia posterior. La elección reduce heterogeneidad temática, dado que compara documentos de un mismo ámbito, pero también restringe la validez externa a otras obras, bienes o servicios.
 
 \section{Pliego de Bases y Condiciones}
 
@@ -45,17 +51,17 @@ Desde la perspectiva del procesamiento del lenguaje natural, el PBC presenta var
 
 Estas propiedades explican por qué no existe una representación obviamente superior. La repetición puede favorecer n-gramas; la equivalencia semántica entre formulaciones puede favorecer embeddings; y la dispersión de información a lo largo del documento puede justificar modelos jerárquicos.
 
-\section{Clasificación supervisada y variable objetivo}
+\section{Clasificación supervisada y resultado que se busca predecir}
 
-En clasificación supervisada se dispone de pares $(x_i,y_i)$, donde $x_i$ representa un documento y $y_i$ su etiqueta. Para este estudio, $y_i\in\{0,1\}$ y la clase positiva se define por el estado \texttt{complete}. Los estados \texttt{unsuccessful}, \texttt{cancelled} y \texttt{canceled} integran la clase negativa. La función aprendida produce un puntaje o una probabilidad estimada:
+\input{Capitulos/shortpaper_fragments/definicion_tarea}
+
+Formalmente, cada ejemplo se representa mediante un par $(x_i,y_i)$, donde $x_i$ es el texto del PBC y $y_i\in\{0,1\}$ es la etiqueta: se asigna $y_i=1$ al resultado exitoso y $y_i=0$ al no exitoso. El modelo aprende una función que produce la probabilidad estimada de pertenecer al primer grupo:
 
 \begin{equation}
   f(x_i)=\hat p_i \approx P(y_i=1\mid x_i).
 \end{equation}
 
-La etiqueta es una operacionalización y debe interpretarse en esos términos. Un proceso completo no implica necesariamente máximo valor público, y uno cancelado puede responder a causas legítimas. La clasificación mide la posibilidad de anticipar el estado registrado, no una definición normativa exhaustiva de éxito, eficiencia o integridad.
-
-\input{Capitulos/shortpaper_fragments/definicion_tarea}
+Así, $\hat p_i$ no expresa una certeza ni una valoración jurídica del proceso, sino la probabilidad que el modelo asigna al estado operacionalizado como exitoso a partir del texto disponible.
 
 \section{Procesamiento de documentos}
 
@@ -112,7 +118,7 @@ La regresión logística define la probabilidad positiva mediante:
 
 Los coeficientes $w$ asocian dimensiones léxicas con el logaritmo de las razones de probabilidades. Esta linealidad facilita inspeccionar términos con pesos altos o bajos, aunque la interpretación requiere cautela ante correlaciones, n-gramas redundantes y regularización.
 
-El modelo del proyecto limita el vocabulario a 50.000 características, incluye unigramas y bigramas, descarta términos con frecuencia documental inferior a cinco y usa pesos balanceados por clase. Los pesos modifican la contribución de cada clase a la función de pérdida, sin cambiar la prevalencia real del conjunto de evaluación.
+El modelo del proyecto limita el vocabulario a 50.000 características, incluye unigramas y bigramas, descarta términos con frecuencia documental inferior a cinco y usa pesos balanceados por clase. La frecuencia documental cuenta en cuántos documentos distintos aparece un término, con independencia de la cantidad de veces que se repita dentro de cada uno. El umbral de cinco se fijó como un criterio conservador de filtrado: elimina términos presentes únicamente en unos pocos documentos, más susceptibles a corresponder a errores de extracción, identificadores únicos o asociaciones espurias, pero conserva expresiones recurrentes incluso cuando aparecen en una proporción pequeña del corpus. En cada pliegue, con aproximadamente 930 documentos de entrenamiento, este requisito representa cerca del 0,54\,\% y constituye, por tanto, un filtro poco restrictivo. El valor se estableció como un hiperparámetro del diseño experimental y no se optimizó sobre los pliegues externos de evaluación. Los pesos balanceados modifican la contribución de cada clase a la función de pérdida, sin cambiar la prevalencia real del conjunto de evaluación.
 
 \section{Representaciones densas y modelos de lenguaje}
 
@@ -124,19 +130,27 @@ Un embedding útil no garantiza automáticamente el mejor resultado para todos l
 
 \section{Arquitectura transformer}
 
-El transformer reemplaza recurrencia por atención y capas prealimentadas \cite{vaswani2017attention}. Para consultas $Q$, claves $K$ y valores $V$, la atención de producto punto escalado se expresa como:
+El transformer reemplaza recurrencia por atención y capas prealimentadas \cite{vaswani2017attention}. A partir de una secuencia de entrada, el mecanismo construye tres matrices: las consultas $Q$, que representan la información buscada por cada posición; las claves $K$, contra las cuales se comparan las consultas; y los valores $V$, cuyo contenido se combina para producir la salida. Si $d_k$ es la dimensión de cada clave, la atención de producto punto escalado se expresa como:
 
 \begin{equation}
-  \operatorname{Attention}(Q,K,V)=operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
+  \operatorname{Attention}(Q,K,V)=\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
 \end{equation}
 
-La atención multicabeza proyecta las entradas en varios subespacios, calcula atenciones paralelas y concatena los resultados:
+El producto $QK^\top$ contiene los puntajes de similitud entre consultas y claves. La división por $\sqrt{d_k}$ evita que su magnitud crezca excesivamente al aumentar la dimensión. La función \emph{softmax}, aplicada sobre los puntajes de cada consulta, los transforma en pesos no negativos cuya suma es uno. La multiplicación posterior por $V$ produce, para cada posición, una combinación ponderada de los valores.
+
+La atención multicabeza proyecta las entradas en $h$ subespacios, calcula atenciones paralelas y concatena sus resultados. Para la cabeza $i$:
+
+\begin{equation}
+  head_i=\operatorname{Attention}(QW_i^Q,KW_i^K,VW_i^V),
+\end{equation}
+
+donde $W_i^Q$, $W_i^K$ y $W_i^V$ son matrices de proyección aprendidas. Las salidas de las $h$ cabezas se combinan mediante:
 
 \begin{equation}
   \operatorname{MultiHead}(Q,K,V)=\operatorname{Concat}(head_1,\ldots,head_h)W^O.
 \end{equation}
 
-Cada cabeza puede enfatizar relaciones diferentes. Sin embargo, la matriz $QK^\top$ tiene tamaño cuadrático respecto de la longitud. Longformer reduce este costo combinando ventanas locales y atención global dispersa \cite{beltagy2020longformer}. Otra familia de soluciones adopta una jerarquía: codifica fragmentos por separado y modela luego la secuencia de representaciones. Estudios comparativos muestran que la posibilidad de procesar más texto suele ser beneficiosa, aunque el método óptimo depende del dominio y la distribución de longitudes \cite{dai2022revisiting,mamakas2022legal}.
+La matriz aprendida $W^O$ proyecta la concatenación a la dimensión de salida del bloque. Cada cabeza puede enfatizar relaciones diferentes. Sin embargo, la matriz $QK^\top$ tiene tamaño cuadrático respecto de la longitud. Longformer reduce este costo combinando ventanas locales y atención global dispersa \cite{beltagy2020longformer}. Otra familia de soluciones adopta una jerarquía: codifica fragmentos por separado y modela luego la secuencia de representaciones. Estudios comparativos muestran que la posibilidad de procesar más texto suele ser beneficiosa, aunque el método óptimo depende del dominio y la distribución de longitudes \cite{dai2022revisiting,mamakas2022legal}.
 
 \section{Agregación de fragmentos}
 

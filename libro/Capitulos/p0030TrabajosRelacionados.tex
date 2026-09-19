@@ -31,6 +31,8 @@ La existencia de datos abiertos permite desarrollar indicadores y modelos fuera 
 
 La analítica de contratación puede orientarse a descripción, detección de anomalías, estimación de competencia, pronóstico de demoras, sobrecostos, quejas o estados finales. Estas tareas difieren en la variable objetivo y en el momento de predicción. Un modelo que utiliza información contractual posterior no es comparable con otro que opera únicamente durante la convocatoria.
 
+En el contexto paraguayo, Kehler, Paciello y Pane aplicaron un bosque de aislamiento sobre datos estructurados de contrataciones publicados conforme a OCDS para asignar puntajes de anomalía a los procesos \cite{kehler2019anomaly}. Al contrastar el modelo con un conjunto local de procesos que presentaban protestas resueltas a favor del protestante o denuncias ciudadanas, más del 45\,\% de los casos potencialmente anómalos fueron clasificados como tales. Este antecedente demuestra la viabilidad de utilizar los datos abiertos de la DNCP para priorizar revisiones mediante aprendizaje no supervisado. Su objetivo y su entrada difieren de los del presente trabajo: analiza anomalías en campos estructurados de distintas etapas, mientras que esta investigación predice un estado final a partir del texto del PBC disponible antes del resultado.
+
 Los indicadores de riesgo basados en reglas suelen codificar señales definidas por especialistas: único oferente, plazos inusuales, concentración de adjudicaciones o modificaciones. Los modelos supervisados, en cambio, aprenden relaciones a partir de ejemplos etiquetados. Ambos enfoques pueden complementarse. VigIA combina índices de riesgo con modelos de aprendizaje automático para anticipar sobrecostos y demoras en Bogotá, priorizando casos para supervisión \cite{salazar2024vigia}. Sus variables más importantes incluyen valor, tiempos contractuales, antigüedad del proveedor y sector; son metadatos estructurados, no texto completo de la convocatoria.
 
 Gallego, Rivero y Martínez desarrollaron un modelo de advertencia temprana sobre irregularidades en contratación, enfatizando la prevención y la asignación limitada de recursos de control \cite{gallego2021earlywarning}. Aldana, Falcón-Cortés y Larralde propusieron para México un ensamble de bosques aleatorios orientado a identificar contratos asociados a corrupción; encontraron que variables sobre relaciones entre compradores y proveedores podían ser más informativas que rasgos individuales del contrato \cite{aldana2022mexico}. Estos trabajos muestran el potencial de los datos administrativos, pero responden a etiquetas y marcos institucionales distintos al estado final utilizado en Paraguay.
@@ -88,7 +90,7 @@ El estado del arte no permite asumir que mayor escala implica automáticamente m
 
 \subsection{Brecha identificada}
 
-La revisión no identifica, entre las fuentes consultadas, una comparación publicada que reúna simultáneamente: PBC completos de Paraguay, predicción del estado final con información \textit{ex ante}, TF--IDF, embeddings congelados de un LLM, agregación por promedio, modelado entre fragmentos y análisis conjunto de ranking, calibración y umbrales. Esta ausencia no demuestra inexistencia absoluta de trabajos no indexados; delimita la brecha respecto del corpus revisado.
+La revisión no identifica, entre las fuentes consultadas, una comparación publicada que reúna simultáneamente: PBC completos de Paraguay, predicción del estado final con información disponible antes del resultado, TF--IDF, embeddings congelados de un LLM, agregación por promedio, modelado entre fragmentos y análisis conjunto de ranking, calibración y umbrales. Esta ausencia no demuestra inexistencia absoluta de trabajos no indexados; delimita la brecha respecto del corpus revisado.
 
 El presente estudio cubre esa brecha empírica. Su contribución se concentra en el contexto paraguayo y en la comparación controlada de representaciones. Los resultados de Colombia, México, Turquía o conjuntos jurídicos internacionales se utilizan para formular expectativas y criterios de evaluación, no para validar externamente el modelo paraguayo.
 
@@ -106,11 +108,11 @@ La Tabla~\ref{tab:comparacion_trabajos} resume diferencias entre antecedentes se
 \toprule
 \textbf{Trabajo} & \textbf{Contexto} & \textbf{Entrada principal} & \textbf{Objetivo} & \textbf{Momento} \\
 \midrule
-Acikalin et al. \cite{acikalin2024procurementcalls} & Turquía & Descripción de convocatoria & Competencia y costo-efectividad & Ex ante \\
+Acikalin et al. \cite{acikalin2024procurementcalls} & Turquía & Descripción de convocatoria & Competencia y costo-efectividad & Antes del resultado \\
 VigIA \cite{salazar2024vigia} & Colombia & Metadatos e índices & Sobrecostos, demoras e irregularidades & Mixto \\
 Aldana et al. \cite{aldana2022mexico} & México & Contratos y relaciones & Identificación de corrupción & Posterior/mixto \\
 Dai et al. \cite{dai2022revisiting} & Multidominio & Documentos extensos & Clasificación documental & No aplica \\
-Este trabajo & Paraguay & PBC completos & Estado final operacionalizado & Ex ante \\
+Este trabajo & Paraguay & PBC completos & Estado final operacionalizado & Antes del resultado \\
 \bottomrule
 \end{tabular}
 \end{table}

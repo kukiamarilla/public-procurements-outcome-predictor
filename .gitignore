@@ -37,6 +37,16 @@ mlartifacts/
 .ipynb_checkpoints/
 
 # LaTeX (local noise)
+libro/*-blx.bib
+libro/*.aux
+libro/*.bbl
+libro/*.blg
+libro/*.lof
+libro/*.log
+libro/*.lot
+libro/*.out
+libro/*.run.xml
+libro/*.toc
 paper/missfont.log
 paper/*.blg
 paper/*.aux
