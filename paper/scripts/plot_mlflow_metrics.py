@@ -18,7 +18,8 @@ import os
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+PAPER_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _parse_args() -> argparse.Namespace:
@@ -44,7 +45,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--out",
         type=Path,
-        default=REPO_ROOT / "figures" / "mlflow_cv_metrics.png",
+        default=PAPER_ROOT / "figures" / "mlflow_cv_metrics.png",
         help="Ruta del PNG (crea directorios si hace falta).",
     )
     p.add_argument("--show", action="store_true", help="Abrir ventana interactiva además de guardar.")
@@ -124,7 +125,8 @@ def main() -> None:
             means.append(float(m) if m is not None else float("nan"))
             stds.append(float(s) if s is not None else 0.0)
 
-        colors = plt.cm.tab10(range(len(means)))
+        cmap = plt.get_cmap("tab10")
+        colors = cmap(range(len(means)))
         ax.bar(x, means, yerr=stds, capsize=3, color=colors, edgecolor="black", linewidth=0.3)
         ax.set_xticks(list(x))
         ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=8)

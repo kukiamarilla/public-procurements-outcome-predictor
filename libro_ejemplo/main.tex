@@ -1,0 +1,203 @@
+\documentclass[11pt, a4paper, oneside]{Thesis} % Mantiene la clase original de tu plantilla Thesis
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{tabularx, threeparttable}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{url}
+\usepackage[english]{babel} % Cambiado a inglés para que coincida con el contenido del Short Paper
+\usepackage[tablename=Table]{caption}
+\usepackage[figurename=Figure]{caption}
+\usepackage{rotating}
+\usepackage[mathscr]{euscript}
+\usepackage{lscape}
+\usepackage{adjustbox}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage{verbatim}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{footmisc}
+\usepackage{diagbox}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{amsfonts}
+\usepackage[normalem]{ulem}
+\usepackage{booktabs}
+\usepackage{array,booktabs,arydshln}
+\def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+\graphicspath{{./Pictures/}} 
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{pdfpages}
+\usepackage{multicol}
+\usepackage{acronym} 
+\setlength{\headheight}{26pt}
+\usepackage[backend=bibtex,style=ieee]{biblatex} % Estilo IEEE integrado
+\addbibresource{references.bib}
+\usepackage{csquotes}
+\hypersetup{urlcolor=black, colorlinks=false} 
+\providecommand{\noopsort}[1]{}
+\providecommand{\nopostsort}[1]{}
+
+\title{GRU-Based Prediction of Paraguay River Levels using Hydro-meteorological Co-variates and Periodic Retraining}
+\newcolumntype{C}[1]{>{\centering}m{#1}}
+
+\begin{document}
+
+    \renewcommand{\listtablename}{List of Tables}
+    \renewcommand{\bibname}{References}
+    \renewcommand{\listfigurename}{List of Figures}
+    \renewcommand{\contentsname}{Contents}
+    
+    \frontmatter 
+    \setstretch{1.3} 
+    \fancyhead{} 
+    \rhead{\thepage} 
+    \lhead{} 
+    \pagestyle{fancy} 
+    
+    %----------------------------------------------------------------------------------------
+    %	PÁGINA DE TÍTULO (Mantenida según la estructura institucional original)
+    %----------------------------------------------------------------------------------------
+    \begin{titlepage}
+        \begin{center}
+            \vspace*{-1.5in}
+            \vspace*{0.3in}
+            \vspace*{0.3in}
+            {\fontsize{14}{15}\bf \selectfont UNIVERSIDAD NACIONAL DE ASUNCIÓN}\\
+            \vspace*{0.5cm}
+            {\fontsize{12}{15}\bf \selectfont FACULTAD POLITÉCNICA\\ }
+            \vspace*{0.15in} INGENIERÍA EN INFORMÁTICA \\
+            \vspace*{0.2in}
+            \begin{figure}[htb]
+                \begin{center}
+                    \includegraphics[width=7cm,height=8cm]{Figuras/fpuna_logo_institucional.png}
+                \end{center}
+            \end{figure}
+            \begin{Large}
+                \textbf{GRU-BASED PREDICTION OF PARAGUAY RIVER LEVELS USING HYDRO-METEOROLOGICAL CO-VARIATES AND PERIODIC RETRAINING} \\
+            \end{Large}
+            \vspace*{0.3in}
+            \begin{large}
+                Short Paper Submission\\
+            \end{large}
+            \vspace*{0.1in}
+        \end{center}
+        \begin{flushleft}
+            \begin{center}
+                {\bf Authors:} \\
+                Nelson Ruiz, Giuliano Gonzalez, Diego H. Stalder, Diego P. Pinto-Roa, Max Pasten
+                \vspace*{0.1in}\\
+            \end{center}
+        \end{flushleft}
+        \begin{center}
+            \begin{large}
+                \vspace*{0.50in}
+                San Lorenzo - Paraguay\\
+                \vspace*{0.3in}
+                {\bf 2026}
+            \end{large}
+        \end{center}
+    \end{titlepage}
+
+    %----------------------------------------------------------------------------------------
+    %	RESUMEN / ABSTRACT
+    %----------------------------------------------------------------------------------------
+    \clearpage
+    \pagestyle{fancy}
+    \lhead{\emph{Abstract}}
+    \begin{abstract}
+    Accurate prediction of river levels is essential to anticipate extreme events such as floods and low flows. This paper presents a short-term forecasting model of the Paraguay River level for the port of Asunción, based on Gated Recurrent Unit (GRU) networks reinforced with hydro-meteorological covariates and an adaptive retraining scheme. To achieve the above, this study incorporates cumulative flows and rainfall from multiple stations, and a Bayesian search was applied to select the optimal combinations of variables and adjust the model's hyperparameter. The approach was evaluated on daily data between 1995 and 2022, using temporal cross-validation with a sliding window. Compared to a baseline model already superior to traditional methods, the proposed model achieved an Nash-Sutcliffe model Efficiency coefficient (NSE) of 0.9455 and reduced the Mean Absolute Percentage Error (MAPE) by half. In addition, it maintained higher predictive stability over a 28-day horizon in complex hydrological periods.
+    \end{abstract}
+
+    %----------------------------------------------------------------------------------------
+    %	ÍNDICES (Opcionales para formato Short Paper, pero incluidos por la plantilla)
+    %----------------------------------------------------------------------------------------
+    \clearpage
+    \lhead{\emph{Contents}}
+    \tableofcontents
+    
+    %----------------------------------------------------------------------------------------
+    %	CONTENIDO PRINCIPAL
+    %----------------------------------------------------------------------------------------
+    \mainmatter
+    \pagestyle{fancy}
+
+    \section{Introduction}
+    \lhead{\emph{Introduction}}
+    The efficient management of water resources is essential to guarantee environmental sustainability and socio-economic development, especially in regions whose infrastructure, economy, and transport depend on navigable bodies of water. In Paraguay, the Paraguay River represents a fundamental route for fluvial transport, besides being a source of water and a risk factor for extreme hydro-meteorological events.
+    
+    Historically, this problem has been addressed using statistical models such as ARIMA, valued for their simplicity. However, these techniques have limitations in capturing complex non-linear patterns. With the rise of deep learning, recurrent neural networks (RNN), particularly LSTM and GRU architectures, have obtained notable results. This work expands on previous approaches by incorporating hydro-meteorological covariates and implementing a periodic retraining scheme.
+
+    \section{Related Work}
+    \lhead{\emph{Related Work}}
+    River level prediction has traditionally used autoregressive integrated moving average (ARIMA) models, but these fail when dealing with non-linear relationships and high variability. Recent studies have shown that LSTM and GRU variants are more relevant for capturing short and long-term temporal dependencies. Previous evaluations demonstrated that GRU architectures offered better results than ARIMA or LSTM when using only historical water level records. This research addresses previous limitations regarding exogenous variables and static training.
+
+    \section{Case Study and Data Set}
+    \lhead{\emph{Case Study and Data Set}}
+    The Paraguay River is the fifth largest in South America, with a drainage basin covering approximately 984,000 square kilometers. Data for this study was provided by the Division of Meteorology of the Facultad Politécnica (UNA) and DINAC. The primary focus is station 86218 (Port of Asunción), including daily records from 1995 to 2022.
+
+    \subsection{Preprocessing}
+    The data was aligned to a daily frequency, and outliers were handled systematically. Bi-directional linear interpolation was applied for gaps of up to 32 days, a threshold chosen based on the basin's hydrological concentration time. Finally, min-max normalization was applied to scale values to the $[0,1]$ range.
+
+    \section{Methodology}
+    \lhead{\emph{Methodology}}
+    The proposed solution utilizes a GRU-based architecture optimized through five main stages:
+    \begin{enumerate}
+        \item Optimization of the retraining scheme (finding an annual frequency as optimal).
+        \item Sequential incorporation of exogenous variables (flows and accumulated rainfall).
+        \item Feature engineering for rolling accumulations of precipitation.
+        \item Hyperparameter optimization via Bayesian search.
+        \item Specific optimization of the retraining process parameters.
+    \end{enumerate}
+
+    \section{Preliminary Results}
+    \lhead{\emph{Preliminary Results}}
+    The model was evaluated using metrics such as NSE, RMSE, MAE, and MAPE. The Nash-Sutcliffe Efficiency (NSE) is defined as:
+    
+    \begin{equation}
+    NSE = 1 - \frac{\sum_{i=1}^{n}(O_{i} - P_{i})^{2}}{\sum_{i=1}^{n}(O_{i} - \bar{O})^{2}}
+    \end{equation}
+    
+    where $O_i$ represents the observed values, $P_i$ represents the predicted values, and $\bar{O}$ represents the mean of the observed values.
+
+    The performance metrics for a 28-day prediction horizon are summarized in Table~\ref{tab:results}.
+
+    \begin{table}[H]
+    \centering
+    \caption{Global performance comparison (2013-2022)}
+    \label{tab:results}
+    \begin{tabular}{lcc}
+    \toprule
+    \textbf{Metric} & \textbf{Proposed Model} & \textbf{Previous Model} \\
+    \midrule
+    NSE & 0.9455 & 0.9177 \\
+    RMSE (m) & 0.5084 & 0.6088 \\
+    MAE (m) & 0.3126 & 0.4011 \\
+    MAPE (\%) & 30.85 & 61.71 \\
+    \bottomrule
+    \end{tabular}
+    \end{table}
+
+    The proposed model consistently outperformed the base model, demonstrating high predictive stability particularly during complex hydrological drought periods.
+
+    \section{Conclusion}
+    \lhead{\emph{Conclusion}}
+    This study developed an improved model for short-term prediction of the Paraguay River level. By integrating flow and multi-source rainfall data with an adaptive retraining scheme, the model mitigates accuracy loss over time and increases its capacity to adapt to seasonal patterns. These results demonstrate the potential for integration into real-time water management and early warning systems.
+
+    %----------------------------------------------------------------------------------------
+    %	BIBLIOGRAFÍA
+    %----------------------------------------------------------------------------------------
+    \clearpage
+    \lhead{\emph{References}} 
+    \addtotoc{References}
+    \printbibliography
+
+\end{document}

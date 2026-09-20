@@ -1,0 +1,90 @@
+\clearpage
+\lhead{\emph{Conclusiones y trabajos futuros}}
+\chapter{Conclusiones y trabajos futuros}
+\label{sec:conclusiones}
+
+Este trabajo abordó la predicción de resultados de licitaciones públicas de construcción vial en Paraguay a partir del texto de PBC disponible durante la convocatoria. Para ello construyó un conjunto supervisado mediante datos abiertos de la DNCP, comparó representaciones léxicas y densas, y evaluó por separado ranking, clasificación a umbral fijo, calibración y sensibilidad al umbral.
+
+\section{Conclusiones finales}
+
+La primera conclusión es que los documentos procesados contienen señal predictiva sobre la etiqueta operacionalizada. Los modelos TF--IDF, promedio de embeddings y transformer entre fragmentos superaron a las referencias triviales en métricas de ranking. Esta evidencia se limita al subconjunto de 1.162 procesos que completó descarga, extracción y generación de embeddings.
+
+La segunda conclusión es que la representación más compleja no dominó todos los criterios. TF--IDF más regresión logística produjo el mejor ROC AUC y PR AUC, además de la mayor exactitud balanceada de la comparación principal. El resultado confirma la importancia de incluir líneas base léxicas en documentos estandarizados y extensos.
+
+La tercera conclusión es que los modelos densos aportaron una ventaja diferente. El transformer entre fragmentos obtuvo el menor puntaje de Brier y el mayor F1 con umbral 0,5. El MLP con embeddings promediados se mantuvo próximo en ranking y calibración. Por tanto, buena parte de la información útil ya estaba presente en las representaciones congeladas, mientras que las interacciones entre fragmentos no produjeron una mejora general de ranking.
+
+La cuarta conclusión es que el umbral forma parte del modelo operativo. La selección interna mejoró considerablemente el F1 de TF--IDF, pero no su exactitud balanceada. El transformer cambió poco. Estos resultados muestran que un umbral optimizado para una métrica no debe trasladarse a otra finalidad ni a una población con prevalencia diferente.
+
+La quinta conclusión se refiere a la cobertura. El universo inicial fue de 10.628 procesos, pero solo 1.845 PBC se recuperaron y 1.162 documentos generaron embeddings. La priorización de estados no exitosos y los fallos de memoria alteraron la composición. Por esta razón, las métricas caracterizan el subconjunto procesado, no toda la contratación pública paraguaya.
+
+\input{Capitulos/shortpaper_fragments/limitaciones}
+
+\input{Capitulos/shortpaper_fragments/conclusion}
+
+\section{Respuesta a las preguntas de investigación}
+
+\begin{enumerate}
+  \item \textbf{Señal textual}: sí, dentro del subconjunto procesado, porque todos los modelos no triviales superaron a los controles en ranking.
+  \item \textbf{Léxico frente a denso}: TF--IDF fue superior en ranking; las representaciones densas fueron competitivas y ofrecieron mejores valores de Brier en dos configuraciones.
+  \item \textbf{Interacciones entre fragmentos}: no se observó una ventaja general. El transformer destacó en calibración y estabilidad, no en AUC.
+  \item \textbf{Separación de criterios}: las conclusiones cambiaron según ranking, umbral y calibración, por lo que informar una sola métrica habría ocultado diferencias relevantes.
+  \item \textbf{Transferencia}: la cobertura incompleta, la prevalencia inducida y la especialización en construcción vial impiden tratar los resultados como directamente desplegables.
+\end{enumerate}
+
+\section{Aportes del trabajo}
+
+El trabajo deja una canalización auditable que conserva identificadores entre la API de la DNCP, los PBC, el texto y los embeddings. Documenta además los fallos del embudo, condición necesaria para interpretar la selección de datos. En el plano experimental, ofrece una comparación controlada entre cuatro familias no triviales y controles sin habilidad. En el plano aplicado, vincula la evaluación con necesidades de transparencia y supervisión sin confundir predicción con causalidad o decisión jurídica.
+
+\section{Trabajos futuros}
+
+\subsection{Ampliación y representatividad del conjunto}
+
+Una primera línea consistirá en completar la recuperación de PBC para reducir el sesgo por tiempo y límites de solicitudes. El proceso deberá respetar las políticas del servicio, utilizar reanudación y registrar motivos de fallo para cada tender. También será necesario incorporar OCR y medir su calidad sobre documentos escaneados.
+
+Los 680 textos sin embedding podrán reprocesarse con más memoria, fragmentos menores, cuantización o un codificador más eficiente. La comparación deberá informar resultados tanto sobre la intersección común como sobre la población ampliada, para no confundir una mejora de modelo con un cambio de casos incluidos.
+
+\subsection{Validación temporal e institucional}
+
+La validación cruzada aleatoria estratificada estima desempeño dentro de la distribución procesada. Una evaluación temporal entrenará con años anteriores y probará en posteriores, reproduciendo mejor un despliegue. Otra evaluación agrupará por organismo convocante para determinar si el modelo generaliza a instituciones no vistas y cuánto depende de plantillas específicas.
+
+Estas particiones podrán reducir el desempeño; precisamente por ello aportarán evidencia sobre robustez. También deberán impedir que versiones casi idénticas de una plantilla aparezcan simultáneamente en entrenamiento y prueba.
+
+\subsection{Otras categorías de contratación}
+
+El código \texttt{72131701} delimita construcción vial. Trabajos futuros incorporarán otras obras, bienes y servicios. La ampliación permitirá evaluar si la fortaleza de TF--IDF se debe a estandarización sectorial y si los embeddings densos transfieren mejor entre dominios.
+
+No se mezclará inicialmente toda la contratación en una sola partición. Se informarán resultados por categoría y se analizarán diferencias de prevalencia, longitud y calidad documental.
+
+\subsection{Análisis explicativo del texto}
+
+La regresión logística permite inspeccionar coeficientes, pero los términos más ponderados pueden actuar como sustitutos de institución, fecha o plantilla. Se requerirán análisis de estabilidad por pliegue, eliminación de encabezados, agrupación por organismo y revisión cualitativa de n-gramas antes de atribuir significado sustantivo.
+
+Para modelos densos podrán utilizarse ablaciones por secciones, atención agregada o métodos de perturbación. Tales explicaciones deberán validarse y presentarse como evidencia del comportamiento del modelo, no como causas del resultado administrativo.
+
+\subsection{Nuevas representaciones y agregadores}
+
+Se evaluarán codificadores multilingües especializados en embeddings, modelos de atención dispersa, pooling atento y modelos de espacio de estados. La literatura muestra que estas alternativas responden de forma distinta a longitud y fragmentación \cite{beltagy2020longformer,dai2022revisiting,lu2023statespace}.
+
+También podrá compararse el último token válido con promedio interno, token especial o pooling aprendido. Para aislar efectos, cada experimento mantendrá constantes las particiones y la cabeza cuando cambie el codificador, y mantendrá fijo el codificador cuando cambie el agregador.
+
+\subsection{Calibración y decisión}
+
+Una aplicación probabilística requerirá calibración sobre datos independientes. Podrán evaluarse escalamiento de temperatura, calibración sigmoide e isotónica, respetando una partición exclusiva para ajustar el calibrador \cite{guo2017calibration,silvafilho2023calibration}. La calidad se medirá por período, organismo y grupo de longitud.
+
+La elección de umbral deberá basarse en costos definidos con usuarios institucionales. Si un falso negativo implica omitir un expediente relevante y un falso positivo consume tiempo de revisión, ambos costos deben expresarse y someterse a análisis de sensibilidad. El umbral no será tratado como propiedad permanente del modelo.
+
+\subsection{Integración con variables estructuradas}
+
+El PBC puede combinarse con metadatos disponibles durante la convocatoria: organismo, modalidad, monto estimado, plazos o clasificación. Trabajos como VigIA muestran el valor de variables estructuradas para supervisión \cite{salazar2024vigia}. Un modelo multimodal permitirá medir cuánto aporta el texto después de controlar esos factores.
+
+La integración deberá aplicar una regla temporal estricta. Campos publicados después del resultado se excluirán o se utilizarán únicamente en análisis retrospectivo claramente separado.
+
+\subsection{Gobernanza y uso responsable}
+
+Antes de un piloto institucional se elaborará una ficha de modelo con población objetivo, datos, métricas, fallos conocidos, frecuencia de actualización y responsables. Se establecerá revisión humana, registro de decisiones y mecanismos para impugnar interpretaciones. La recomendación de la OCDE vincula contratación electrónica con transparencia, integridad, acceso y evaluación, principios que deberán guiar cualquier uso \cite{oecd2015procurement}.
+
+La herramienta no deberá etiquetar corrupción, ilegalidad o responsabilidad sin evidencia y proceso competente. Su rol potencial será ordenar o señalar casos para análisis. El beneficio deberá medirse mediante una evaluación prospectiva: tiempo ahorrado, cobertura de revisión y calidad de hallazgos frente al procedimiento habitual.
+
+\section{Consideración final}
+
+Los PBC paraguayos contienen información aprovechable para análisis predictivo, pero su uso responsable exige conservar el contexto institucional, la temporalidad y las limitaciones de cobertura. La comparación demuestra que métodos simples y complejos pueden sobresalir en dimensiones diferentes. El siguiente paso no consiste únicamente en aumentar la escala del modelo, sino en ampliar y validar los datos, definir una finalidad pública concreta y asegurar que la señal estadística permanezca subordinada a la revisión y a las garantías del proceso de contratación.

@@ -1,0 +1,77 @@
+\clearpage
+\lhead{\emph{Trabajos relacionados}}
+\chapter{Trabajos relacionados}
+\label{sec:trabajos_relacionados}
+
+Este capítulo presenta cronológicamente los trabajos que condujeron al enfoque adoptado en esta investigación. El recorrido combina dos evoluciones vinculadas: el uso de datos para analizar contrataciones públicas y el desarrollo de técnicas capaces de representar y clasificar documentos cada vez más extensos. La cronología permite observar cómo cambian las entradas, los objetivos y los modelos, y evita tratar como equivalentes estudios que predicen resultados distintos o utilizan información disponible en momentos diferentes del proceso. La sección final identifica la oportunidad de la propuesta y delimita su aporte frente a esas líneas previas.
+
+\section{De las representaciones léxicas a los primeros modelos contextuales}
+
+Los antecedentes metodológicos se remontan a las representaciones léxicas de documentos. Salton y Buckley estudiaron en 1988 distintos esquemas de ponderación de términos y mostraron la importancia de asignar más peso a las palabras informativas y menos a las frecuentes en toda la colección \cite{salton1988termweighting}. Este principio sustenta TF--IDF, que representa un documento mediante un vector disperso y permite procesar textos completos con un costo moderado.
+
+En 2012, Wang y Manning mostraron que clasificadores lineales con unigramas y bigramas podían competir con alternativas más complejas en tareas de clasificación textual \cite{wang2012baselines}. El resultado consolidó la necesidad de conservar líneas base léxicas sólidas: la complejidad de una arquitectura no garantiza por sí sola una mejora cuando la señal está asociada con vocabulario y expresiones recurrentes.
+
+La aparición del transformer en 2017 introdujo la atención como mecanismo para modelar relaciones entre elementos de una secuencia \cite{vaswani2017attention}. Ese mismo año, Guo et al. demostraron que una red con buen desempeño de clasificación podía producir probabilidades mal calibradas \cite{guo2017calibration}. Ambos trabajos abrieron dimensiones que luego serían relevantes para esta investigación: el modelado contextual y la necesidad de evaluar por separado la discriminación y la calidad probabilística.
+
+En 2018, Shen et al. observaron que la agregación simple de embeddings mediante promedio podía ser competitiva frente a redes más elaboradas \cite{shen2018swem}. En 2019, BERT mostró la capacidad de las representaciones preentrenadas para transferirse a múltiples tareas de lenguaje \cite{devlin2019bert}. Estos avances desplazaron el foco desde características construidas manualmente hacia representaciones densas reutilizables, sin eliminar la necesidad de comparar con métodos simples.
+
+También en 2019 apareció un antecedente directamente vinculado con Paraguay. Kehler, Paciello y Pane aplicaron un bosque de aislamiento a campos estructurados de contrataciones publicados conforme a OCDS para asignar puntajes de anomalía \cite{kehler2019anomaly}. Al contrastar el modelo con procesos que presentaban protestas resueltas a favor del protestante o denuncias ciudadanas, más del 45\,\% de los casos potencialmente anómalos fueron identificados como tales. El estudio demostró la viabilidad de reutilizar datos abiertos de la DNCP para priorizar revisiones, aunque su entrada eran metadatos de distintas etapas y su objetivo era detectar anomalías, no predecir el estado final a partir del texto del PBC.
+
+En 2020, Longformer respondió al límite de longitud de los transformers mediante atención local y posiciones globales \cite{beltagy2020longformer}. A partir de este desarrollo, el procesamiento de documentos extensos dejó de reducirse al truncamiento: se volvió posible comparar atención dispersa, selección de segmentos y esquemas jerárquicos de fragmentación y agregación.
+
+\section{Advertencias tempranas y procesamiento de documentos extensos}
+
+En 2021, Gallego, Rivero y Martínez desarrollaron un modelo de advertencia temprana sobre irregularidades en contratación pública \cite{gallego2021earlywarning}. Su planteamiento enfatizó la prevención y la asignación de recursos limitados de control. El aporte fue trasladar la analítica desde la descripción retrospectiva hacia la priorización anticipada, aunque la variable objetivo y las fuentes administrativas no corresponden al estado final ni al texto completo analizados en este trabajo.
+
+Durante 2022 se profundizaron tanto la analítica de contrataciones como el procesamiento de textos largos. Aldana, Falcón-Cortés y Larralde propusieron para México un ensamble de bosques aleatorios destinado a identificar contratos asociados con corrupción \cite{aldana2022mexico}. Encontraron que las relaciones entre compradores y proveedores podían ser más informativas que los atributos aislados del contrato. El enfoque amplió la unidad de análisis hacia estructuras relacionales, pero dependió de información contractual y de una etiqueta distinta de la empleada en esta investigación.
+
+En el mismo año, Dai et al. compararon transformers de atención dispersa con enfoques jerárquicos en cuatro conjuntos de clasificación de documentos extensos \cite{dai2022revisiting}. Sus resultados mostraron que procesar una mayor proporción del texto podía mejorar el desempeño y que decisiones como el tamaño de ventana y la estrategia de fragmentación no eran detalles neutros. Mamakas et al. estudiaron documentos jurídicos que excedían incluso los límites de modelos de atención dispersa y compararon Longformer, codificadores jerárquicos y TF--IDF \cite{mamakas2022legal}. La competitividad de las líneas base dispersas y la relación entre cobertura y costo resultan especialmente pertinentes para los PBC, que también son extensos, formales y especializados.
+
+Otra evolución de 2022 fue E5, que utilizó preentrenamiento contrastivo débilmente supervisado para producir embeddings transferibles a tareas de recuperación y clasificación \cite{wang2022e5}. Esta línea reforzó la posibilidad de separar el codificador preentrenado del clasificador posterior y de evaluar cuánto valor contiene la representación antes de añadir un agregador complejo.
+
+\section{Consolidación de técnicas y aplicación del texto de convocatorias}
+
+En 2023, Tuteja y González-Jucá evaluaron transformers y estrategias de selección de párrafos sobre seis conjuntos jurídicos extensos, manteniendo TF--IDF como referencia \cite{tuteja2023longtext}. Lu et al. exploraron modelos de espacio de estados como alternativa eficiente a la atención para clasificar documentos largos \cite{lu2023statespace}. Ambos trabajos confirmaron que no existe una única solución para la longitud: seleccionar, fragmentar o cambiar la arquitectura implica compromisos diferentes entre cobertura y costo.
+
+Ese mismo año, Silva Filho et al. sistematizaron los métodos y las métricas de calibración y advirtieron que el puntaje de Brier combina más de una dimensión de la calidad predictiva \cite{silvafilho2023calibration}. Esta revisión respalda el análisis separado de ordenamiento, decisiones a umbral fijo y probabilidades que se adopta en el presente trabajo.
+
+En 2024, Han et al. mostraron que la variación de longitud puede afectar la generalización y propusieron un transformer con kernels sensibles a esa característica \cite{han2024lengthaware}. En paralelo, la variante multilingüe de E5 amplió la cobertura de los embeddings densos \cite{e5multilingual2024}, y Wang et al. estudiaron cómo mejorar embeddings mediante datos sintéticos y modelos grandes de lenguaje \cite{wang2024improvingembeddings}. Estos avances apoyan el uso de un LLM congelado como codificador, pero no determinan cómo deben agregarse sus representaciones cuando un documento se divide en múltiples fragmentos.
+
+También en 2024 se publicaron dos trabajos especialmente próximos al dominio de aplicación. VigIA combinó modelos de aprendizaje automático e índices de riesgo para anticipar sobrecostos y demoras en Bogotá y priorizar casos para supervisión \cite{salazar2024vigia}. Sus variables principales fueron metadatos como valor, tiempos contractuales, antigüedad del proveedor y sector. Su contribución demuestra cómo integrar predicción y control institucional, aunque no procesa el texto completo de la convocatoria y parte de sus variables pertenece a etapas posteriores.
+
+Acikalin et al. estudiaron si las descripciones de convocatorias permitían predecir resultados relacionados con competencia y eficiencia de costos \cite{acikalin2024procurementcalls}. Este es el antecedente más cercano por momento y tipo general de entrada: el lenguaje se observa antes del desenlace. Sin embargo, una descripción breve no equivale a un PBC completo, y sus resultados objetivo, el país y la extensión documental difieren de los de esta investigación.
+
+Finalmente, la revisión de Alva Principe et al. de 2025 sintetizó los avances y problemas abiertos de la clasificación de documentos extensos en la era transformer \cite{alvaprincipe2025survey}. La literatura reunida no establece una arquitectura universalmente dominante: la cobertura del texto, la distribución de longitudes, el costo y la solidez de las líneas base siguen condicionando la comparación.
+
+\section{Oportunidad de la propuesta}
+\label{sec:oportunidad_propuesta}
+
+La evolución revisada deja una oportunidad en la intersección de las líneas anteriores. Los estudios de contratación pública progresaron desde anomalías sobre datos estructurados hacia advertencias tempranas, relaciones entre actores y sistemas de apoyo a la supervisión. Solo el trabajo de Acikalin et al. utiliza texto disponible en la convocatoria, pero lo hace sobre descripciones breves y con resultados distintos. Por otra parte, los estudios de documentos extensos comparan estrategias de atención, selección o fragmentación en dominios generales y jurídicos, pero no sobre PBC paraguayos ni con el estado final registrado por la DNCP.
+
+La propuesta se diferencia de los antecedentes de contratación de manera concreta. Frente a Kehler et al., no busca anomalías no supervisadas en campos OCDS, sino una probabilidad supervisada a partir del PBC. Frente a Gallego et al., Aldana et al. y VigIA, no predice irregularidad, corrupción, sobrecostos o demoras mediante datos administrativos, contractuales o relacionales: utiliza únicamente un documento publicado antes del resultado. Frente a Acikalin et al., amplía la unidad textual desde una descripción de convocatoria hasta un PBC completo y traslada la pregunta a obras viales de Paraguay.
+
+También se diferencia de los antecedentes metodológicos. Los trabajos de Salton y Buckley y de Wang y Manning sustentan la representación léxica, pero no la comparan con embeddings de un LLM sobre contratación pública. Shen et al. justifican el promedio como línea base, mientras que E5, su variante multilingüe y Wang et al. desarrollan representaciones densas generales; ninguno evalúa en este dominio si modelar relaciones entre fragmentos mejora sobre promediar embeddings del mismo codificador. Vaswani et al., BERT, Longformer y los trabajos de Dai, Mamakas, Tuteja, Lu y Han aportan mecanismos para contexto y longitud, pero sus objetivos son generales: la presente propuesta no introduce una arquitectura nueva, sino que comprueba empíricamente qué complejidad resulta útil en los PBC estudiados. Finalmente, Guo et al. y Silva Filho et al. motivan la evaluación probabilística; aquí esa dimensión se integra con ranking y sensibilidad al umbral en una única comparación.
+
+La Tabla~\ref{tab:comparacion_trabajos} sintetiza las líneas previas y la diferencia que cubre la propuesta.
+
+\begin{table}[H]
+\centering
+\caption{Síntesis de líneas previas y oportunidad de la propuesta.}
+\label{tab:comparacion_trabajos}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{3.4cm}}
+\toprule
+\textbf{Línea} & \textbf{Entrada principal} & \textbf{Objetivo} & \textbf{Diferencia de la propuesta} \\
+\midrule
+Representaciones léxicas \cite{salton1988termweighting,wang2012baselines} & Términos y n-gramas & Clasificación textual general & Las compara con embeddings de LLM sobre PBC \\
+Contratación estructurada \cite{kehler2019anomaly,gallego2021earlywarning,aldana2022mexico,salazar2024vigia} & Metadatos, contratos y relaciones & Anomalías, irregularidades, corrupción, costos y demoras & Usa texto previo al resultado y predice el estado final \\
+Documentos extensos \cite{beltagy2020longformer,dai2022revisiting,mamakas2022legal,tuteja2023longtext,lu2023statespace,han2024lengthaware} & Textos largos generales o jurídicos & Clasificación y cobertura eficiente & Evalúa fragmentación y agregación en PBC paraguayos \\
+Embeddings densos \cite{shen2018swem,wang2022e5,e5multilingual2024,wang2024improvingembeddings} & Vectores preentrenados & Representación y transferencia & Mantiene fijo el codificador y compara promedio con modelado entre fragmentos \\
+Texto de convocatorias \cite{acikalin2024procurementcalls} & Descripciones breves & Competencia y eficiencia de costos & Procesa PBC completos y otra etiqueta en Paraguay \\
+Esta propuesta & PBC completos & Estado final operacionalizado & Integra comparación léxica/densa, ranking, calibración y umbrales \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El aporte no consiste en proponer un nuevo algoritmo general ni en convertir la predicción en una decisión administrativa. Consiste en una comparación controlada y reproducible sobre PBC paraguayos: TF--IDF frente a embeddings congelados de un LLM; promedio frente a un transformer entre fragmentos; y evaluación separada de ordenamiento, desempeño a umbral fijo y calibración. Esta combinación permite determinar no solo si existe señal predictiva temprana, sino también dónde reside y qué limitaciones deben acompañar cualquier uso posterior.

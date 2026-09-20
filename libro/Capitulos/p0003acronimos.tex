@@ -1,0 +1,50 @@
+\clearpage
+\lhead{\emph{Glosario}}
+\chapter*{Glosario}
+\addcontentsline{toc}{chapter}{Glosario}
+\section*{Acrónimos}
+\begin{acronym}[TF--IDF]
+  \setlength{\itemsep}{0pt}
+  \setlength{\parskip}{0pt}
+  \acro{API}{\textit{Application Programming Interface}}
+  \acro{AUC}{\textit{Area Under the Curve}}
+  \acro{CV}{\textit{Cross-Validation}}
+  \acro{DNCP}{Dirección Nacional de Contrataciones Públicas}
+  \acro{GPU}{\textit{Graphics Processing Unit}}
+  \acro{LLM}{\textit{Large Language Model}}
+  \acro{MLP}{\textit{Multilayer Perceptron}}
+  \acro{OCDE}{Organización para la Cooperación y el Desarrollo Económicos}
+  \acro{OCDS}{\textit{Open Contracting Data Standard}}
+  \acro{OCR}{\textit{Optical Character Recognition}}
+  \acro{PBC}{Pliego de Bases y Condiciones}
+  \acro{PR}{\textit{Precision--Recall}}
+  \acro{ROC}{\textit{Receiver Operating Characteristic}}
+  \acro{SICP}{Sistema de Información de las Contrataciones Públicas}
+  \acro{TFIDF}[TF--IDF]{\textit{Term Frequency--Inverse Document Frequency}}
+\end{acronym}
+
+\section*{Términos}
+\begin{description}
+  \setlength{\itemsep}{0.15\baselineskip}
+  \setlength{\parskip}{0pt}
+  \item[Agregación por promedio:] operación que resume varios embeddings mediante su media aritmética para obtener una única representación.
+  \item[Calibración:] grado de correspondencia entre las probabilidades predichas y las frecuencias observadas de un resultado.
+  \item[Clasificación binaria:] tarea de asignar cada ejemplo a una de dos clases posibles.
+  \item[Codificador congelado:] modelo preentrenado cuyos parámetros no se actualizan durante el entrenamiento del predictor posterior.
+  \item[Detención temprana:] criterio que interrumpe el entrenamiento cuando el desempeño de validación deja de mejorar durante un número prefijado de épocas.
+  \item[Embedding:] representación vectorial densa de una unidad textual, producida por un modelo para codificar regularidades de su contenido y contexto.
+  \item[Época:] recorrido completo del algoritmo de entrenamiento sobre todos los ejemplos de la partición destinada al ajuste.
+  \item[Fragmento:] segmento de tokens en el que se divide un documento para respetar el límite de entrada del codificador.
+  \item[Fuga de información:] uso durante el entrenamiento o la selección de información que no estaría disponible en el momento real de la predicción.
+  \item[Hiperparámetro:] valor fijado antes del entrenamiento que controla la configuración o el comportamiento de un modelo.
+  \item[Logit:] salida numérica de un clasificador antes de transformarla en probabilidad mediante una función como la sigmoide.
+  \item[$n$-grama:] secuencia contigua de $n$ unidades de texto. En este trabajo las unidades son palabras: un unigrama contiene una palabra y un bigrama contiene dos.
+  \item[Ordenamiento:] capacidad de asignar puntajes mayores a los ejemplos positivos que a los negativos, independientemente de un umbral fijo.
+  \item[Prevalencia:] proporción de ejemplos pertenecientes a la clase positiva dentro de un conjunto de datos.
+  \item[Representación densa:] vector numérico en el que la información se distribuye entre un número fijo de componentes, generalmente no nulas.
+  \item[Representación dispersa:] vector de alta dimensión en el que la mayoría de los componentes son cero, como una representación TF--IDF.
+  \item[Token:] unidad mínima de texto procesada por un tokenizador; puede corresponder a una palabra, parte de ella o un símbolo.
+  \item[Transformer:] arquitectura neuronal basada principalmente en mecanismos de atención para modelar relaciones entre elementos de una secuencia.
+  \item[Umbral de decisión:] valor de corte aplicado a un puntaje o probabilidad para convertirlo en una predicción de clase.
+  \item[Validación cruzada:] procedimiento que divide los datos en varios pliegues y alterna cuáles se usan para entrenamiento y evaluación.
+\end{description}

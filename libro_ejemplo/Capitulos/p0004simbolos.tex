@@ -1,0 +1,67 @@
+\clearpage % Start a new page
+\setstretch{1.5} % Set the line spacing to 1.5, this makes the following tables easier to read
+\chapter*{Lista de símbolos}
+\addcontentsline{toc}{chapter}{Lista de Símbolos}
+\lhead{\emph{Lista de símbolos}}
+    \begin{longtable}{lp{0.84\linewidth}}
+    
+    %	Darle mejor ancho a la segunda columna 
+        $\epsilon$ & Una serie temporal especial conocida como
+ruido blanco (\textit{white noise}, en inglés). \\
+
+        $\phi_i$ & Representa a variables que deben resolverse  en los modelos de autoregresión. \\
+
+        $\delta$ & Es una constante empleada en los modelos de autoregresión o ARIMA. \\
+
+    $y_i$ & Representa a cada uno de los valores de la serie temporal. \\
+
+    $\mu$ & Es una constante empleada en los modelos de media móvil. \\
+
+    $\theta_i$ & Representa a variables que deben resolverse  en los modelos de media móvil o ARIMA. \\
+
+     $c$ & Es una constante empleada en los modelos de ARIMA. \\
+
+    $i_{t}$ & Representa a la puerta de entrada en modelos LSTM. \\
+
+    $o_{t}$ & Representa a la puerta de salida en modelos LSTM. \\
+
+    $f_{t}$ & Representa a la puerta de olvido en modelos LSTM. \\
+
+    $c_{t-new}$ & Es el nuevo estado, candidato, de la célula en modelos LSTM. \\
+
+    $c_{t}$ & Es vector que representan el estado final de la célula en modelos LSTM. \\
+
+    $h_{t}$ & Es el vector de la capa oculta que sale de una unidad recurrente. \\
+
+    $W, U, b$ & Son matrices cuyos valores deben ser aprendidos durante el proceso de entrenamiento de las redes recurrentes. \\
+
+    $\odot$ & Representa a la operación  denominada \textit{producto de Hadamard}. \\
+
+    $logistic$ & Representa a la función de activación \textit{logistic}. \\
+
+    $tanh$ & Representa a la función de activación \textit{tangente hiperpólica}. \\
+
+    $z_{t}$ & Representa a la puerta de actualización en modelos GRU. \\
+
+    $r_{t}$ & Representa a la puerta de reseteo en modelos GRU. \\
+
+    $h^-_{t}$ & Es un vector cuyo valor es utilizado para calcular \(h_{t}\) en el modelado con GRU. \\
+
+    $x_i'$ & Representa al resultado de aplicar la función de normalización \textit{min-max}. \\
+
+    $o_i$ & Representa a un valor del conjunto de valores observados. \\
+
+    $o_{min}$ & Representa el valor mínimo del conjunto de valores observados. \\
+
+    $o_{max}$ & Representa el valor máximo del conjunto de valores observados. \\
+
+    $\overline{o}$ & Representa el valor promedio del conjunto de valores observados. \\
+
+    $p_i$ & Representa a un valor del conjunto de valores pronosticados. \\
+
+    $\overline{p}$ & Representa el valor promedio del conjunto de valores pronosticados. \\
+
+    $N$ & Representa a la cantidad total de elementos en un conjunto de datos.\\
+
+        \\\hline 
+    \end{longtable}

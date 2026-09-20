@@ -1,0 +1,11 @@
+\clearpage % Start a new page
+\abstract{\addtocontents{toc}{\vspace{1em}}}
+\addcontentsline{toc}{chapter}{Abstract}
+Accurate river level forecasting is essential for the sustainable management of water resources in Paraguay, particularly in the face of extreme events. This research overcomes the limitations of a baseline model —which relied solely on historical river levels without a retraining strategy— through a new approach that incorporates exogenous variables such as upstream flow rates and precipitation. This is complemented by adaptive periodic retraining and multi-horizon forecasting for 7, 14, 21, and 28 days, with a focus on the 28-day operational horizon.
+
+The methodology integrates daily time series (1995–2022) from six strategic stations, where precipitation data were aggregated and then optimized through cross-correlation analysis and Bayesian search to identify time windows with the highest predictive impact. The GRU model was fine-tuned using Bayesian hyperparameter optimization and validated through temporal cross-validation with simulated annual retraining (2013–2022), using standardized hydrological metrics: Nash-Sutcliffe Efficiency (NSE), Root Mean Square Error (RMSE), Mean Absolute Error (MAE), and Mean Absolute Percentage Error (MAPE).
+
+
+Results demonstrate significant improvement over the base model: NSE reached 0.9455 (vs. 0.9177), MAPE was reduced to 30.85\% (vs. 61.71\%), and greater stability was observed in extended horizons—even during extreme hydrological events like the historic 2020–2022 low-water period associated with the La Niña phenomenon. Optimized accumulated precipitation effectively captured delayed and seasonal effects, substantially enhancing predictive accuracy.
+
+This work validates the efficacy of integrating multi-source data with adaptive deep learning techniques, offering a robust and practical tool for decision-making in flood management, river navigation, and infrastructure planning in vulnerable basins.
