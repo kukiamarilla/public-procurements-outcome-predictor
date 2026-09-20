@@ -136,7 +136,6 @@
 \usepackage{booktabs}
 \usepackage{rotating}
 \usepackage{listings}
-\usepackage{lstpatch}
 \lstset{captionpos=b,
         frame=tb,
         basicstyle=\scriptsize\ttfamily,
