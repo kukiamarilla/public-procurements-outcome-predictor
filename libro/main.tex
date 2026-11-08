@@ -12,7 +12,8 @@
 \usepackage{url}
 \usepackage[nohyperlinks]{acronym}
 \usepackage{csquotes}
-\usepackage[backend=bibtex,style=numeric,sorting=none]{biblatex}
+\usepackage[backend=biber,style=apa,sorting=nyt]{biblatex}
+\DeclareLanguageMapping{spanish}{spanish-apa}
 \addbibresource{references.bib}
 
 \graphicspath{{figures/}{Figuras/}}
@@ -23,7 +24,7 @@
 \authors{Isaac Gabriel Amarilla Benítez y Luis Fernando Caballero Ramoa}
 \degree{Ingeniería en Informática}
 \subject{Predicción de resultados de licitaciones públicas mediante representaciones textuales}
-\keywords{contratación pública, documentos de licitación, modelos de lenguaje, predicción de resultados}
+\keywords{contratación pública, documentos de licitación, pliego de bases y condiciones, modelos de lenguaje, predicción de resultados}
 \university{Universidad Nacional de Asunción}
 \UNIVERSITY{UNIVERSIDAD NACIONAL DE ASUNCIÓN}
 \faculty{Facultad Politécnica}
@@ -71,8 +72,8 @@
   \end{center}
 \end{titlepage}
 
-\input{Capitulos/p0001abstract}
 \input{Capitulos/p0002resumen}
+\input{Capitulos/p0001abstract}
 
 \clearpage
 \pagestyle{fancy}

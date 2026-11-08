@@ -3,59 +3,9 @@
 \chapter{Propuesta de experimentación numérica}
 \label{sec:propuesta_experimental}
 
-En este capítulo se describirá el diseño experimental empleado para comparar representaciones textuales en la predicción de resultados de licitaciones públicas paraguayas. Primero se presentarán el ambiente computacional y la procedencia de los datos. Luego se detallarán la descarga de PBC, la extracción de texto, la generación de embeddings, la definición de la etiqueta y los modelos. Finalmente se establecerán la partición, las métricas y las reglas de reproducibilidad que se utilizarán para evaluar cada alternativa.
+En este capítulo se describirá el diseño experimental empleado para comparar representaciones textuales en la predicción de resultados de licitaciones públicas paraguayas. Primero se presentarán la procedencia de los datos y la construcción del conjunto supervisado, desde la recuperación de los PBC hasta la definición de la etiqueta. Luego se detallarán los modelos que se evaluarán y el ambiente de software que los implementa. Finalmente se establecerán la partición, el entrenamiento, las métricas y las reglas de reproducibilidad utilizadas para comparar cada alternativa.
 
-La descripción se fundamenta en el código versionado del proyecto y en el embudo de artefactos observado. Cuando un detalle de infraestructura no quedó preservado en el repositorio, se indicará expresamente en vez de reconstruirlo mediante suposiciones.
-
-\section{Ambiente computacional}
-
-\subsection{Hardware}
-
-La generación de embeddings se ejecutó en una instancia de cómputo acelerado en la nube, provista por RunPod y equipada con una GPU NVIDIA H200 compatible con CUDA. El proveedor se consigna como información de trazabilidad, pero no constituye un requisito de reproducción: una infraestructura equivalente puede utilizarse si ofrece los recursos y el entorno de software necesarios. El código selecciona una GPU cuando está disponible, utiliza \texttt{bfloat16} en ese caso y conserva los tokens en CPU hasta transferir cada microlote. La evidencia de ejecución registra 671 fallos \texttt{OutOfMemoryError}. La variante y la memoria exacta de la GPU, así como el modelo de procesador y la memoria RAM de la instancia, no se encuentran preservados en los artefactos disponibles; por ello, no se atribuyen especificaciones adicionales no verificables.
-
-Para reproducir el experimento será necesario registrar, además del código, el modelo de GPU, versión del controlador, versión de CUDA, memoria disponible y sistema operativo. Estos datos son relevantes porque determinan el tamaño de microlote que puede procesarse y la probabilidad de fallos en documentos extensos.
-
-\begin{table}[H]
-\centering
-\caption{Información de hardware respaldada por los artefactos del proyecto.}
-\label{tab:hardware}
-\begin{tabular}{p{4.2cm}p{8.2cm}}
-\toprule
-\textbf{Componente} & \textbf{Evidencia disponible} \\
-\midrule
-Acelerador & GPU NVIDIA H200 compatible con CUDA \\
-Entorno de ejecución & Instancia de cómputo acelerado en la nube provista por RunPod \\
-Precisión del LLM & \texttt{bfloat16} cuando CUDA está disponible \\
-Gestión de memoria & Microlotes CPU--GPU, caché KV desactivada y reintentos reduciendo el microlote \\
-Configuración restante & Variante y memoria exacta de la GPU, procesador y memoria RAM no preservados; deben registrarse en una reproducción \\
-Almacenamiento de artefactos & DigitalOcean Spaces mediante API compatible con S3 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Software}
-
-El proyecto requiere Python 3.10 o superior y declara sus dependencias en \texttt{pyproject.toml}; \texttt{uv.lock} conserva resoluciones concretas por plataforma. La Tabla~\ref{tab:software} presenta componentes principales observados en el archivo de bloqueo actual. Las versiones efectivamente usadas en la corrida original deben verificarse contra el entorno archivado si se dispone de él, porque el archivo puede actualizarse después de una ejecución.
-
-\begin{table}[H]
-\centering
-\caption{Componentes principales del ambiente de software versionado.}
-\label{tab:software}
-\begin{tabular}{p{4.4cm}p{4cm}p{4cm}}
-\toprule
-\textbf{Componente} & \textbf{Uso} & \textbf{Versión resuelta observada} \\
-\midrule
-Python & ETL y entrenamiento & $\geq 3.10$ \\
-PyTorch & Embeddings y redes & 2.11.0 \\
-Transformers & Carga del LLM/tokenizador & 5.4.0 \\
-scikit-learn & TF--IDF, CV y métricas & 1.7.2/1.8.0 según plataforma \\
-MLflow & Seguimiento experimental & 3.10.1 \\
-pdfplumber & Extracción de texto PDF & 0.11.9 \\
-Camelot & Extracción de tablas & 1.0.9 \\
-pandas & Manipulación tabular & 2.3.3 \\
-\bottomrule
-\end{tabular}
-\end{table}
+La descripción se fundamenta en el código versionado del proyecto y en el embudo de artefactos observado. El hardware empleado durante la ejecución se documentará en el capítulo de resultados, donde puede relacionarse con los costos y fallos efectivamente observados.
 
 \section{Fuente y procedencia de los datos}
 
@@ -67,7 +17,7 @@ Los procesos provienen del servicio de datos abiertos de la DNCP. El script \tex
 \small\url{https://www.contrataciones.gov.py/datos/api/v3/doc/search/processes}
 \end{center}
 
-La consulta utiliza \texttt{items\_per\_page=100}, el código de clasificación \texttt{72131701}, el estado de la licitación y el número de página. El endpoint forma parte de la publicación paraguaya basada en Open Contracting \cite{dncpOpenContracting,dncpDatosAbiertos}. Se recorrieron las páginas disponibles para \texttt{unsuccessful} y \texttt{cancelled}; cada respuesta se normalizó añadiendo el estado utilizado en la consulta.
+La consulta utiliza \texttt{items\_per\_page=100}, el código de clasificación \texttt{72131701}, el estado de la licitación y el número de página. El endpoint forma parte de la publicación paraguaya basada en Open Contracting \parencite{dncpOpenContracting,dncpDatosAbiertos}. Se recorrieron las páginas disponibles para \texttt{unsuccessful} y \texttt{cancelled}; cada respuesta se normalizó añadiendo el estado utilizado en la consulta.
 
 De cada registro se recuperaron, cuando estaban disponibles, el OCID, el \texttt{tender.id} y los identificadores de adjudicaciones. Si no aparecía \texttt{tender.id}, el código utilizó el OCID como alternativa. El identificador de tender se mantuvo como clave para unir etapas posteriores.
 
@@ -199,6 +149,30 @@ El mismo promedio alimentará una red con una capa oculta. En el análisis de se
 \subsection{Transformer entre fragmentos}
 
 La matriz variable de embeddings se rellenará dentro de cada lote y se acompañará con una máscara. La arquitectura proyectará de 2880 a 128 dimensiones, añadirá \texttt{[CLS]}, utilizará cuatro cabezas, dimensión prealimentada 512, dropout 0,3 y una capa. La cabeza final producirá un logit.
+
+\section{Ambiente de software}
+
+El proyecto requiere Python 3.10 o superior y declara sus dependencias en \texttt{pyproject.toml}; \texttt{uv.lock} conserva resoluciones concretas por plataforma. La Tabla~\ref{tab:software} presenta los componentes principales observados en el archivo de bloqueo actual. Las versiones efectivamente usadas en la corrida original deben verificarse contra el entorno archivado si se dispone de él, porque el archivo puede actualizarse después de una ejecución.
+
+\begin{table}[H]
+\centering
+\caption{Componentes principales del ambiente de software versionado.}
+\label{tab:software}
+\begin{tabular}{p{4.4cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Componente} & \textbf{Uso} & \textbf{Versión resuelta observada} \\
+\midrule
+Python & ETL y entrenamiento & $\geq 3.10$ \\
+PyTorch & Embeddings y redes & 2.11.0 \\
+Transformers & Carga del LLM/tokenizador & 5.4.0 \\
+scikit-learn & TF--IDF, CV y métricas & 1.7.2/1.8.0 según plataforma \\
+MLflow & Seguimiento experimental & 3.10.1 \\
+pdfplumber & Extracción de texto PDF & 0.11.9 \\
+Camelot & Extracción de tablas & 1.0.9 \\
+pandas & Manipulación tabular & 2.3.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Partición y protocolo de evaluación}
 

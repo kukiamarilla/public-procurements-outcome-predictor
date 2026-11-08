@@ -3,7 +3,76 @@
 \chapter{Pruebas experimentales y análisis de resultados computacionales}
 \label{sec:resultados}
 
-Este capítulo presenta los resultados obtenidos mediante las particiones y modelos definidos anteriormente. El análisis se organiza en cuatro bloques: controles sin capacidad predictiva, comparación de ranking, comportamiento dependiente del umbral y calidad probabilística. Luego se estudia el efecto de la representación y se discuten los resultados en relación con el contexto paraguayo y los antecedentes.
+Este capítulo presenta primero el hardware y los hiperparámetros utilizados en la ejecución. A continuación expone los resultados obtenidos mediante las particiones y modelos definidos anteriormente. El análisis se organiza en cuatro bloques: controles sin capacidad predictiva, comparación de ranking, comportamiento dependiente del umbral y calidad probabilística. Luego se estudia el efecto de la representación y se discuten los resultados en relación con el contexto paraguayo y los antecedentes.
+
+\section{Ambiente de ejecución}
+
+La generación de embeddings se ejecutó en una instancia de cómputo acelerado en la nube, provista por RunPod y equipada con una GPU NVIDIA H200 compatible con CUDA. El proveedor se consigna como información de trazabilidad, pero no constituye un requisito de reproducción: puede utilizarse una infraestructura equivalente si ofrece los recursos y el entorno de software necesarios. El código seleccionó una GPU cuando estuvo disponible, utilizó \texttt{bfloat16} en ese caso y conservó los tokens en CPU hasta transferir cada microlote.
+
+La evidencia de ejecución registra 671 fallos \texttt{OutOfMemoryError}. La variante y la memoria exacta de la GPU, así como el modelo de procesador y la memoria RAM de la instancia, no se encuentran preservados en los artefactos disponibles; por ello, no se atribuyen especificaciones adicionales no verificables. Esta información faltante limita la reproducción exacta de la etapa de codificación, pues la memoria disponible determina el tamaño de microlote y la posibilidad de procesar los documentos más extensos.
+
+\begin{table}[H]
+\centering
+\caption{Información de hardware respaldada por los artefactos del proyecto.}
+\label{tab:hardware}
+\begin{tabular}{p{4.2cm}p{8.2cm}}
+\toprule
+\textbf{Componente} & \textbf{Evidencia disponible} \\
+\midrule
+Acelerador & GPU NVIDIA H200 compatible con CUDA \\
+Entorno de ejecución & Instancia de cómputo acelerado en la nube provista por RunPod \\
+Precisión del LLM & \texttt{bfloat16} cuando CUDA está disponible \\
+Gestión de memoria & Microlotes CPU--GPU, caché KV desactivada y reintentos reduciendo el microlote \\
+Configuración restante & Variante y memoria exacta de la GPU, procesador y memoria RAM no preservados \\
+Almacenamiento de artefactos & DigitalOcean Spaces mediante API compatible con S3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Para futuras reproducciones deberán registrarse el modelo y la memoria de la GPU, la versión del controlador, la versión de CUDA, el procesador, la memoria RAM y el sistema operativo. Los resultados que siguen corresponden al subconjunto que pudo completar la canalización bajo el ambiente descrito.
+
+\section{Hiperparámetros utilizados}
+
+La Tabla~\ref{tab:hiperparametros_representacion} resume la configuración utilizada para transformar los PBC en entradas de los clasificadores. El codificador permaneció congelado durante toda la generación de embeddings; por tanto, sus parámetros no se actualizaron con las etiquetas del conjunto supervisado.
+
+\begin{table}[H]
+\centering
+\caption{Hiperparámetros de representación y codificación documental.}
+\label{tab:hiperparametros_representacion}
+\small
+\begin{tabular}{p{4.1cm}p{8.3cm}}
+\toprule
+\textbf{Componente} & \textbf{Configuración utilizada} \\
+\midrule
+Codificador denso & \texttt{openai/gpt-oss-20b}, parámetros congelados y precisión \texttt{bfloat16} en CUDA \\
+Fragmentación & 4.096 tokens por fragmento, desplazamiento de 2.048 tokens y sin truncamiento documental adicional \\
+Embedding de fragmento & Estado oculto del último token válido; dimensión de salida 2.880 \\
+Microlote de codificación & Tamaño inicial 4, reducido por mitades ante errores de memoria hasta un mínimo de 1 \\
+Representación léxica & TF--IDF, hasta 50.000 características, unigramas y bigramas, y frecuencia documental mínima de 5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Los clasificadores se ejecutaron con los hiperparámetros de la Tabla~\ref{tab:hiperparametros_modelos}. Las dos regresiones logísticas utilizaron pesos de clase balanceados y un máximo de 1.000 iteraciones. El MLP y el transformer se entrenaron con entropía cruzada binaria con logits y detención temprana.
+
+\begin{table}[H]
+\centering
+\caption{Hiperparámetros de los modelos evaluados.}
+\label{tab:hiperparametros_modelos}
+\small
+\begin{tabular}{p{3.1cm}p{9.3cm}}
+\toprule
+\textbf{Modelo} & \textbf{Configuración utilizada} \\
+\midrule
+TF--IDF + regresión logística & Pesos de clase balanceados; máximo de 1.000 iteraciones \\
+Promedio + regresión logística & Promedio de embeddings de dimensión 2.880; pesos de clase balanceados; máximo de 1.000 iteraciones \\
+Promedio + MLP & Capa oculta de 256 unidades, ReLU, dropout 0,2, lote 64, AdamW, tasa de aprendizaje $10^{-3}$, decaimiento $10^{-4}$ y hasta 50 épocas \\
+Transformer entre fragmentos & Proyección $2.880\rightarrow128$, 4 cabezas, dimensión prealimentada 512, dropout 0,3, 1 capa, lote 8, AdamW, tasa de aprendizaje $10^{-4}$, decaimiento 0,01 y hasta 50 épocas \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En los modelos neuronales, la detención temprana empleó una mejora mínima de 0,001 en la pérdida de validación, paciencia de cinco épocas y restauración del mejor punto de control. El protocolo común consistió en validación cruzada estratificada de cinco pliegues, semilla 42 y umbral principal de 0,5. Para el análisis de sensibilidad, el conjunto de entrenamiento de cada pliegue externo reservó un 20\,\% para seleccionar internamente el umbral que maximizaba F1.
 
 \section{Comprobaciones previas}
 
@@ -55,7 +124,7 @@ La evidencia no permite conocer cuánto proviene de contenido técnico, fórmula
 
 La representación léxica fue superior en ranking, mientras que las densas fueron competitivas y dos de ellas obtuvieron menor Brier. No existe un ganador único para todos los criterios. La selección dependerá del uso: priorización ordenada, clasificación binaria o puntuación probabilística.
 
-Este hallazgo coincide con trabajos de documentos extensos que recomiendan mantener líneas base TF--IDF y evaluar costo además de desempeño \cite{mamakas2022legal,tuteja2023longtext}. El resultado local es particularmente relevante porque el LLM utilizado tiene una escala muy superior a la regresión logística, pero esa escala no produjo el mayor AUC.
+Este hallazgo coincide con trabajos de documentos extensos que recomiendan mantener líneas base TF--IDF y evaluar costo además de desempeño \parencite{mamakas2022legal,tuteja2023longtext}. El resultado local es particularmente relevante porque el LLM utilizado tiene una escala muy superior a la regresión logística, pero esa escala no produjo el mayor AUC.
 
 \subsection{Interacciones entre fragmentos}
 
@@ -77,15 +146,15 @@ El resultado más inmediato es metodológico: en PBC paraguayos de construcción
 
 Un sistema de apoyo a la DNCP o a un organismo de control podría usar ranking para ordenar expedientes y revisión humana para interpretar causas. Antes de ello sería necesario validar sobre períodos posteriores, incluir organismos no vistos, recuperar PBC faltantes y definir el evento que realmente se desea anticipar. La etiqueta \texttt{complete} frente a estados no exitosos es útil para investigación, pero una política pública puede requerir objetivos más específicos.
 
-La Ley N.º 7021/2022 enfatiza eficiencia, competencia, transparencia e integridad \cite{dncpLey7021}. Una predicción de estado no mide por sí sola esos principios. Cualquier integración institucional debería mantener separadas la señal estadística, la evaluación normativa y la decisión administrativa.
+La Ley N.º 7021/2022 enfatiza eficiencia, competencia, transparencia e integridad \parencite{dncpLey7021}. Una predicción de estado no mide por sí sola esos principios. Cualquier integración institucional debería mantener separadas la señal estadística, la evaluación normativa y la decisión administrativa.
 
 \subsection{Comparación con otros países}
 
-Acikalin et al. encontraron señal predictiva en descripciones de convocatorias \cite{acikalin2024procurementcalls}; este estudio encuentra señal en PBC paraguayos completos. La coincidencia apoya la idea general de que el lenguaje disponible durante la convocatoria permite anticipar desenlaces, pero no permite equiparar variables objetivo ni magnitudes.
+\textcite{acikalin2024procurementcalls} encontraron señal predictiva en descripciones de convocatorias; este estudio encuentra señal en PBC paraguayos completos. La coincidencia apoya la idea general de que el lenguaje disponible durante la convocatoria permite anticipar desenlaces, pero no permite equiparar variables objetivo ni magnitudes.
 
-VigIA utiliza metadatos e índices orientados a sobrecostos, demoras e irregularidades en Colombia \cite{salazar2024vigia}. El presente trabajo usa texto y un estado final más amplio. Los enfoques podrían complementarse en el futuro, pero su unión requeriría un conjunto paraguayo donde ambos tipos de variables estén disponibles en el mismo momento.
+VigIA utiliza metadatos e índices orientados a sobrecostos, demoras e irregularidades en Colombia \parencite{salazar2024vigia}. El presente trabajo usa texto y un estado final más amplio. Los enfoques podrían complementarse en el futuro, pero su unión requeriría un conjunto paraguayo donde ambos tipos de variables estén disponibles en el mismo momento.
 
-Los modelos mexicanos centrados en corrupción usan información relacional de compradores y proveedores \cite{aldana2022mexico}. Como el presente experimento no incorpora redes, no puede evaluar esa dimensión. La comparación confirma que ``analítica de contratación'' comprende tareas heterogéneas y que las métricas solo son comparables cuando coinciden etiqueta, momento y población.
+Los modelos mexicanos centrados en corrupción usan información relacional de compradores y proveedores \parencite{aldana2022mexico}. Como el presente experimento no incorpora redes, no puede evaluar esa dimensión. La comparación confirma que ``analítica de contratación'' comprende tareas heterogéneas y que las métricas solo son comparables cuando coinciden etiqueta, momento y población.
 
 \section{Síntesis de hallazgos}
 

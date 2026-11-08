@@ -287,53 +287,32 @@
 %-----------------------------------Resumen-----------------------------------------------------
 \newenvironment{resumen}
 {
-  \btypeout{Abstract Page}
+  \btypeout{Resumen}
+  \pagestyle{empty}
   \thispagestyle{empty}
-  \null\vfil
   \begin{center}
     \setlength{\parskip}{0pt}
-    %{\normalsize \UNIVNAME \par} % University name in capitals
-    %\bigskip
     {\huge{\textit{Resumen}} \par}
     \bigskip
-    %{\normalsize \facname \par} % Faculty name
-    %{\normalsize \deptname \par} % Department name
-    %\bigskip
-    %{\normalsize \degreename\par} % Degree name
-    %\bigskip
-    %{\normalsize\bf \@title \par} % Thesis title
-    %\medskip
-    %{\normalsize by \authornames \par} % Author name
-    \bigskip
   \end{center}
+}
+{
+  \clearpage
 }
 
 \newenvironment{abstract}
 {
   \btypeout{Abstract Page}
+  \pagestyle{empty}
   \thispagestyle{empty}
-  \null\vfil
   \begin{center}
     \setlength{\parskip}{0pt}
-    %{\normalsize \UNIVNAME \par} % University name in capitals
-    %\bigskip
     {\huge{\textit{Abstract}} \par}
-    \bigskip
-    %{\normalsize \facname \par} % Faculty name
-    %{\normalsize \deptname \par} % Department name
-    %\bigskip
-    %{\normalsize \degreename\par} % Degree name
-    %\bigskip
-    %{\normalsize\bf \@title \par} % Thesis title
-    %\medskip
-    %{\normalsize by \authornames \par} % Author name
     \bigskip
   \end{center}
 }
-%----------------------------------------------------------------------------------------
 {
-  \vfil\vfil\vfil\null
-  \cleardoublepage
+  \clearpage
 }
 \addtocounter{secnumdepth}{1}
 \setcounter{tocdepth}{6}
