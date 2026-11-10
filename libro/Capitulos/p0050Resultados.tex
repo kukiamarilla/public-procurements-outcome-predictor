@@ -40,15 +40,15 @@ La Tabla~\ref{tab:hiperparametros_representacion} resume la configuración utili
 \caption{Hiperparámetros de representación y codificación documental.}
 \label{tab:hiperparametros_representacion}
 \small
-\begin{tabular}{p{4.1cm}p{8.3cm}}
+\begin{tabular}{p{2.6cm}p{4.4cm}p{5.4cm}}
 \toprule
-\textbf{Componente} & \textbf{Configuración utilizada} \\
+\textbf{Componente} & \textbf{Configuración utilizada} & \textbf{Justificación} \\
 \midrule
-Codificador denso & \texttt{openai/gpt-oss-20b}, parámetros congelados y precisión \texttt{bfloat16} en CUDA \\
-Fragmentación & 4.096 tokens por fragmento, desplazamiento de 2.048 tokens y sin truncamiento documental adicional \\
-Embedding de fragmento & Estado oculto del último token válido; dimensión de salida 2.880 \\
-Microlote de codificación & Tamaño inicial 4, reducido por mitades ante errores de memoria hasta un mínimo de 1 \\
-Representación léxica & TF--IDF, hasta 50.000 características, unigramas y bigramas, y frecuencia documental mínima de 5 \\
+Codificador denso & \texttt{openai/gpt-oss-20b}, parámetros congelados y precisión \texttt{bfloat16} en CUDA & Modelo de pesos abiertos reproducible; al congelarlo se separa la representación preentrenada del clasificador y se evita ajustar un LLM grande sobre un conjunto modesto \parencite{agarwal2025gptoss,wang2024improvingembeddings}. \\
+Fragmentación & 4.096 tokens por fragmento, desplazamiento de 2.048 tokens y sin truncamiento documental adicional & Ventana de 4.096 tokens alineada con configuraciones de documentos extensos; solapamiento del $50\%$ toma como base esquemas jerárquicos previos con buen desempeño frente al truncamiento \parencite{beltagy2020longformer,dai2022revisiting,mamakas2022legal}. \\
+Embedding de fragmento & Estado oculto del último token válido; dimensión de salida 2.880 & En un modelo causal, el último token válido concentra el contexto precedente del fragmento; la dimensión es la del estado oculto del codificador elegido. \\
+Microlote de codificación & Tamaño inicial 4, reducido por mitades ante errores de memoria hasta un mínimo de 1 & Compromiso práctico entre aprovechamiento de GPU y estabilidad: permite reintentar documentos largos sin detener toda la colección ante \texttt{OutOfMemoryError}. \\
+Representación léxica & TF--IDF, hasta 50.000 características, unigramas y bigramas, y frecuencia documental mínima de 5 & Línea base léxica competitiva en clasificación documental \parencite{wang2012baselines,alvaprincipe2025survey}; el umbral documental de 5 filtra términos raros o ruidosos sin volverse restrictivo en pliegues de $\approx$930 documentos. \\
 \bottomrule
 \end{tabular}
 \end{table}
