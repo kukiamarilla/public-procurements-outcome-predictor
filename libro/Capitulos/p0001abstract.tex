@@ -1,0 +1,15 @@
+\clearpage
+\begin{abstract}
+\selectlanguage{english}
+\addcontentsline{toc}{chapter}{Abstract}
+In Paraguay, the government uses part of its public budget to purchase goods, procure services, and commission public works. When a tender opens, the contracting authority publishes the bidding document, known as the Pliego de Bases y Condiciones (PBC). It describes what the authority needs, what bidders must provide, and how bids will be evaluated. This study examines whether the text of that document can help predict the outcome of a roadworks tender using only information available when the tender opens. For the analysis, tenders recorded as completed were classified as successful, while those recorded as unsuccessful or canceled formed the other group.
+
+Of the 10{,}628 procurement procedures recorded by Paraguay's National Directorate of Public Procurement, 1{,}845 bidding documents were retrieved and 1{,}162 with both text and numerical representations available were evaluated. The study compared a model based on the frequency of words and word pairs (TF--IDF with logistic regression) with models that represent each document segment as a vector produced by a pretrained language model whose weights remained fixed. The study examined whether a transformer that learns relationships between segments offers an advantage over methods that average the same vectors. The models were evaluated using stratified 5-fold cross-validation.
+
+All 4 models ranked tenders by their estimated probability of success better than the majority-class and random baselines. TF--IDF with logistic regression ranked tenders best (ROC AUC of 0.814 and PR AUC of 0.899). The transformer achieved the lowest Brier score (0.162), which measures the mean squared error of the estimated probabilities. Figure~\ref{fig:calibration} shows that the transformer’s estimates were closer to the observed frequencies across much of the probability range. It also achieved the highest F1 score at a threshold of 0.5. Methods that averaged segment vectors achieved ranking performance close to that of the transformer.
+
+The study provides a reproducible comparison of how well the models rank tenders, classify them at a given threshold, and estimate their probabilities of success. Gaps in document coverage and computational constraints limit the findings to the subset analyzed. Applying the findings to other roadworks tenders or procurement categories would require further validation.
+
+\textbf{Keywords:} public procurement, electronic government, electronic democracy, bidding documents, bidding terms and conditions, large language models, outcome prediction.
+\selectlanguage{spanish}
+\end{abstract}

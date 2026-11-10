@@ -1,0 +1,42 @@
+\clearpage
+\lhead{\emph{Conclusiones y trabajos futuros}}
+\chapter{Conclusiones y trabajos futuros}
+\label{sec:conclusion}
+
+Este trabajo abordó el problema del pronóstico a corto plazo del nivel del río Paraguay, con especial atención a la estación ubicada en el Puerto de Asunción. Para ello se exploraron distintos enfoques de modelado, incluyendo redes neuronales recurrentes del tipo GRU, técnicas de reentrenamiento periódico, incorporación de covariables hidrometeorológicas y optimización de hiperparámetros.
+
+A continuación, se resumen las principales conclusiones alcanzadas a partir de los experimentos realizados, así como las posibles líneas de trabajo futuro.
+
+\section{Conclusiones finales}
+
+Este trabajo abordó el problema del pronóstico a corto plazo del nivel del río Paraguay en la estación de Asunción, evaluando y extendiendo enfoques modernos basados en redes neuronales recurrentes. El punto de partida fue un estudio anterior donde se demostró que los modelos RNN, LSTM y GRU superan en desempeño al modelo estadístico ARIMA para esta tarea, utilizando únicamente series históricas de nivel provenientes de múltiples estaciones \cite{amarilla2023comparative}. A partir de dicho marco, esta tesis se propuso profundizar en la arquitectura GRU como base y explorar estrategias complementarias para incrementar su precisión y robustez.
+
+La comparación se centró en un horizonte de 28 días, considerado prioritario desde el punto de vista operativo, y se extendió al análisis de múltiples horizontes y métricas relevantes. El modelo base ya ofrecía resultados adecuados, pero su rendimiento tendía a degradarse en horizontes largos o en presencia de eventos hidrológicos extremos. A partir de allí, se introdujeron mejoras incrementales que demostraron ser efectivas tanto en las métricas cuantitativas como en la estabilidad temporal del modelo.
+
+El reentrenamiento periódico, aplicado de forma anual, resultó ser una estrategia eficaz para mantener la precisión del modelo frente a cambios graduales en la dinámica del río. Esta técnica permitió actualizar el conocimiento del modelo a medida que se disponía de nuevos datos, mejorando su capacidad de generalización sin alterar su estructura interna.
+
+Posteriormente, se incorporaron variables exógenas como precipitaciones y caudales aguas arriba, lo que permitió al modelo contar con mayor información contextual y anticiparse mejor a las variaciones de nivel en la estación objetivo. Este cambio fue especialmente relevante para la predicción de eventos abruptos o picos fuera de tendencia, donde la información histórica local no es suficiente.
+
+Complementariamente, se desarrolló un proceso de ingeniería de características centrado en acumulados móviles de precipitación, seleccionados según su correlación con el nivel del río. Esta transformación aportó mejoras adicionales, permitiendo capturar efectos retardados o no lineales que no eran fácilmente identificables con las variables originales.
+
+Finalmente, se aplicó una optimización sistemática de hiperparámetros mediante búsqueda bayesiana, lo cual permitió afinar la configuración del modelo en términos de estructura, regularización y dinámica de entrenamiento. El resultado fue un modelo final robusto y preciso, que logró una reducción significativa del error en todos los horizontes evaluados. En particular, el MAPE disminuyó de 61.71\,\% en el modelo base a 30.85\,\% en el modelo final para el horizonte de 28 días, mientras que el NSE se incrementó de 0.9177 a 0.9455, superando ampliamente los umbrales aceptables para aplicaciones hidrológicas operativas.
+
+Los resultados obtenidos no solo fueron consistentes a nivel global, sino también a lo largo del tiempo. Análisis interanuales demostraron que el modelo final mantenía un desempeño estable incluso en condiciones hidrológicas excepcionales, como las bajantes históricas de 2020 a 2022. Este comportamiento fue validado visualmente mediante gráficos de predicción en ventanas móviles, progresión del error por año y por día predicho, y un análisis detallado sobre un periodo de bajante extrema, donde el modelo mostró mayor capacidad de adaptación frente a la variabilidad real.
+
+En suma, este estudio demuestra que la combinación de modelos GRU con reentrenamiento periódico, incorporación de variables relevantes y ajuste fino de hiperparámetros puede ofrecer soluciones eficaces y confiables para el pronóstico del nivel de ríos en horizontes extendidos. La metodología propuesta no solo mejora la precisión promedio, sino que aporta estabilidad, coherencia temporal y resiliencia frente a eventos extremos, lo que la convierte en una herramienta valiosa para aplicaciones reales en gestión del agua, navegación y alerta temprana \cite{zzzzgiuli2025tesiscode} \cite{zzzzzgiuli2025cleicode}.
+
+
+
+\section{Trabajos futuros}
+
+Los resultados alcanzados en este trabajo permiten trazar varias líneas de investigación y desarrollo que podrían fortalecer y extender el enfoque propuesto, tanto desde el punto de vista metodológico como operativo.
+
+Una primera dirección apunta a evaluar la capacidad de generalización del modelo en otras estaciones del sistema hidrológico, especialmente aquellas con características distintas en cuanto a régimen hidrológico, extensión de registros o localización geográfica dentro de la cuenca del río Paraguay. Este tipo de validación cruzada permitiría no solo comprobar la robustez del modelo, sino también identificar ajustes necesarios para su aplicación regional o multisitio.
+
+Otro aspecto a considerar es la ampliación del conjunto de variables exógenas. Aunque en este trabajo se incorporaron precipitaciones y caudales, la inclusión de nuevas dimensiones como índices de uso de suelo, evaporación, velocidad del viento u otras variables climáticas podría aportar información relevante para capturar dinámicas locales que actualmente no están representadas. Estos datos podrían resultar especialmente útiles en zonas con fuerte influencia antropogénica o donde los factores meteorológicos inciden directamente en el nivel del río.
+
+También resulta prometedor explorar enfoques híbridos que combinen modelos basados en datos con modelos físicos hidrodinámicos. Esta integración permitiría aprovechar el conocimiento acumulado en simulaciones hidráulicas de base física, incorporando al mismo tiempo la capacidad adaptativa y no lineal de las redes neuronales. Dichos esquemas podrían mejorar la coherencia física de las predicciones, especialmente en situaciones de extrapolación o ante cambios de régimen que escapan al aprendizaje histórico del modelo.
+
+Finalmente, una extensión importante consiste en introducir mecanismos de estimación de incertidumbre que acompañen las predicciones deterministas. Incorporar enfoques probabilísticos —como bandas de confianza, predicciones por intervalos o técnicas de ensembles— podría aumentar significativamente la utilidad operativa del sistema, particularmente en escenarios extremos donde la gestión de riesgos requiere no solo saber qué puede ocurrir, sino también con qué grado de certeza.
+
+Estas líneas de trabajo futuro abren oportunidades para avanzar hacia sistemas de pronóstico más completos, interpretables y confiables, capaces de integrarse en herramientas reales de planificación y alerta en contextos fluviales complejos como el del río Paraguay.

@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software or paper artifacts, please cite this repository."
+title: "Lexical and LLM-Based Representations for Public Tender Outcome Prediction: A Comparative Study"
+type: software
+authors:
+  - family-names: "Amarilla Benitez"
+    given-names: "Isaac Gabriel"
+    email: "sc.amarilla@fpuna.edu.py"
+    affiliation: "Universidad Nacional de Asunción"
+  - family-names: "Caballero Ramoa"
+    given-names: "Luis Fernando"
+    email: "luisfercaballero27@fpuna.edu.py"
+    affiliation: "Universidad Nacional de Asunción"
+  - family-names: "Paciello Coronel"
+    given-names: "Julio Manuel"
+    email: "julio.paciello@pol.una.py"
+    affiliation: "Universidad Nacional de Asunción"
+  - family-names: "Pane Fernandez"
+    given-names: "Juan Ignacio"
+    email: "jpane@pol.una.py"
+    affiliation: "Universidad Nacional de Asunción"
+repository-code: "https://github.com/kukiamarilla/public-procurements-outcome-predictor"
+abstract: "Code, paper artifacts, and reproducibility documentation for predicting public procurement outcomes from bidding documents in Paraguay using lexical baselines, frozen LLM embeddings, and a cross-chunk transformer."
+keywords:
+  - public procurement
+  - eGovernment
+  - document classification
+  - large language models
+  - reproducible research
+date-released: "2026-05-11"

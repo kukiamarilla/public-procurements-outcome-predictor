@@ -88,3 +88,7 @@ uv run python scripts/etl/merge_and_download_pbcs.py --dry-run
 uv run python scripts/etl/merge_and_download_pbcs.py
 uv run python scripts/etl/merge_and_download_pbcs.py --limit 30   # prueba con las primeras 30 licitaciones
 ```
+
+## Paper (LaTeX / ICEDEG)
+
+El artículo IEEE vive bajo **`paper/`** (manuscrito, `figures/`, plantillas en **`paper/vendor/`**). Ver `paper/README.md` y `paper/camera_ready_README.txt` para compilar el PDF.

@@ -1,0 +1,13 @@
+\clearpage
+\begin{resumen}
+\addcontentsline{toc}{chapter}{Resumen}
+En Paraguay, el Estado destina parte del presupuesto público a adquirir bienes, contratar servicios y ejecutar obras. Cuando se abre una licitación, el organismo convocante publica el Pliego de Bases y Condiciones (PBC), donde describe qué necesita, qué requisitos deben cumplir los oferentes y cómo evaluará sus ofertas. En este trabajo se investiga si el texto de ese documento permite anticipar el desenlace de una licitación de obras viales antes de que se conozca su resultado. Para el análisis, se consideraron exitosos los procesos registrados como completados y no exitosos los declarados desiertos o cancelados.
+
+A partir de 10.628 procesos registrados por la Dirección Nacional de Contrataciones Públicas, se recuperaron 1.845 pliegos y se evaluaron 1.162 con texto y representaciones numéricas disponibles. Se comparó un modelo basado en la frecuencia de palabras y pares de palabras (TF--IDF con regresión logística) con modelos que representan el contenido de cada fragmento mediante vectores numéricos (\textit{embeddings}) obtenidos de un modelo de lenguaje preentrenado cuyos pesos se mantuvieron fijos. Se evaluó si un \textit{transformer} que aprende relaciones entre fragmentos aporta ventajas frente a métodos que promedian esos vectores. La evaluación utilizó validación cruzada estratificada de 5 pliegues.
+
+Los 4 modelos evaluados ordenaron los casos según su probabilidad estimada de éxito mejor que los controles de mayoría y aleatorio. TF--IDF con regresión logística logró el mejor ordenamiento (ROC AUC de 0,814 y PR AUC de 0,899). El \textit{transformer} obtuvo el menor puntaje de Brier (0,162), que mide el error cuadrático medio de las probabilidades estimadas. La Figura~\ref{fig:calibration} muestra que, en buena parte del rango, las probabilidades del \textit{transformer} se acercaron más a las frecuencias observadas. También obtuvo el mayor F1 con un umbral de 0,5. Los métodos que promedian los vectores de los fragmentos obtuvieron resultados de ordenamiento cercanos a los del \textit{transformer}.
+
+El aporte del trabajo es una comparación reproducible que distingue la capacidad de ordenar los casos, clasificarlos con un umbral y estimar sus probabilidades. La cobertura documental y las limitaciones de cómputo restringen los hallazgos al subconjunto analizado. Su aplicación a otros procesos de obras viales o a otros rubros requeriría una validación adicional.
+
+\textbf{Palabras clave:} contratación pública, gobierno electrónico, democracia electrónica, documentos de licitación, pliego de bases y condiciones, modelos grandes de lenguaje, predicción de resultados.
+\end{resumen}

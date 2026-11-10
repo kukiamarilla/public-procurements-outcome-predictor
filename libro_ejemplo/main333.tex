@@ -1,0 +1,250 @@
+\documentclass[11pt, a4paper, oneside]{Thesis} % Paper size, default font size and one-sided paper
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{tabularx, threeparttable}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{url}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[tablename=Tabla]{caption}
+\usepackage[figurename=Figura]{caption}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage[mathscr]{euscript}
+\usepackage{lscape}
+\usepackage{adjustbox}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage[utf8]{inputenc}
+% \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{verbatim}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\input{spanishAlgorithmic}
+\usepackage{comment}
+\usepackage{footmisc}
+\usepackage{diagbox}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{amsfonts}
+\usepackage[normalem]{ulem}
+\usepackage{booktabs}
+\usepackage{array,booktabs,arydshln,xcolor}
+\def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+\graphicspath{{./Pictures/}} % Specifies the directory where pictures are stored
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{pdfpages}
+\usepackage{multicol}
+\usepackage{acronym} 
+\setlength{\headheight}{26pt}
+\usepackage[backend=bibtex,style=alphabetic]{biblatex} %
+\addbibresource{references.bib}
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+\hypersetup{urlcolor=black, colorlinks=false} % Colors hyperlinks in blue - change to black if annoying
+\providecommand{\noopsort}[1]{}
+\providecommand{\nopostsort}[1]{}
+
+\title{\ttitle} % Defines the thesis title - don't touch this
+\newcolumntype{C}[1]{>{\centering}m{#1}}
+
+\newlength\myindent
+\setlength\myindent{2em}
+\newcommand\bindent{%
+	 \begingroup
+	 \setlength{\itemindent}{\myindent}
+	 \addtolength{\algorithmicindent}{\myindent}
+}
+\newcommand\eindent{\endgroup}
+
+\begin{document}
+    \renewcommand{\listtablename}{Lista de tablas}
+    \renewcommand{\bibname}{Referencias}
+    \renewcommand{\listfigurename}{Lista de figuras}
+    \renewcommand{\contentsname}{Contenidos}
+    \frontmatter % Use roman page numbering style (i, ii, iii, iv...) for the pre-content pages
+    \setstretch{1.3} % Line spacing of 1.3
+    % Define the page headers using the FancyHdr package and set up for one-sided printing
+    \fancyhead{} % Clears all page headers and footers
+    \rhead{\thepage} % Sets the right side header to show the page number
+    \lhead{} % Clears the left side page header
+    \pagestyle{fancy} % Finally, use the "fancy" page style to implement the FancyHdr headers
+    \newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % New command to make the lines in the title page
+    
+    % PDF meta-data
+    \hypersetup{pdftitle={\ttitle}}
+    \hypersetup{pdfsubject=\subjectname}
+    \hypersetup{pdfauthor=\authornames}
+    \hypersetup{pdfkeywords=\keywordnames}
+    %----------------------------------------------------------------------------------------
+    %	TITLE PAGE
+    %----------------------------------------------------------------------------------------
+    \begin{titlepage}
+        \begin{center}
+            \vspace*{-1.5in}
+            \vspace*{0.3in}
+            \vspace*{0.3in}
+            {\fontsize{14}{15}\bf \selectfont UNIVERSIDAD NACIONAL DE ASUNCIÓN}\\
+            \vspace*{0.5cm}
+            {\fontsize{12}{15}\bf \selectfont FACULTAD POLITÉCNICA\\ }
+            \vspace*{0.15in} INGENIERÍA EN INFORMÁTICA \\
+            \vspace*{0.2in}
+            \begin{figure}[htb]
+                \begin{center}
+                    \includegraphics[width=7cm,height=8cm]{Figuras/fpuna_logo_institucional.png}
+                \end{center}
+            \end{figure}
+            \begin{Large} % Línea Horizontal
+                \textbf{REPRESENTACIONES LÉXICAS Y BASADAS EN LLM PARA LA PREDICCIÓN DE RESULTADOS DE LICITACIONES PÚBLICAS: UN ESTUDIO COMPARATIVO} \\
+            \end{Large}
+            \vspace*{0.3in}
+            \begin{large}
+                Proyecto Final de Grado\\
+            \end{large}
+            \vspace*{0.1in}
+
+        \end{center}
+        \begin{flushleft}
+            \begin{center}
+                {\bf Autores:}
+                Kuki Amarilla, Fernando Caballero
+                \vspace*{0.1in}\\
+            \end{center}
+        \end{flushleft}
+        \begin{center}
+            \begin{large}
+                \vspace*{0.50in}
+                San Lorenzo - Paraguay\\
+                \vspace*{0.3in}
+                {\bf 2026}
+                
+            \end{large}
+        \end{center}
+    \end{titlepage}
+    %----------------------------------------------------------------------------------------
+    %	DEDICATORIA
+    %----------------------------------------------------------------------------------------
+    \clearpage %Starts a new page
+    \setstretch{1.3} % Reset the line-spacing to 1.3 for body text (if it has changed)
+    \pagestyle{empty} % Page style needs to be empty for this page
+    \DeclareFontShape{OT1}{cmr}{bx}{sc}{<-> cmbcsc10}{}
+    \dedicatory{
+        \begin{flushright}
+			 -A mi familia, por su paciencia y comprensión; a las personas que me apoyaron, incluso en los días más largos; y a quienes nunca dejaron de confiar en mi capacidad de avanzar.
+A quienes creyeron en mí incluso cuando yo dudaba. Este logro también es suyo.
+
+\textbf{Amarilla, Isaac}
+			 \end{flushright}
+				\hspace*{8ex}
+    }
+
+    
+    \clearpage %Starts a new page
+    \setstretch{1.3} % Reset the line-spacing to 1.3 for body text (if it has changed)
+    \pagestyle{empty} % Page style needs to be empty for this page
+    \DeclareFontShape{OT1}{cmr}{bx}{sc}{<-> cmbcsc10}{}
+    \dedicatory{
+			 \begin{flushright}
+
+            - A todos los que nunca dejaron de creer en mí, y hoy me acompañan en el resultado de este complejo proceso
+                     
+                     \textbf{Caballero, Fernando}
+			 \end{flushright}
+				\hspace*{8ex}
+    }
+    %----------------------------------------------------------------------------------------
+    %	AGRADECIMIENTO
+    %----------------------------------------------------------------------------------------
+    \clearpage
+    \setstretch{1.3}
+    \acknowledgements{
+			 \begin{flushright}
+			 - Quiero expresar mi más profundo agradecimiento a mi madre, Virginia Ruiz, quien estuvo conmigo siempre, en las buenas y en las malas, brindándome su apoyo incondicional y siendo mi mayor fuente de fortaleza.
+
+Agradezco también a mi familia en general, por su acompañamiento y cariño constante. A mis amigos y a todas aquellas personas que, en algún momento, me ofrecieron palabras de ánimo y motivación, gracias por estar presentes cuando más lo necesité.
+
+Asimismo, la compañía de mi mascota Luna fue un apoyo emocional importante durante este proceso, brindándome tranquilidad en los momentos más exigentes.
+
+Extiendo mi gratitud a mis tutores, por sus enseñanzas, su dedicación y su paciencia durante el desarrollo de este trabajo. Su guía fue fundamental para llevar esta investigación a buen término.
+					 
+                     \textbf{Ruiz, Nelson}
+			 \end{flushright}
+				\hspace*{8ex}
+    }
+    %----------------------------------------------------------
+
+\clearpage
+    \setstretch{1.3}
+    \acknowledgements{
+			 \begin{flushright}
+
+                A mi madre, por su apoyo incondicional y por cada sacrificio que hizo posible este camino.
+                
+A mi padre, por su compañía constante y la fortaleza que siempre me transmitió.
+
+A mi hermana, por estar a mi lado y recordarme que nunca estoy solo.
+
+A mis amigos, por el apoyo emocional y por brindarme un espacio donde desconectar cuando más lo necesité.
+
+A mis tutores, por su guía, paciencia y dedicación durante todo el proceso.
+
+A la Facultad Politécnica -- UNA, por el acompañamiento y la formación que hicieron posible este trabajo.
+
+					 \textbf{Gonzalez Maqueda, Cesar Giuliano}
+			 \end{flushright}
+             				\hspace*{8ex}
+    }
+    
+    %----------------------------------------------------------------------------------------
+    %	ABSTRACT
+    %----------------------------------------------------------------------------------------
+    \input{Capitulos/p0001abstract}
+    \input{Capitulos/p0002resumen}
+    %----------------------------------------------------------------------------------------
+    %	LIST OF CONTENTS
+    %----------------------------------------------------------------------------------------
+    \clearpage
+    \pagestyle{fancy}
+    \lhead{\emph{Contenidos}}
+    \setcounter{tocdepth}{5}
+    \tableofcontents
+    \clearpage % Start a new page
+    \lhead{\emph{Lista de Figuras}}
+    \listoffigures % Write out the List of Figures
+    \lhead{\emph{Lista de Tablas}}
+    \listoftables  % Write out the List of Tables
+    \lhead{\emph{Acrónimos}}
+    %---------------------------------------------------------------------------------
+    %	ABBREVIATIONS
+    %---------------------------------------------------------------------------------
+    \input{Capitulos/p0003acronimos}
+    %---------------------------------------------------------------------------------
+    %	LIST OF SYMBOLS
+    %---------------------------------------------------------------------------------
+    \input{Capitulos/p0004simbolos}
+    %---------------------------------------------------------------------------------
+    %	CAPITULOS
+    %---------------------------------------------------------------------------------
+    \mainmatter
+    \pagestyle{fancy}
+    \input{Capitulos/p0010Introduccion}
+    \input{Capitulos/p0020MTeorico}
+    \input{Capitulos/p0030TrabajosRelacionados}
+    \input{Capitulos/p0040PropuestaExperimento}
+    \input{Capitulos/p0050Resultados}
+    \input{Capitulos/p0060Conclusion}
+    \appendix
+    %---------------------------------------------------------------------------------
+    %	BIBLIOGRAPHY
+    %---------------------------------------------------------------------------------
+    \clearpage
+    \lhead{\emph{Referencias}} % Change the page header to say "Bibliography"
+    \addtotoc{Referencias}
+    \btypeout{Referencias}
+    \printbibliography
+\end{document}
