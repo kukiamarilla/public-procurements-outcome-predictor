@@ -161,12 +161,12 @@ Los modelos mexicanos centrados en corrupción usan información relacional de c
 Los hallazgos pueden resumirse de la siguiente forma:
 
 \begin{enumerate}
-  \item Los modelos no triviales ordenaron mejor que referencias sin habilidad, lo que evidencia señal textual en el subconjunto.
+  \item TF--IDF con regresión logística, el promedio de embeddings con regresión logística, el promedio de embeddings con MLP y el transformer entre fragmentos ordenaron mejor que las referencias sin habilidad (mayoría y aleatorio), lo que evidencia señal textual en el subconjunto.
   \item TF--IDF más regresión logística logró el mejor ranking y la mayor exactitud balanceada de la tabla principal.
   \item El transformer entre fragmentos logró el mejor Brier y el mayor F1 a umbral 0,5.
   \item El promedio de embeddings permaneció cerca del transformer, por lo que no se observó una ventaja general del modelado entre fragmentos.
   \item La optimización de umbral benefició métricas y modelos de manera desigual.
-  \item La pérdida de documentos durante recuperación y embedding limita la extrapolación al universo de la DNCP.
+  \item Del universo inicial de procesos viales en la DNCP solo una fracción llegó al conjunto evaluado: muchos PBC no se descargaron y otros no generaron embeddings por límites de memoria. Por eso las métricas describen ese subconjunto procesado, no el total de obras viales publicadas ni, menos aún, otras categorías de contratación.
 \end{enumerate}
 
 Estas conclusiones se restringen a la evidencia observada y servirán de base para el capítulo final.
