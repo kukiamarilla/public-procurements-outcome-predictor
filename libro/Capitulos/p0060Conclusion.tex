@@ -21,14 +21,17 @@ La quinta conclusión se refiere a la cobertura. El universo inicial fue de 10.6
 
 \input{Capitulos/shortpaper_fragments/conclusion}
 
-\section{Respuesta a las preguntas de investigación}
+\section{Cumplimiento de los objetivos específicos}
+
+Los objetivos específicos se cumplieron de la siguiente forma. Cuando una pregunta de investigación coincide con el objetivo, se indica entre paréntesis.
 
 \begin{enumerate}
-  \item \textbf{Señal textual}: sí, dentro del subconjunto procesado, porque todos los modelos no triviales superaron a los controles en ranking.
-  \item \textbf{Léxico frente a denso}: TF--IDF fue superior en ranking; las representaciones densas fueron competitivas y ofrecieron mejores valores de Brier en dos configuraciones.
-  \item \textbf{Interacciones entre fragmentos}: no se observó una ventaja general. El transformer destacó en calibración y estabilidad, no en AUC.
-  \item \textbf{Separación de criterios}: las conclusiones cambiaron según ranking, umbral y calibración, por lo que informar una sola métrica habría ocultado diferencias relevantes.
-  \item \textbf{Transferencia}: la cobertura incompleta, la prevalencia inducida y la especialización en construcción vial impiden tratar los resultados como directamente desplegables.
+  \item \textbf{Objetivo específico 1.} Se construyó un subconjunto supervisado que vincula estados de la DNCP con PBC descargados, texto extraído y representaciones documentales. El embudo partió de 10.628 procesos, recuperó 1.845 PBC y generó embeddings para 1.162 documentos, con identificadores trazables entre etapas. Este objetivo no tiene una pregunta de investigación homóloga: es el soporte empírico de los demás.
+  \item \textbf{Objetivo específico 2} (pregunta 1). Se cuantificó la señal predictiva del PBC mediante validación cruzada externa y comparación con referencias triviales. TF--IDF con regresión logística, el promedio de embeddings con regresión logística, el promedio con MLP y el transformer entre fragmentos superaron a los controles de mayoría y aleatorio en ranking dentro del subconjunto procesado.
+  \item \textbf{Objetivo específico 3} (pregunta 2). Se comparó el desempeño de embeddings densos de un LLM congelado con TF--IDF. TF--IDF obtuvo el mejor ranking (ROC AUC 0,814 y PR AUC 0,899) y la mayor exactitud balanceada; las representaciones densas fueron competitivas y, en dos configuraciones, lograron mejores valores de Brier.
+  \item \textbf{Objetivo específico 4} (pregunta 3). Se determinó si el modelado explícito entre fragmentos aporta ventaja frente al promedio de los mismos embeddings. No se observó una ventaja general en ranking: el transformer destacó en calibración y estabilidad del umbral, no en AUC.
+  \item \textbf{Objetivo específico 5} (pregunta 4). Se caracterizaron las diferencias entre modelos según ordenamiento, desempeño a umbral fijo, calibración y sensibilidad al umbral. Las conclusiones cambiaron según el criterio: un único indicador habría ocultado, por ejemplo, que TF--IDF lidera el ranking mientras el transformer lidera Brier y F1 a umbral 0,5.
+  \item \textbf{Objetivo específico 6} (pregunta 5). Se identificaron limitaciones de cobertura documental, extracción, cómputo, prevalencia y transferencia. Del universo vial inicial solo una fracción llegó al conjunto evaluado; la prevalencia experimental difiere de la poblacional y el estudio se delimita a construcción vial, de modo que los resultados no son directamente desplegables ni transferibles sin nueva evidencia a otras categorías.
 \end{enumerate}
 
 \section{Aportes del trabajo}
