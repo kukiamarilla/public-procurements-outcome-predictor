@@ -15,6 +15,20 @@
 \usepackage[backend=biber,style=apa,sorting=nyt]{biblatex}
 \DeclareLanguageMapping{spanish}{spanish-apa}
 \addbibresource{references.bib}
+\usepackage[bottom]{footmisc}
+\setlength{\skip\footins}{0.55in}
+% Evita títulos de sección pegados a notas al pie sin forzar \clearpage.
+\makeatletter
+\newcommand{\Needspace}[1]{%
+  \par\vspace{0pt}%
+  \penalty-100\begingroup
+  \setlength{\dimen@}{#1}%
+  \dimen@ii\pagegoal \advance\dimen@ii-\pagetotal
+  \ifdim\dimen@>\dimen@ii
+    \break
+  \fi
+  \endgroup}
+\makeatother
 
 \graphicspath{{figures/}{Figuras/}}
 \setlength{\headheight}{26pt}
