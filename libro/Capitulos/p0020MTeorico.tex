@@ -175,7 +175,7 @@ El \textit{transformer} reemplaza recurrencia por atención y capas prealimentad
   \operatorname{Attention}(Q,K,V)=\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
 \end{equation}
 
-El producto $QK^\top$ contiene los puntajes de similitud entre consultas y claves. La división por $\sqrt{d_k}$ evita que su magnitud crezca excesivamente al aumentar la dimensión. La función \emph{softmax}, aplicada sobre los puntajes de cada consulta, los transforma en pesos no negativos cuya suma es uno. La multiplicación posterior por $V$ produce, para cada posición, una combinación ponderada de los valores.
+El producto $QK^\top$ contiene los puntajes de similitud entre consultas y claves. La división por $\sqrt{d_k}$ evita que su magnitud crezca excesivamente al aumentar la dimensión. La función \emph{softmax}, aplicada sobre los puntajes de cada consulta, los transforma en pesos no negativos cuya suma es 1. La multiplicación posterior por $V$ produce, para cada posición, una combinación ponderada de los valores.
 
 La atención multicabeza proyecta las entradas en $h$ subespacios, calcula atenciones paralelas y concatena sus resultados. Para la cabeza $i$:
 
@@ -231,7 +231,7 @@ El puntaje F1 combina precisión y exhaustividad de la clase positiva. La precis
   F1=2\frac{Precision\cdot Recall}{Precision+Recall}.
 \end{equation}
 
-F1 depende de cuál clase se declara positiva y del umbral. En este estudio la clase positiva es además la mayoritaria del subconjunto procesado, por lo que PR AUC debe compararse con la prevalencia y no con cero. \textcite{richardson2024roc} subrayan que ROC y PR responden de manera distinta al balance y que su interpretación debe ajustarse a la pregunta de evaluación.
+F1 depende de cuál clase se declara positiva y del umbral. En este estudio la clase positiva es además la mayoritaria del subconjunto procesado, por lo que PR AUC debe compararse con la prevalencia en vez de usar 0 como referencia. \textcite{richardson2024roc} subrayan que ROC y PR responden de manera distinta al balance y que su interpretación debe ajustarse a la pregunta de evaluación.
 
 Para obtener una clase se aplica un umbral $\tau$. Sea $\hat p$ la probabilidad estimada del ejemplo y $\hat y$ la etiqueta predicha; $\mathbb{I}(\cdot)$ vale 1 si la condición se cumple y 0 en caso contrario:
 \begin{equation}

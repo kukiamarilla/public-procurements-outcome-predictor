@@ -84,7 +84,7 @@ La secuencia completa se tokenizará sin truncamiento. Se dividirá en fragmento
 
 \subsection{Control de memoria}
 
-El tamaño inicial del microlote será 4. Ante un error de memoria CUDA, el código vaciará la caché, reducirá el tamaño por mitades y reintentará hasta llegar a uno. Si el error persiste, se registrará y el documento quedará sin \textit{embedding}. Este procedimiento evita que un fallo detenga toda la colección, aunque induce una selección técnica por longitud y demanda de memoria.
+El tamaño inicial del microlote será 4. Ante un error de memoria CUDA, el código vaciará la caché, reducirá el tamaño por mitades y reintentará hasta un tamaño mínimo de 1. Si el error persiste, se registrará y el documento quedará sin \textit{embedding}. Este procedimiento evita que un fallo detenga toda la colección, aunque induce una selección técnica por longitud y demanda de memoria.
 
 Cada archivo \texttt{.pt} conserva \texttt{tender\_id}, matriz de \textit{embeddings}, identificador del modelo, longitud, desplazamiento, tamaño de microlote y eventual etiqueta. Se produjeron 1.162 archivos. Entre los 680 textos sin \textit{embedding} se observaron 671 errores de memoria y 9 \texttt{ValueError}.
 
