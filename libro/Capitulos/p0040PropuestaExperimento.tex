@@ -23,12 +23,12 @@ De cada registro se recuperaron, cuando estaban disponibles, el OCID, el \texttt
 
 \subsection{Conjunto inicial}
 
-El conjunto inicial reunió tres fuentes almacenadas en DigitalOcean Spaces:
+El conjunto inicial reunió 3 fuentes almacenadas en DigitalOcean Spaces:
 
 \begin{enumerate}
   \item \texttt{procurements.json}, con 10.000 procesos materializados como \texttt{complete} desde una instantánea previa de la DNCP;
-  \item \texttt{ids\_unsuccessful.json}, con 257 procesos recuperados de las tres páginas disponibles;
-  \item \texttt{ids\_cancelled.json}, con 371 procesos recuperados de las cuatro páginas disponibles.
+  \item \texttt{ids\_unsuccessful.json}, con 257 procesos recuperados de las 3 páginas disponibles;
+  \item \texttt{ids\_cancelled.json}, con 371 procesos recuperados de las 4 páginas disponibles.
 \end{enumerate}
 
 La unión produjo 10.628 filas. El orden de combinación fue no exitosos, cancelados y completos. Ante identificadores duplicados, la primera capa conservó prioridad y las siguientes rellenaron campos ausentes. El mismo orden definió la cola de descarga, con el propósito de procesar primero la clase minoritaria.
@@ -57,7 +57,7 @@ Los PDF descargados se procesaron con \texttt{PDFReader}. La etapa utiliza \text
 \texttt{outcome-predictor/pbcs/txt/\{tenderId\}.txt}
 \end{center}
 
-De 1.845 PDF se obtuvieron 1.842 textos. Los tres fallos correspondieron a documentos escaneados para los que el extractor no incorporaba OCR. No se imputó texto vacío ni se reemplazaron esos documentos por contenido de otra fuente; quedaron excluidos.
+De 1.845 PDF se obtuvieron 1.842 textos. Los 3 fallos correspondieron a documentos escaneados para los que el extractor no incorporaba OCR. No se imputó texto vacío ni se reemplazaron esos documentos por contenido de otra fuente; quedaron excluidos.
 
 La extracción puede conservar ruido de paginación o alterar tablas. El experimento tratará el texto obtenido como entrada efectiva del modelo y no como transcripción perfecta del PBC. Una extensión con OCR deberá evaluarse por separado porque cambiaría la población incluida y la calidad de la entrada.
 
@@ -71,9 +71,9 @@ La secuencia completa se tokenizará sin truncamiento. Se dividirá en fragmento
 
 \subsection{Control de memoria}
 
-El tamaño inicial del microlote será cuatro. Ante un error de memoria CUDA, el código vaciará la caché, reducirá el tamaño por mitades y reintentará hasta llegar a uno. Si el error persiste, se registrará y el documento quedará sin embedding. Este procedimiento evita que un fallo detenga toda la colección, aunque induce una selección técnica por longitud y demanda de memoria.
+El tamaño inicial del microlote será 4. Ante un error de memoria CUDA, el código vaciará la caché, reducirá el tamaño por mitades y reintentará hasta llegar a uno. Si el error persiste, se registrará y el documento quedará sin embedding. Este procedimiento evita que un fallo detenga toda la colección, aunque induce una selección técnica por longitud y demanda de memoria.
 
-Cada archivo \texttt{.pt} conserva \texttt{tender\_id}, matriz de embeddings, identificador del modelo, longitud, desplazamiento, tamaño de microlote y eventual etiqueta. Se produjeron 1.162 archivos. Entre los 680 textos sin embedding se observaron 671 errores de memoria y nueve \texttt{ValueError}.
+Cada archivo \texttt{.pt} conserva \texttt{tender\_id}, matriz de embeddings, identificador del modelo, longitud, desplazamiento, tamaño de microlote y eventual etiqueta. Se produjeron 1.162 archivos. Entre los 680 textos sin embedding se observaron 671 errores de memoria y 9 \texttt{ValueError}.
 
 \section{Embudo de construcción del conjunto supervisado}
 
@@ -136,7 +136,7 @@ Se incluirá un clasificador de clase mayoritaria y uno aleatorio cuya tasa posi
 
 \subsection{TF--IDF con regresión logística}
 
-El vectorizador se ajustará exclusivamente con textos de entrenamiento de cada pliegue. Se usarán 50.000 características como máximo, unigramas y bigramas, y frecuencia documental mínima de cinco. La regresión logística utilizará \texttt{class\_weight=balanced}. Transformar el pliegue externo con un vocabulario aprendido solo en entrenamiento evitará fuga por frecuencia documental.
+El vectorizador se ajustará exclusivamente con textos de entrenamiento de cada pliegue. Se usarán 50.000 características como máximo, unigramas y bigramas, y frecuencia documental mínima de 5. La regresión logística utilizará \texttt{class\_weight=balanced}. Transformar el pliegue externo con un vocabulario aprendido solo en entrenamiento evitará fuga por frecuencia documental.
 
 \subsection{Promedio con regresión logística}
 
@@ -148,7 +148,7 @@ El mismo promedio alimentará una red con una capa oculta. En el análisis de se
 
 \subsection{Transformer entre fragmentos}
 
-La matriz variable de embeddings se rellenará dentro de cada lote y se acompañará con una máscara. La arquitectura proyectará de 2880 a 128 dimensiones, añadirá \texttt{[CLS]}, utilizará cuatro cabezas, dimensión prealimentada 512, dropout 0,3 y una capa. La cabeza final producirá un logit.
+La matriz variable de embeddings se rellenará dentro de cada lote y se acompañará con una máscara. La arquitectura proyectará de 2880 a 128 dimensiones, añadirá \texttt{[CLS]}, utilizará 4 cabezas, dimensión prealimentada 512, dropout 0,3 y una capa. La cabeza final producirá un logit.
 
 \section{Ambiente de software}
 
@@ -176,15 +176,15 @@ pandas & Manipulación tabular & 2.3.3 \\
 
 \section{Partición y protocolo de evaluación}
 
-Se utilizará validación cruzada estratificada de cinco pliegues con semilla 42. Cada pliegue conservará aproximadamente la prevalencia. Los modelos comparados emplearán los mismos índices externos. El vectorizador y los clasificadores se ajustarán nuevamente en cada ronda.
+Se utilizará validación cruzada estratificada de 5 pliegues con semilla 42. Cada pliegue conservará aproximadamente la prevalencia. Los modelos comparados emplearán los mismos índices externos. El vectorizador y los clasificadores se ajustarán nuevamente en cada ronda.
 
-Para las métricas a umbral fijo se utilizará $\tau=0.5$. Para el experimento de sensibilidad, los cuatro pliegues externos de entrenamiento se dividirán en entrenamiento interno y validación interna, con una proporción de validación de 0,2. Se seleccionará el umbral que maximice F1 en la partición interna; ante empates se preferirá el más cercano a 0,5 y luego el menor. El umbral se aplicará una sola vez al pliegue externo.
+Para las métricas a umbral fijo se utilizará $\tau=0.5$. Para el experimento de sensibilidad, los 4 pliegues externos de entrenamiento se dividirán en entrenamiento interno y validación interna, con una proporción de validación de 0,2. Se seleccionará el umbral que maximice F1 en la partición interna; ante empates se preferirá el más cercano a 0,5 y luego el menor. El umbral se aplicará una sola vez al pliegue externo.
 
 Este anidamiento separará selección y evaluación. No se utilizará el pliegue externo para elegir hiperparámetros, vocabulario o umbral.
 
 \section{Entrenamiento}
 
-El transformer se entrenará con AdamW, tasa $10^{-4}$, decaimiento 0,01, lotes de ocho y hasta 50 épocas. Después de cada época se calculará la pérdida de validación. Si no mejora durante cinco épocas consecutivas, se detendrá el entrenamiento y se restaurará el mejor estado.
+El transformer se entrenará con AdamW, tasa $10^{-4}$, decaimiento 0,01, lotes de 8 y hasta 50 épocas. Después de cada época se calculará la pérdida de validación. Si no mejora durante 5 épocas consecutivas, se detendrá el entrenamiento y se restaurará el mejor estado.
 
 La pérdida será entropía cruzada binaria con logits. El uso directo de logits evita aplicar sigmoide antes de una función que implementa de forma estable ambas operaciones. Durante evaluación, la sigmoide transformará logits en probabilidades.
 
@@ -204,13 +204,13 @@ El depósito excluye credenciales y los datos fuente locales. Por tanto, reprodu
 
 \section{Amenazas a la validez previstas}
 
-Se considerarán cuatro grupos:
+Se considerarán 4 grupos:
 
 \begin{enumerate}
   \item \textbf{Validez de constructo}: el estado final es una aproximación operacional al éxito.
   \item \textbf{Validez interna}: podrían existir duplicados documentales, regularidades institucionales o señales indirectas; el protocolo evita datos posteriores, pero no convierte correlaciones en causalidad.
   \item \textbf{Validez externa}: el subconjunto está filtrado por disponibilidad y cómputo, y se limita a construcción vial paraguaya.
-  \item \textbf{Validez de conclusión}: cinco pliegues sobre 1.162 ejemplos producen incertidumbre; diferencias pequeñas no deben presentarse como dominancia universal sin pruebas adicionales.
+  \item \textbf{Validez de conclusión}: 5 pliegues sobre 1.162 ejemplos producen incertidumbre; diferencias pequeñas no deben presentarse como dominancia universal sin pruebas adicionales.
 \end{enumerate}
 
 Estas amenazas guiarán la interpretación del capítulo de resultados y evitarán extrapolar los umbrales del subconjunto a la distribución completa.

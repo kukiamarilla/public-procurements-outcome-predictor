@@ -3,7 +3,7 @@
 \chapter{Pruebas experimentales y análisis de resultados computacionales}
 \label{sec:resultados}
 
-Este capítulo presenta primero el hardware y los hiperparámetros utilizados en la ejecución. A continuación expone los resultados obtenidos mediante las particiones y modelos definidos anteriormente. El análisis se organiza en cuatro bloques: controles sin capacidad predictiva, comparación de ranking, comportamiento dependiente del umbral y calidad probabilística. Luego se estudia el efecto de la representación y se discuten los resultados en relación con el contexto paraguayo y los antecedentes.
+Este capítulo presenta primero el hardware y los hiperparámetros utilizados en la ejecución. A continuación expone los resultados obtenidos mediante las particiones y modelos definidos anteriormente. El análisis se organiza en 4 bloques: controles sin capacidad predictiva, comparación de ranking, comportamiento dependiente del umbral y calidad probabilística. Luego se estudia el efecto de la representación y se discuten los resultados en relación con el contexto paraguayo y los antecedentes.
 
 \section{Ambiente de ejecución}
 
@@ -72,7 +72,7 @@ Transformer entre fragmentos & Proyección $2.880\rightarrow128$, 4 cabezas, dim
 \end{tabular}
 \end{table}
 
-En los modelos neuronales, la detención temprana empleó una mejora mínima de 0,001 en la pérdida de validación, paciencia de cinco épocas y restauración del mejor punto de control. El protocolo común consistió en validación cruzada estratificada de cinco pliegues, semilla 42 y umbral principal de 0,5. Para el análisis de sensibilidad, el conjunto de entrenamiento de cada pliegue externo reservó un 20\,\% para seleccionar internamente el umbral que maximizaba F1.
+En los modelos neuronales, la detención temprana empleó una mejora mínima de 0,001 en la pérdida de validación, paciencia de 5 épocas y restauración del mejor punto de control. El protocolo común consistió en validación cruzada estratificada de 5 pliegues, semilla 42 y umbral principal de 0,5. Para el análisis de sensibilidad, el conjunto de entrenamiento de cada pliegue externo reservó un 20\,\% para seleccionar internamente el umbral que maximizaba F1.
 
 \section{Comprobaciones previas}
 

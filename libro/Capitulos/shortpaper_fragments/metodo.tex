@@ -32,7 +32,7 @@ El modelo produce un único logit por documento. Una transformación sigmoide co
 El entrenamiento utiliza entropía cruzada binaria con logits.
 
 \seccionMetodo{Líneas base}
-Para interpretar los resultados basados en LLM, se evalúan tres clases de líneas base.
+Para interpretar los resultados basados en LLM, se evalúan 3 clases de líneas base.
 
 En primer lugar, se emplean dos referencias triviales: un clasificador de clase mayoritaria y un clasificador aleatorio cuya tasa positiva coincide con la prevalencia empírica. Estas líneas base establecen la región esperada sin capacidad predictiva, donde ROC AUC debería situarse cerca de $0.5$ y PR AUC cerca de la prevalencia positiva.
 
@@ -41,4 +41,4 @@ En segundo lugar, se utiliza una línea base léxica con características TF--ID
 En tercer lugar, se definen dos líneas base intermedias basadas en LLM que utilizan los mismos embeddings preentrenados de fragmentos que el sistema principal, pero sustituyen el transformer entre fragmentos por una agregación documental más simple. En la primera variante, se promedian los embeddings de los fragmentos y se suministran a una regresión logística. En la segunda, la misma representación promedio alimenta un pequeño perceptrón multicapa con una capa oculta. Estas líneas base aíslan el valor de la representación del valor aportado por el modelado explícito de las interacciones entre fragmentos.
 
 \section{Entrenamiento y reproducibilidad}
-El entrenamiento utiliza AdamW, una tasa de aprendizaje de $10^{-4}$, decaimiento de pesos de $0.01$, lotes de tamaño $8$ y hasta $50$ épocas. Dentro de cada ronda de validación cruzada, una época corresponde a un recorrido completo por la porción de entrenamiento de esa ronda. Después de cada época se calcula la pérdida de validación sobre la porción reservada; si no mejora durante cinco épocas consecutivas, el entrenamiento se detiene y se restaura el mejor punto de control. La reproducibilidad se controla mediante semillas fijas, comportamiento determinista de cuDNN, cargadores de datos con semilla y reinicios independientes del estado aleatorio al comienzo de cada pliegue.
+El entrenamiento utiliza AdamW, una tasa de aprendizaje de $10^{-4}$, decaimiento de pesos de $0.01$, lotes de tamaño $8$ y hasta $50$ épocas. Dentro de cada ronda de validación cruzada, una época corresponde a un recorrido completo por la porción de entrenamiento de esa ronda. Después de cada época se calcula la pérdida de validación sobre la porción reservada; si no mejora durante 5 épocas consecutivas, el entrenamiento se detiene y se restaura el mejor punto de control. La reproducibilidad se controla mediante semillas fijas, comportamiento determinista de cuDNN, cargadores de datos con semilla y reinicios independientes del estado aleatorio al comienzo de cada pliegue.

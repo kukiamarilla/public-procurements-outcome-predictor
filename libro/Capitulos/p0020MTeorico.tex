@@ -29,7 +29,7 @@ El Estándar de Datos para las Contrataciones Abiertas (OCDS) propone un modelo 
 
 En OCDS, una publicación o \textit{release} representa información correspondiente a un evento del ciclo. Varias publicaciones pueden compilarse en un registro que resume el proceso. Entidades compradoras, proveedores, valores, períodos, artículos, documentos y estados se expresan mediante estructuras y listas controladas. Paraguay adopta este estándar con extensiones locales y ofrece endpoints de consulta sobre procesos completos \parencite{dncpOpenContracting,dncpDatosAbiertos}.
 
-Para este trabajo son relevantes tres niveles de información:
+Para este trabajo son relevantes 3 niveles de información:
 
 \begin{enumerate}
   \item \textbf{Metadatos del proceso}: identificador de contratación, OCID, estado y clasificación del objeto.
@@ -73,7 +73,7 @@ Un PBC no entra al modelo como archivo. Debe extraerse texto, segmentarse en uni
 
 \subsection{Extracción de texto desde PDF}
 
-PDF describe la disposición visual de una página y no necesariamente conserva una secuencia textual limpia. La extracción debe reconstruir palabras y líneas a partir de objetos posicionados. El repositorio utiliza \texttt{pdfplumber} para texto y contempla \texttt{Camelot} para tablas. Los documentos compuestos únicamente por imágenes requieren reconocimiento óptico de caracteres, capacidad que no forma parte de la ejecución documentada. Por eso, tres PDF escaneados no generaron texto y quedaron fuera de etapas posteriores.
+PDF describe la disposición visual de una página y no necesariamente conserva una secuencia textual limpia. La extracción debe reconstruir palabras y líneas a partir de objetos posicionados. El repositorio utiliza \texttt{pdfplumber} para texto y contempla \texttt{Camelot} para tablas. Los documentos compuestos únicamente por imágenes requieren reconocimiento óptico de caracteres, capacidad que no forma parte de la ejecución documentada. Por eso, 3 PDF escaneados no generaron texto y quedaron fuera de etapas posteriores.
 
 Los errores de extracción pueden alterar saltos, orden de columnas, caracteres y tablas. En un modelo léxico, estas alteraciones modifican términos y n-gramas; en un tokenizador subléxico, cambian la segmentación. Documentar las pérdidas evita atribuir al modelo limitaciones originadas en la digitalización.
 
@@ -122,7 +122,7 @@ La regresión logística define la probabilidad positiva mediante:
 
 Los coeficientes $w$ asocian dimensiones léxicas con el logaritmo de las razones de probabilidades. Esta linealidad facilita inspeccionar términos con pesos altos o bajos, aunque la interpretación requiere cautela ante correlaciones, n-gramas redundantes y regularización.
 
-El modelo del proyecto limita el vocabulario a 50.000 características, incluye unigramas y bigramas, descarta términos con frecuencia documental inferior a cinco y usa pesos balanceados por clase. La frecuencia documental cuenta en cuántos documentos distintos aparece un término, con independencia de la cantidad de veces que se repita dentro de cada uno. El umbral de cinco se fijó como un criterio conservador de filtrado: elimina términos presentes únicamente en unos pocos documentos, más susceptibles a corresponder a errores de extracción, identificadores únicos o asociaciones espurias, pero conserva expresiones recurrentes incluso cuando aparecen en una proporción pequeña del corpus. En cada pliegue, con aproximadamente 930 documentos de entrenamiento, este requisito representa cerca del 0,54\,\% y constituye, por tanto, un filtro poco restrictivo. El valor se estableció como un hiperparámetro del diseño experimental y no se optimizó sobre los pliegues externos de evaluación. Los pesos balanceados modifican la contribución de cada clase a la función de pérdida, sin cambiar la prevalencia real del conjunto de evaluación.
+El modelo del proyecto limita el vocabulario a 50.000 características, incluye unigramas y bigramas, descarta términos con frecuencia documental inferior a 5 y usa pesos balanceados por clase. La frecuencia documental cuenta en cuántos documentos distintos aparece un término, con independencia de la cantidad de veces que se repita dentro de cada uno. El umbral de 5 se fijó como un criterio conservador de filtrado: elimina términos presentes únicamente en unos pocos documentos, más susceptibles a corresponder a errores de extracción, identificadores únicos o asociaciones espurias, pero conserva expresiones recurrentes incluso cuando aparecen en una proporción pequeña del corpus. En cada pliegue, con aproximadamente 930 documentos de entrenamiento, este requisito representa cerca del 0,54\,\% y constituye, por tanto, un filtro poco restrictivo. El valor se estableció como un hiperparámetro del diseño experimental y no se optimizó sobre los pliegues externos de evaluación. Los pesos balanceados modifican la contribución de cada clase a la función de pérdida, sin cambiar la prevalencia real del conjunto de evaluación.
 
 \section{Representación densa y modelado de documentos}
 
@@ -142,7 +142,7 @@ donde $N$ es la cantidad de fragmentos y $d_{in}$ está determinado por el tama�
 
 \subsection{Atención y arquitectura transformer}
 
-El transformer reemplaza recurrencia por atención y capas prealimentadas \parencite{vaswani2017attention}. A partir de una secuencia de entrada, el mecanismo construye tres matrices: las consultas $Q$, que representan la información buscada por cada posición; las claves $K$, contra las cuales se comparan las consultas; y los valores $V$, cuyo contenido se combina para producir la salida. Si $d_k$ es la dimensión de cada clave, la atención de producto punto escalado se expresa como:
+El transformer reemplaza recurrencia por atención y capas prealimentadas \parencite{vaswani2017attention}. A partir de una secuencia de entrada, el mecanismo construye 3 matrices: las consultas $Q$, que representan la información buscada por cada posición; las claves $K$, contra las cuales se comparan las consultas; y los valores $V$, cuyo contenido se combina para producir la salida. Si $d_k$ es la dimensión de cada clave, la atención de producto punto escalado se expresa como:
 
 \begin{equation}
   \operatorname{Attention}(Q,K,V)=\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
@@ -172,7 +172,7 @@ Una vez obtenida $\mathbf{E}$, el documento debe resumirse en una entrada para e
 \end{equation}
 El método es económico e invariante al orden. Esta última propiedad es también su limitación: no distingue qué fragmento apareció primero ni modela relaciones entre secciones. Aun así, líneas base de pooling simple han demostrado ser competitivas en múltiples tareas, por lo que omitirlas puede exagerar el valor de arquitecturas más complejas \parencite{shen2018swem}. Sobre este vector pueden ajustarse una regresión logística o un perceptrón multicapa; ambas variantes aíslan el contenido de la representación congelada sin introducir una red sobre la secuencia de fragmentos.
 
-La alternativa secuencial es un transformer liviano entre fragmentos. El predictor proyecta cada $e_i\in\mathbb{R}^{2880}$ a $d_{model}=128$, inserta un vector \texttt{[CLS]} entrenable y aplica una capa de codificador con cuatro cabezas, dimensión interna 512 y dropout 0,3. En síntesis, el modelo:
+La alternativa secuencial es un transformer liviano entre fragmentos. El predictor proyecta cada $e_i\in\mathbb{R}^{2880}$ a $d_{model}=128$, inserta un vector \texttt{[CLS]} entrenable y aplica una capa de codificador con 4 cabezas, dimensión interna 512 y dropout 0,3. En síntesis, el modelo:
 
 \begin{enumerate}
   \item proyecta linealmente $d_{in}$ a $d_{model}$;
