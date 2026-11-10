@@ -81,7 +81,7 @@ Los errores de extracción pueden alterar saltos, orden de columnas, caracteres 
 
 Un tokenizador transforma texto en identificadores del vocabulario del modelo. Los modelos preentrenados suelen usar unidades subléxicas: una palabra puede corresponder a uno o varios tokens. Esto permite representar vocabulario abierto, pero significa que el número de palabras no coincide con la longitud computacional. La configuración del proyecto tokeniza sin truncamiento inicial, conserva la secuencia en CPU y transfiere a GPU únicamente microlotes de fragmentos.
 
-Sea una secuencia de $T$ tokens, un tamaño máximo de fragmento $L$ y un desplazamiento $S$. Los comienzos se ubican en $0,S,2S,\ldots$ hasta cubrir el documento. Cuando $S<L$, fragmentos consecutivos comparten $L-S$ tokens. En este estudio $L=4096$ y $S=2048$, de modo que el solapamiento nominal es del $50\%$. El solapamiento reduce la probabilidad de cortar una relación justo en una frontera, aunque incrementa la cantidad de cómputo y introduce contenido repetido. La cantidad aproximada de fragmentos para $T>L$ es:
+Sea $T$ la longitud total del documento en tokens, $L$ el tamaño máximo de cada fragmento y $S$ el desplazamiento entre comienzos consecutivos. Los comienzos se ubican en $0,S,2S,\ldots$ hasta cubrir el documento. Cuando $S<L$, fragmentos consecutivos comparten $L-S$ tokens. En este estudio se adoptan $L=4096$ y $S=2048$, de modo que el solapamiento nominal es del $50\%$. Estos valores se toman como configuración de base de trabajos previos sobre documentos extensos: Longformer opera con ventanas de hasta 4096 tokens \parencite{beltagy2020longformer}, y los esquemas jerárquicos que dividen el texto en fragmentos con solapamiento han mostrado buen desempeño al recuperar más contexto que el truncamiento simple \parencite{dai2022revisiting,mamakas2022legal}. El solapamiento del $50\%$ reduce la probabilidad de cortar una relación justo en una frontera, aunque incrementa la cantidad de cómputo y introduce contenido repetido. La cantidad aproximada de fragmentos $N$ para $T>L$ es:
 
 \begin{equation}
   N \approx 1 + \left\lceil\frac{T-L}{S}\right\rceil.
@@ -113,12 +113,19 @@ La ponderación TF--IDF pertenece a una familia de esquemas de importancia de t�
 
 \subsection{Regresión logística sobre características léxicas}
 
-La regresión logística define la probabilidad positiva mediante:
+La regresión logística convierte un vector de características en una probabilidad entre 0 y 1. Sea $x\in\mathbb{R}^{V}$ el vector TF--IDF del documento, $w\in\mathbb{R}^{V}$ el vector de coeficientes aprendidos y $b\in\mathbb{R}$ el sesgo (término independiente). El modelo construye primero una puntuación lineal o \emph{logit}
 
 \begin{equation}
-  \hat p(y=1\mid x)=\sigma(w^\top x+b), \qquad
-  \sigma(z)=\frac{1}{1+e^{-z}}.
+  z=w^\top x+b,
 \end{equation}
+
+donde $w^\top x$ es el producto punto entre coeficientes y características. Cada componente $w_j$ indica cuánto aporta la característica $j$ a favor (si es positiva) o en contra (si es negativa) de la clase positiva. La puntuación $z$ se transforma con la función sigmoide $\sigma$, que comprime cualquier número real al intervalo $(0,1)$:
+
+\begin{equation}
+  \hat p(y=1\mid x)=\sigma(z)=\frac{1}{1+e^{-z}}.
+\end{equation}
+
+Aquí $y\in\{0,1\}$ es la etiqueta verdadera del ejemplo y $\hat p(y=1\mid x)$ es la probabilidad estimada de que el documento pertenezca a la clase positiva dado $x$. Cuando $z$ crece, $\hat p$ se acerca a 1; cuando $z$ decrece, se acerca a 0.
 
 Los coeficientes $w$ asocian dimensiones léxicas con el logaritmo de las razones de probabilidades. Esta linealidad facilita inspeccionar términos con pesos altos o bajos, aunque la interpretación requiere cautela ante correlaciones, n-gramas redundantes y regularización.
 
@@ -191,13 +198,13 @@ Comparar representaciones exige separar qué pregunta responde cada métrica: si
 
 \subsection{Desbalance, umbral y ordenamiento}
 
-Un conjunto está desbalanceado cuando las clases tienen frecuencias distintas. La exactitud simple puede ser engañosa: un clasificador que predice siempre la mayoría obtiene una exactitud igual a su prevalencia sin separar casos. La exactitud balanceada promedia la sensibilidad de cada clase:
+Un conjunto está desbalanceado cuando las clases tienen frecuencias distintas. La exactitud simple puede ser engañosa: un clasificador que predice siempre la mayoría obtiene una exactitud igual a su prevalencia sin separar casos. La exactitud balanceada promedia la sensibilidad de cada clase. Sean $TP$ los verdaderos positivos, $TN$ los verdaderos negativos, $FP$ los falsos positivos y $FN$ los falsos negativos:
 
 \begin{equation}
   BA=\frac{1}{2}\left(\frac{TP}{TP+FN}+\frac{TN}{TN+FP}\right).
 \end{equation}
 
-El puntaje F1 combina precisión y exhaustividad de la clase positiva:
+El puntaje F1 combina precisión y exhaustividad de la clase positiva. La precisión es $Precision=TP/(TP+FP)$ (de lo marcado como positivo, cuánto acierta) y la exhaustividad es $Recall=TP/(TP+FN)$ (de todos los positivos reales, cuántos encuentra):
 
 \begin{equation}
   F1=2\frac{Precision\cdot Recall}{Precision+Recall}.
@@ -205,7 +212,7 @@ El puntaje F1 combina precisión y exhaustividad de la clase positiva:
 
 F1 depende de cuál clase se declara positiva y del umbral. En este estudio la clase positiva es además la mayoritaria del subconjunto procesado, por lo que PR AUC debe compararse con la prevalencia y no con cero. \textcite{richardson2024roc} subrayan que ROC y PR responden de manera distinta al balance y que su interpretación debe ajustarse a la pregunta de evaluación.
 
-Para obtener una clase se aplica un umbral $\tau$:
+Para obtener una clase se aplica un umbral $\tau$. Sea $\hat p$ la probabilidad estimada del ejemplo y $\hat y$ la etiqueta predicha; $\mathbb{I}(\cdot)$ vale 1 si la condición se cumple y 0 en caso contrario:
 \begin{equation}
   \hat y=\mathbb{I}(\hat p\geq\tau).
 \end{equation}
@@ -217,17 +224,21 @@ ROC AUC estima la probabilidad de que un ejemplo positivo reciba un puntaje mayo
 
 Un clasificador está calibrado si, entre casos con probabilidad predicha cercana a $p$, la frecuencia observada del evento es aproximadamente $p$. \textcite{guo2017calibration} mostraron que redes modernas pueden lograr buena exactitud y, al mismo tiempo, producir confianzas mal calibradas. Por ello, ordenamiento y calibración son propiedades distintas.
 
-El puntaje de Brier binario es:
+Sea $M$ la cantidad de ejemplos evaluados, $y_i\in\{0,1\}$ la etiqueta verdadera del ejemplo $i$ y $\hat p_i\in(0,1)$ la probabilidad que el modelo asigna a la clase positiva para ese ejemplo. El puntaje de Brier binario es el error cuadrático medio entre esas probabilidades y las etiquetas:
 
 \begin{equation}
   BS=\frac{1}{M}\sum_{i=1}^{M}(\hat p_i-y_i)^2.
 \end{equation}
 
-La pérdida logarítmica es:
+Un $BS$ cercano a 0 indica que las probabilidades se acercan a las etiquetas observadas; un valor cercano a 1 corresponde a predicciones sistemáticamente erróneas.
+
+La pérdida logarítmica (o entropía cruzada binaria) penaliza con más fuerza las probabilidades confiadas pero incorrectas:
 
 \begin{equation}
   LL=-\frac{1}{M}\sum_{i=1}^{M}\left[y_i\log\hat p_i+(1-y_i)\log(1-\hat p_i)\right].
 \end{equation}
+
+Cuando $y_i=1$, solo el término $\log\hat p_i$ contribuye; cuando $y_i=0$, solo $\log(1-\hat p_i)$. En ambos casos, cuanto más cerca de la etiqueta esté $\hat p_i$, menor es la pérdida.
 
 Ambas son reglas propias: favorecen probabilidades honestas bajo sus supuestos. Sin embargo, el Brier combina componentes de confiabilidad y resolución; un valor menor no debe interpretarse como medida pura de calibración sin considerar discriminación y curvas de confiabilidad \parencite{silvafilho2023calibration}. En consecuencia, este estudio acompaña los puntajes con diagramas de calibración.
 
