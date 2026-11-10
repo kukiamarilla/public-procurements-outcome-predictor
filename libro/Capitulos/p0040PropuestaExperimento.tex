@@ -3,11 +3,19 @@
 \chapter{Propuesta de experimentación numérica}
 \label{sec:propuesta_experimental}
 
-En este capítulo se describirá el diseño experimental empleado para comparar representaciones textuales en la predicción de resultados de licitaciones públicas paraguayas. Primero se presentarán la procedencia de los datos y la construcción del conjunto supervisado, desde la recuperación de los PBC hasta la definición de la etiqueta. Luego se detallarán los modelos que se evaluarán y el ambiente de software que los implementa. Finalmente se establecerán la partición, el entrenamiento, las métricas y las reglas de reproducibilidad utilizadas para comparar cada alternativa.
+Este capítulo describe el diseño experimental para comparar representaciones textuales en la predicción de resultados de licitaciones públicas paraguayas. La Figura~\ref{fig:pipeline-diseno-experimental} resume la canalización completa; las secciones siguientes desarrollan cada bloque.
 
-La descripción se fundamenta en el código versionado del proyecto y en el embudo de artefactos observado. El hardware empleado durante la ejecución se documentará en el capítulo de resultados, donde puede relacionarse con los costos y fallos efectivamente observados.
+\noindent\begin{minipage}{\textwidth}
+  \centering
+  \includegraphics[width=0.55\linewidth,height=0.40\textheight,keepaspectratio]{figures/pipeline_diseno_experimental.pdf}
+  \captionof{figure}[Canalización del diseño experimental.]{Canalización del diseño experimental desde los procesos de la DNCP hasta la evaluación fuera de pliegue.}
+  \label{fig:pipeline-diseno-experimental}
+\end{minipage}
 
 \section{Fuente y procedencia de los datos}
+\label{sec:fuente_datos}
+
+Este bloque corresponde al punto de partida de la Figura~\ref{fig:pipeline-diseno-experimental}: la obtención y unificación de procesos de construcción vial desde datos abiertos de la DNCP.
 
 \subsection{API de la DNCP}
 
@@ -36,8 +44,9 @@ La unión produjo 10.628 filas. El orden de combinación fue no exitosos, cancel
 \input{Capitulos/shortpaper_fragments/configuracion_experimental}
 
 \section{Recuperación de documentos PBC}
+\label{sec:recuperacion_pbc}
 
-Para cada proceso, \texttt{merge\_and\_download\_pbcs.py} consultará la información documental asociada e intentará localizar un PBC o carta de invitación. La ejecución documentada aceptó PDF como artefacto final. El código inspecciona título, URL y formato; también contiene rutas auxiliares para archivos comprimidos o documentos de oficina, pero el conjunto final observado está compuesto por PDF.
+En la Figura~\ref{fig:pipeline-diseno-experimental}, este bloque reduce el universo de procesos a los PDF efectivamente recuperados. Para cada proceso, \texttt{merge\_and\_download\_pbcs.py} consultará la información documental asociada e intentará localizar un PBC o carta de invitación. La ejecución documentada aceptó PDF como artefacto final. El código inspecciona título, URL y formato; también contiene rutas auxiliares para archivos comprimidos o documentos de oficina, pero el conjunto final observado está compuesto por PDF.
 
 Los archivos se almacenan bajo la clave lógica:
 
@@ -50,8 +59,9 @@ El proceso es reanudable: antes de descargar, puede comprobar si el objeto exist
 Se obtuvieron 1.845 PDF. Esta cifra representa los archivos recuperados por la canalización, no todos los PBC existentes en la DNCP. Para 42 procesos se conservó un motivo de fallo; 8.741 filas no contienen evidencia de intento o causa final y se documentan como no procesadas dentro del tiempo disponible, principalmente por limitación de solicitudes. Esta diferencia exige evitar tasas de disponibilidad calculadas como si toda la población hubiese sido consultada exhaustivamente.
 
 \section{Extracción y normalización del texto}
+\label{sec:extraccion_texto}
 
-Los PDF descargados se procesaron con \texttt{PDFReader}. La etapa utiliza \texttt{pdfplumber} para texto y puede utilizar Camelot en modos \textit{lattice} y \textit{stream} para tablas. Cada resultado se almacenó en:
+Este bloque de la Figura~\ref{fig:pipeline-diseno-experimental} convierte cada PDF recuperado en texto utilizable por los modelos. Los PDF descargados se procesaron con \texttt{PDFReader}. La etapa utiliza \texttt{pdfplumber} para texto y puede utilizar Camelot en modos \textit{lattice} y \textit{stream} para tablas. Cada resultado se almacenó en:
 
 \begin{center}
 \texttt{outcome-predictor/pbcs/txt/\{tenderId\}.txt}
@@ -62,6 +72,9 @@ De 1.845 PDF se obtuvieron 1.842 textos. Los 3 fallos correspondieron a document
 La extracción puede conservar ruido de paginación o alterar tablas. El experimento tratará el texto obtenido como entrada efectiva del modelo y no como transcripción perfecta del PBC. Una extensión con OCR deberá evaluarse por separado porque cambiaría la población incluida y la calidad de la entrada.
 
 \section{Generación de embeddings}
+\label{sec:generacion_embeddings}
+
+En la canalización de la Figura~\ref{fig:pipeline-diseno-experimental}, este bloque produce la representación densa congelada a partir del texto.
 
 \subsection{Codificador congelado}
 
@@ -76,8 +89,9 @@ El tamaño inicial del microlote será 4. Ante un error de memoria CUDA, el cód
 Cada archivo \texttt{.pt} conserva \texttt{tender\_id}, matriz de embeddings, identificador del modelo, longitud, desplazamiento, tamaño de microlote y eventual etiqueta. Se produjeron 1.162 archivos. Entre los 680 textos sin embedding se observaron 671 errores de memoria y 9 \texttt{ValueError}.
 
 \section{Embudo de construcción del conjunto supervisado}
+\label{sec:embudo}
 
-La Tabla~\ref{tab:funnel} presenta el recorrido completo. Los conteos provienen de objetos observados y del JSON consolidado.
+Este bloque de la Figura~\ref{fig:pipeline-diseno-experimental} consolida las pérdidas entre etapas y deja explícito el subconjunto que llega a la evaluación. La Tabla~\ref{tab:funnel} presenta el recorrido completo. Los conteos provienen de objetos observados y del JSON consolidado.
 
 \begin{table}[H]
 \centering
@@ -118,12 +132,18 @@ Total & 10.628 & 1.845 & 1.842 & 1.162 \\
 La pérdida no es aleatoria. Se priorizaron estados minoritarios y los errores de embedding afectaron principalmente documentos costosos. Por ello, el subconjunto final no debe presentarse como muestra representativa del universo paraguayo. El protocolo medirá desempeño interno sobre los 1.162 casos procesados.
 
 \section{Definición de la instancia y etiqueta}
+\label{sec:instancia_etiqueta}
+
+Junto con el embudo, este bloque fija la unidad de análisis y la etiqueta binaria del conjunto supervisado común de la Figura~\ref{fig:pipeline-diseno-experimental}.
 
 \input{Capitulos/shortpaper_fragments/definicion_tarea}
 
 El mapeo se implementa en \texttt{src/data/procurement\_target.py} y se alinea mediante \texttt{tenderId}. Registros sin uno de los estados admitidos se excluirán. La etiqueta no se extraerá del PBC y no se suministrará al codificador.
 
 \section{Modelos que se evaluarán}
+\label{sec:modelos_evaluar}
+
+Este bloque de la Figura~\ref{fig:pipeline-diseno-experimental} reúne las familias comparadas y los controles sin habilidad.
 
 \begingroup
 \def\metodoComoSubsecciones{}
@@ -151,8 +171,9 @@ El mismo promedio alimentará una red con una capa oculta. En el análisis de se
 La matriz variable de embeddings se rellenará dentro de cada lote y se acompañará con una máscara. La arquitectura proyectará de 2880 a 128 dimensiones, añadirá \texttt{[CLS]}, utilizará 4 cabezas, dimensión prealimentada 512, dropout 0,3 y una capa. La cabeza final producirá un logit.
 
 \section{Ambiente de software}
+\label{sec:ambiente_software}
 
-El proyecto requiere Python 3.10 o superior y declara sus dependencias en \texttt{pyproject.toml}; \texttt{uv.lock} conserva resoluciones concretas por plataforma. La Tabla~\ref{tab:software} presenta los componentes principales observados en el archivo de bloqueo actual. Las versiones efectivamente usadas en la corrida original deben verificarse contra el entorno archivado si se dispone de él, porque el archivo puede actualizarse después de una ejecución.
+Como aspecto transversal de la Figura~\ref{fig:pipeline-diseno-experimental}, el ambiente fija el lenguaje, las bibliotecas y las versiones con las que se ejecuta la canalización. El proyecto requiere Python 3.10 o superior y declara sus dependencias en \texttt{pyproject.toml}; \texttt{uv.lock} conserva resoluciones concretas por plataforma. La Tabla~\ref{tab:software} presenta los componentes principales observados en el archivo de bloqueo actual. Las versiones efectivamente usadas en la corrida original deben verificarse contra el entorno archivado si se dispone de él, porque el archivo puede actualizarse después de una ejecución.
 
 \begin{table}[H]
 \centering
@@ -175,36 +196,41 @@ pandas & Manipulación tabular & 2.3.3 \\
 \end{table}
 
 \section{Partición y protocolo de evaluación}
+\label{sec:particion_protocolo}
 
-Se utilizará validación cruzada estratificada de 5 pliegues con semilla 42. Cada pliegue conservará aproximadamente la prevalencia. Los modelos comparados emplearán los mismos índices externos. El vectorizador y los clasificadores se ajustarán nuevamente en cada ronda.
+En la Figura~\ref{fig:pipeline-diseno-experimental}, este bloque define cómo se ajusta y se evalúa cada modelo sin reutilizar el pliegue externo para seleccionar umbrales. Se utilizará validación cruzada estratificada de 5 pliegues con semilla 42. Cada pliegue conservará aproximadamente la prevalencia. Los modelos comparados emplearán los mismos índices externos. El vectorizador y los clasificadores se ajustarán nuevamente en cada ronda.
 
 Para las métricas a umbral fijo se utilizará $\tau=0.5$. Para el experimento de sensibilidad, los 4 pliegues externos de entrenamiento se dividirán en entrenamiento interno y validación interna, con una proporción de validación de 0,2. Se seleccionará el umbral que maximice F1 en la partición interna; ante empates se preferirá el más cercano a 0,5 y luego el menor. El umbral se aplicará una sola vez al pliegue externo.
 
 Este anidamiento separará selección y evaluación. No se utilizará el pliegue externo para elegir hiperparámetros, vocabulario o umbral.
 
 \section{Entrenamiento}
+\label{sec:entrenamiento}
 
-El transformer se entrenará con AdamW, tasa $10^{-4}$, decaimiento 0,01, lotes de 8 y hasta 50 épocas. Después de cada época se calculará la pérdida de validación. Si no mejora durante 5 épocas consecutivas, se detendrá el entrenamiento y se restaurará el mejor estado.
+Este bloque complementa la partición de la Figura~\ref{fig:pipeline-diseno-experimental} con el procedimiento de ajuste de los modelos neuronales. El transformer se entrenará con AdamW, tasa $10^{-4}$, decaimiento 0,01, lotes de 8 y hasta 50 épocas. Después de cada época se calculará la pérdida de validación. Si no mejora durante 5 épocas consecutivas, se detendrá el entrenamiento y se restaurará el mejor estado.
 
 La pérdida será entropía cruzada binaria con logits. El uso directo de logits evita aplicar sigmoide antes de una función que implementa de forma estable ambas operaciones. Durante evaluación, la sigmoide transformará logits en probabilidades.
 
 \section{Métricas de evaluación}
+\label{sec:metricas_eval}
 
-Se informarán ROC AUC, PR AUC, F1, exactitud balanceada, Brier y pérdida logarítmica. ROC AUC y PR AUC evaluarán ranking; F1 y exactitud balanceada dependerán del umbral; Brier y pérdida logarítmica evaluarán probabilidades. También se registrará la prevalencia positiva y $PR\ AUC-\pi$.
+El bloque de evaluación fuera de pliegue de la Figura~\ref{fig:pipeline-diseno-experimental} separa ordenamiento, clasificación a umbral y calidad probabilística. Se informarán ROC AUC, PR AUC, F1, exactitud balanceada, Brier y pérdida logarítmica. ROC AUC y PR AUC evaluarán ranking; F1 y exactitud balanceada dependerán del umbral; Brier y pérdida logarítmica evaluarán probabilidades. También se registrará la prevalencia positiva y $PR\ AUC-\pi$.
 
 Las curvas de precisión-exhaustividad se construirán agregando predicciones externas. Las curvas de calibración agruparán probabilidades y compararán predicción media con frecuencia observada. Dado el tamaño limitado, los puntos de bins extremos se interpretarán con cautela.
 
 \section{Trazabilidad y reproducibilidad}
+\label{sec:trazabilidad}
 
-La semilla global será 42 y cada pliegue recibirá una semilla derivada independiente. El código configurará cuDNN determinista, generadores de \texttt{DataLoader} y reinicios de estados aleatorios. MLflow conservará hiperparámetros y métricas. Los objetos pesados residirán en Spaces y los metadatos de seguimiento, por defecto, en SQLite local.
+Como aspecto transversal de la Figura~\ref{fig:pipeline-diseno-experimental}, la trazabilidad registra semillas, métricas y artefactos para auditar la comparación. La semilla global será 42 y cada pliegue recibirá una semilla derivada independiente. El código configurará cuDNN determinista, generadores de \texttt{DataLoader} y reinicios de estados aleatorios. MLflow conservará hiperparámetros y métricas. Los objetos pesados residirán en Spaces y los metadatos de seguimiento, por defecto, en SQLite local.
 
 Los artefactos públicos archivados en Zenodo incluyen el código y los 1.162 archivos \texttt{.pt} de embeddings congelados empleados en los experimentos (doi:10.5281/zenodo.20128768). El paquete de embeddings incorpora un manifiesto con el identificador de cada archivo, sus dimensiones y su suma de verificación SHA--256, además de metadatos agregados y documentación de uso. Esto permite reproducir el entrenamiento y la evaluación de los modelos basados en LLM sin volver a ejecutar la costosa etapa de codificación documental.
 
 El depósito excluye credenciales y los datos fuente locales. Por tanto, reproducir los experimentos a partir de los embeddings publicados no requiere acceso a la infraestructura original, pero reconstruir toda la canalización desde los PDF exige obtener legítimamente los documentos desde la DNCP y disponer del modelo base. Esta distinción delimita el grado de reproducibilidad alcanzado.
 
 \section{Amenazas a la validez previstas}
+\label{sec:amenazas_validez}
 
-Se considerarán 4 grupos:
+El bloque final de la Figura~\ref{fig:pipeline-diseno-experimental} adelanta los límites con los que deben leerse los resultados del capítulo siguiente. Se considerarán 4 grupos:
 
 \begin{enumerate}
   \item \textbf{Validez de constructo}: el estado final es una aproximación operacional al éxito.

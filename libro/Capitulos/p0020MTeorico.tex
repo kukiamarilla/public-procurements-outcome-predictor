@@ -3,11 +3,18 @@
 \chapter{Marco teórico}
 \label{sec:marco_teorico}
 
-Este capítulo presenta los conceptos necesarios para interpretar el problema, los modelos y las métricas. Primero se describe el marco institucional de la contratación pública y se sitúa al PBC dentro de ese ciclo. Luego se define el resultado que se busca predecir. A continuación se recorre la canalización: del PDF a fragmentos, de los fragmentos a representaciones léxicas o densas, y de estas a una decisión evaluable. Finalmente se presentan las métricas, la calibración y la validación experimental.
+Este capítulo presenta los conceptos necesarios para interpretar el problema, los modelos y las métricas. La Figura~\ref{fig:pipeline-marco-teorico} resume la canalización completa: el PBC de la convocatoria (Sección~\ref{sec:marco_institucional}), la etiqueta de estado final (Sección~\ref{sec:clasificacion_supervisada}), la extracción y fragmentación (Sección~\ref{sec:pdf_a_fragmentos}), la vía léxica TF--IDF (Sección~\ref{sec:representacion_lexica}), la vía densa y sus agregadores (Sección~\ref{sec:representacion_densa}) y la evaluación predictiva (Sección~\ref{sec:evaluacion_predictiva}). Las secciones siguientes desarrollan cada bloque en ese orden.
+
+\begin{center}
+  \includegraphics[width=0.78\linewidth,height=0.34\textheight,keepaspectratio]{figures/pipeline_marco_teorico.pdf}
+  \captionof{figure}[Canalización conceptual del marco teórico.]{Canalización conceptual del marco teórico: desde el PBC y la etiqueta de resultado hasta las representaciones, los clasificadores y la evaluación.}
+  \label{fig:pipeline-marco-teorico}
+\end{center}
 
 \section{Marco institucional de la contratación pública}
+\label{sec:marco_institucional}
 
-La contratación pública paraguaya determina qué información existe, en qué momento se publica y qué documento puede usarse sin fuga. Esta sección reúne la cadena administrativa, el estándar de datos abiertos y las propiedades del PBC como objeto de análisis.
+La contratación pública paraguaya determina qué información existe, en qué momento se publica y qué documento puede usarse sin fuga. Esta sección corresponde al punto de partida de la Figura~\ref{fig:pipeline-marco-teorico}: sitúa al PBC dentro de la cadena administrativa, el estándar de datos abiertos y las propiedades del documento como objeto de análisis.
 
 \subsection{Cadena de suministro y temporalidad}
 
@@ -56,6 +63,9 @@ Desde la perspectiva del procesamiento del lenguaje natural, el PBC presenta var
 Estas propiedades explican por qué no existe una representación obviamente superior. La repetición puede favorecer n-gramas; la equivalencia semántica entre formulaciones puede favorecer embeddings; y la dispersión de información a lo largo del documento puede justificar modelos jerárquicos.
 
 \section{Clasificación supervisada y resultado que se busca predecir}
+\label{sec:clasificacion_supervisada}
+
+En la Figura~\ref{fig:pipeline-marco-teorico}, este bloque corresponde al estado final registrado: la etiqueta que supervisa el entrenamiento y la evaluación.
 
 \input{Capitulos/shortpaper_fragments/definicion_tarea}
 
@@ -68,8 +78,9 @@ Formalmente, cada ejemplo se representa mediante un par $(x_i,y_i)$, donde $x_i$
 Así, $\hat p_i$ no expresa una certeza ni una valoración jurídica del proceso, sino la probabilidad que el modelo asigna al estado operacionalizado como exitoso a partir del texto disponible.
 
 \section{Del PDF a fragmentos}
+\label{sec:pdf_a_fragmentos}
 
-Un PBC no entra al modelo como archivo. Debe extraerse texto, segmentarse en unidades del vocabulario del modelo y partirse en fragmentos que respeten el límite de contexto. Las decisiones de esta etapa condicionan tanto a TF--IDF como a los embeddings.
+Un PBC no entra al modelo como archivo. En la canalización de la Figura~\ref{fig:pipeline-marco-teorico}, este bloque cubre la extracción de texto y, cuando corresponde a la vía densa, la tokenización y fragmentación. Debe extraerse texto, segmentarse en unidades del vocabulario del modelo y partirse en fragmentos que respeten el límite de contexto. Las decisiones de esta etapa condicionan tanto a TF--IDF como a los embeddings.
 
 \subsection{Extracción de texto desde PDF}
 
@@ -90,8 +101,9 @@ Sea $T$ la longitud total del documento en tokens, $L$ el tamaño máximo de cad
 La implementación no impone por defecto un máximo documental adicional. En consecuencia, documentos muy extensos producen secuencias de muchos embeddings y demandan más memoria tanto en codificación como en la agregación posterior.
 
 \section{Representación léxica}
+\label{sec:representacion_lexica}
 
-La vía léxica representa el documento completo como un vector disperso de términos y n-gramas, sin fragmentarlo para respetar un límite de contexto. Esta sección presenta el esquema TF--IDF y el clasificador lineal que se le asocia.
+La vía léxica de la Figura~\ref{fig:pipeline-marco-teorico} representa el documento completo como un vector disperso de términos y n-gramas, sin fragmentarlo para respetar un límite de contexto. Esta sección presenta el esquema TF--IDF y el clasificador lineal que se le asocia.
 
 \subsection{Espacio vectorial y ponderación TF--IDF}
 
@@ -132,8 +144,9 @@ Los coeficientes $w$ asocian dimensiones léxicas con el logaritmo de las razone
 El modelo del proyecto limita el vocabulario a 50.000 características, incluye unigramas y bigramas, descarta términos con frecuencia documental inferior a 5 y usa pesos balanceados por clase. La frecuencia documental cuenta en cuántos documentos distintos aparece un término, con independencia de la cantidad de veces que se repita dentro de cada uno. El umbral de 5 se fijó como un criterio conservador de filtrado: elimina términos presentes únicamente en unos pocos documentos, más susceptibles a corresponder a errores de extracción, identificadores únicos o asociaciones espurias, pero conserva expresiones recurrentes incluso cuando aparecen en una proporción pequeña del corpus. En cada pliegue, con aproximadamente 930 documentos de entrenamiento, este requisito representa cerca del 0,54\,\% y constituye, por tanto, un filtro poco restrictivo. El valor se estableció como un hiperparámetro del diseño experimental y no se optimizó sobre los pliegues externos de evaluación. Los pesos balanceados modifican la contribución de cada clase a la función de pérdida, sin cambiar la prevalencia real del conjunto de evaluación.
 
 \section{Representación densa y modelado de documentos}
+\label{sec:representacion_densa}
 
-La vía densa no representa términos individuales, sino vectores aprendidos durante el preentrenamiento. Como el PBC supera el contexto del codificador, primero se obtienen embeddings por fragmento y después se decide cómo agregarlos en una representación documental.
+La vía densa de la Figura~\ref{fig:pipeline-marco-teorico} no representa términos individuales, sino vectores aprendidos durante el preentrenamiento. Como el PBC supera el contexto del codificador, primero se obtienen embeddings por fragmento y después se decide cómo agregarlos ---por promedio o mediante un transformer entre fragmentos--- antes de la cabeza de clasificación.
 
 \subsection{Codificador congelado}
 
@@ -193,8 +206,9 @@ El vector \texttt{[CLS]} produce un logit $z$ por documento, convertido en proba
 Las máscaras de relleno distinguen fragmentos reales de posiciones añadidas para formar lotes. Sin ellas, el modelo podría atender a valores de relleno y aprender artefactos asociados a la longitud. La arquitectura implementada utiliza normalización previa y activación GELU, conforme a la capa \texttt{TransformerEncoderLayer} disponible en PyTorch.
 
 \section{Evaluación predictiva}
+\label{sec:evaluacion_predictiva}
 
-Comparar representaciones exige separar qué pregunta responde cada métrica: si se ordenan bien los casos, si una clase se predice a un umbral dado, si las probabilidades son confiables y si la evaluación es externa al ajuste.
+El bloque final de la Figura~\ref{fig:pipeline-marco-teorico} compara las probabilidades estimadas con la etiqueta de estado final. Comparar representaciones exige separar qué pregunta responde cada métrica: si se ordenan bien los casos, si una clase se predice a un umbral dado, si las probabilidades son confiables y si la evaluación es externa al ajuste.
 
 \subsection{Desbalance, umbral y ordenamiento}
 
