@@ -67,7 +67,12 @@ La investigación tampoco desarrolla un sistema de decisión autónoma. Una apli
 
 \section{Contribuciones}
 
-Las contribuciones del trabajo son 4. Primero, presenta una canalización reproducible centrada en PBC paraguayos, desde la consulta de procesos hasta la evaluación. Segundo, compara en condiciones homogéneas una representación léxica, dos agregadores de embeddings y un modelo de interacciones entre fragmentos. Tercero, informa métricas de ordenamiento y calibración por separado, evitando reducir la comparación a una sola cifra. Cuarto, documenta el embudo de datos y sus fallos, de modo que la cobertura observada forme parte de la interpretación y no quede oculta como una decisión de preprocesamiento.
+\begin{enumerate}
+  \item Se presenta una canalización reproducible para analizar PBC paraguayos, desde la consulta de los procesos hasta la evaluación de los modelos.
+  \item Se comparan, con los mismos documentos y las mismas particiones, una representación léxica, 2 variantes que promedian embeddings y un modelo que aprende relaciones entre fragmentos.
+  \item Se evalúan por separado la capacidad de ordenar los casos, el desempeño de la clasificación según el umbral y la calidad de las probabilidades estimadas.
+  \item Se documentan la cobertura y las pérdidas en cada etapa de construcción del conjunto de datos para delimitar a qué casos se aplican los resultados.
+\end{enumerate}
 
 \section{Organización del libro}
 
