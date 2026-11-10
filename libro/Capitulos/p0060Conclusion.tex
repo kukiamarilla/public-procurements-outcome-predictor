@@ -3,19 +3,19 @@
 \chapter{Conclusiones y trabajos futuros}
 \label{sec:conclusiones}
 
-Este trabajo abordó la predicción de resultados de licitaciones públicas de construcción vial en Paraguay a partir del texto de PBC disponible durante la convocatoria. Para ello construyó un conjunto supervisado mediante datos abiertos de la DNCP, comparó representaciones léxicas y densas, y evaluó por separado ranking, clasificación a umbral fijo, calibración y sensibilidad al umbral.
+Este trabajo abordó la predicción de resultados de licitaciones públicas de construcción vial en Paraguay a partir del texto de PBC disponible durante la convocatoria. Para ello construyó un conjunto supervisado mediante datos abiertos de la DNCP, comparó representaciones léxicas y densas, y evaluó por separado ordenamiento, clasificación a umbral fijo, calibración y sensibilidad al umbral.
 
 \section{Conclusiones finales}
 
-La primera conclusión es que los documentos procesados contienen señal predictiva sobre la etiqueta operacionalizada. Los modelos TF--IDF, promedio de embeddings y transformer entre fragmentos superaron a las referencias triviales en métricas de ranking. Esta evidencia se limita al subconjunto de 1.162 procesos que completó descarga, extracción y generación de embeddings.
+La primera conclusión es que los documentos procesados contienen señal predictiva sobre la etiqueta operacionalizada. Los modelos TF--IDF, promedio de \textit{embeddings} y \textit{transformer} entre fragmentos superaron a las referencias triviales en métricas de ordenamiento. Esta evidencia se limita al subconjunto de 1.162 procesos que completó descarga, extracción y generación de \textit{embeddings}.
 
 La segunda conclusión es que la representación más compleja no dominó todos los criterios. TF--IDF más regresión logística produjo el mejor ROC AUC y PR AUC, además de la mayor exactitud balanceada de la comparación principal. El resultado confirma la importancia de incluir líneas base léxicas en documentos estandarizados y extensos.
 
-La tercera conclusión es que los modelos densos aportaron una ventaja diferente. El transformer entre fragmentos obtuvo el menor puntaje de Brier y el mayor F1 con umbral 0,5. El MLP con embeddings promediados se mantuvo próximo en ranking y calibración. Por tanto, buena parte de la información útil ya estaba presente en las representaciones congeladas, mientras que las interacciones entre fragmentos no produjeron una mejora general de ranking.
+La tercera conclusión es que los modelos densos aportaron una ventaja diferente. El \textit{transformer} entre fragmentos obtuvo el menor puntaje de Brier y el mayor F1 con umbral 0,5. El MLP con \textit{embeddings} promediados se mantuvo próximo en ordenamiento y calibración. Por tanto, buena parte de la información útil ya estaba presente en las representaciones congeladas, mientras que las interacciones entre fragmentos no produjeron una mejora general de ordenamiento.
 
-La cuarta conclusión es que el umbral forma parte del modelo operativo. La selección interna mejoró considerablemente el F1 de TF--IDF, pero no su exactitud balanceada. El transformer cambió poco. Estos resultados muestran que un umbral optimizado para una métrica no debe trasladarse a otra finalidad ni a una población con prevalencia diferente.
+La cuarta conclusión es que el umbral forma parte del modelo operativo. La selección interna mejoró considerablemente el F1 de TF--IDF, pero no su exactitud balanceada. El \textit{transformer} cambió poco. Estos resultados muestran que un umbral optimizado para una métrica no debe trasladarse a otra finalidad ni a una población con prevalencia diferente.
 
-La quinta conclusión se refiere a la cobertura. El universo inicial fue de 10.628 procesos, pero solo 1.845 PBC se recuperaron y 1.162 documentos generaron embeddings. La priorización de estados no exitosos y los fallos de memoria alteraron la composición. Por esta razón, las métricas caracterizan el subconjunto procesado, no toda la contratación pública paraguaya.
+La quinta conclusión se refiere a la cobertura. El universo inicial fue de 10.628 procesos, pero solo 1.845 PBC se recuperaron y 1.162 documentos generaron \textit{embeddings}. La priorización de estados no exitosos y los fallos de memoria alteraron la composición. Por esta razón, las métricas caracterizan el subconjunto procesado, no toda la contratación pública paraguaya.
 
 \input{Capitulos/shortpaper_fragments/limitaciones}
 
@@ -26,17 +26,17 @@ La quinta conclusión se refiere a la cobertura. El universo inicial fue de 10.6
 Los objetivos específicos se cumplieron de la siguiente forma. Cuando una pregunta de investigación coincide con el objetivo, se indica entre paréntesis.
 
 \begin{enumerate}
-  \item \textbf{Objetivo específico 1.} Se construyó un subconjunto supervisado que vincula estados de la DNCP con PBC descargados, texto extraído y representaciones documentales. El embudo partió de 10.628 procesos, recuperó 1.845 PBC y generó embeddings para 1.162 documentos, con identificadores trazables entre etapas. Este objetivo no tiene una pregunta de investigación homóloga: es el soporte empírico de los demás.
-  \item \textbf{Objetivo específico 2} (pregunta 1). Se cuantificó la señal predictiva del PBC mediante validación cruzada externa y comparación con referencias triviales. TF--IDF con regresión logística, el promedio de embeddings con regresión logística, el promedio con MLP y el transformer entre fragmentos superaron a los controles de mayoría y aleatorio en ranking dentro del subconjunto procesado.
-  \item \textbf{Objetivo específico 3} (pregunta 2). Se comparó el desempeño de embeddings densos de un LLM congelado con TF--IDF. TF--IDF obtuvo el mejor ranking (ROC AUC 0,814 y PR AUC 0,899) y la mayor exactitud balanceada; las representaciones densas fueron competitivas y, en dos configuraciones, lograron mejores valores de Brier.
-  \item \textbf{Objetivo específico 4} (pregunta 3). Se determinó si el modelado explícito entre fragmentos aporta ventaja frente al promedio de los mismos embeddings. No se observó una ventaja general en ranking: el transformer destacó en calibración y estabilidad del umbral, no en AUC.
-  \item \textbf{Objetivo específico 5} (pregunta 4). Se caracterizaron las diferencias entre modelos según ordenamiento, desempeño a umbral fijo, calibración y sensibilidad al umbral. Las conclusiones cambiaron según el criterio: un único indicador habría ocultado, por ejemplo, que TF--IDF lidera el ranking mientras el transformer lidera Brier y F1 a umbral 0,5.
+  \item \textbf{Objetivo específico 1.} Se construyó un subconjunto supervisado que vincula estados de la DNCP con PBC descargados, texto extraído y representaciones documentales. El embudo partió de 10.628 procesos, recuperó 1.845 PBC y generó \textit{embeddings} para 1.162 documentos, con identificadores trazables entre etapas. Este objetivo no tiene una pregunta de investigación homóloga: es el soporte empírico de los demás.
+  \item \textbf{Objetivo específico 2} (pregunta 1). Se cuantificó la señal predictiva del PBC mediante validación cruzada externa y comparación con referencias triviales. TF--IDF con regresión logística, el promedio de \textit{embeddings} con regresión logística, el promedio con MLP y el \textit{transformer} entre fragmentos superaron a los controles de mayoría y aleatorio en ordenamiento dentro del subconjunto procesado.
+  \item \textbf{Objetivo específico 3} (pregunta 2). Se comparó el desempeño de \textit{embeddings} densos de un LLM congelado con TF--IDF. TF--IDF obtuvo el mejor ordenamiento (ROC AUC 0,814 y PR AUC 0,899) y la mayor exactitud balanceada; las representaciones densas fueron competitivas y, en dos configuraciones, lograron mejores valores de Brier.
+  \item \textbf{Objetivo específico 4} (pregunta 3). Se determinó si el modelado explícito entre fragmentos aporta ventaja frente al promedio de los mismos \textit{embeddings}. No se observó una ventaja general en ordenamiento: el \textit{transformer} destacó en calibración y estabilidad del umbral, no en AUC.
+  \item \textbf{Objetivo específico 5} (pregunta 4). Se caracterizaron las diferencias entre modelos según ordenamiento, desempeño a umbral fijo, calibración y sensibilidad al umbral. Las conclusiones cambiaron según el criterio: un único indicador habría ocultado, por ejemplo, que TF--IDF lidera el ordenamiento mientras el \textit{transformer} lidera Brier y F1 a umbral 0,5.
   \item \textbf{Objetivo específico 6} (pregunta 5). Se identificaron limitaciones de cobertura documental, extracción, cómputo, prevalencia y transferencia. Del universo vial inicial solo una fracción llegó al conjunto evaluado; la prevalencia experimental difiere de la poblacional y el estudio se delimita a construcción vial, de modo que los resultados no son directamente desplegables ni transferibles sin nueva evidencia a otras categorías.
 \end{enumerate}
 
 \section{Aportes del trabajo}
 
-El trabajo deja una canalización auditable que conserva identificadores entre la API de la DNCP, los PBC, el texto y los embeddings. Documenta además los fallos del embudo, condición necesaria para interpretar la selección de datos. En el plano experimental, ofrece una comparación controlada entre 4 familias no triviales y controles sin habilidad. En el plano aplicado, vincula la evaluación con necesidades de transparencia y supervisión sin confundir predicción con causalidad o decisión jurídica.
+El trabajo deja una canalización auditable que conserva identificadores entre la API de la DNCP, los PBC, el texto y los \textit{embeddings}. Documenta además los fallos del embudo, condición necesaria para interpretar la selección de datos. En el plano experimental, ofrece una comparación controlada entre 4 familias no triviales y controles sin habilidad. En el plano aplicado, vincula la evaluación con necesidades de transparencia y supervisión sin confundir predicción con causalidad o decisión jurídica.
 
 \section{Trabajos futuros}
 
@@ -44,7 +44,7 @@ El trabajo deja una canalización auditable que conserva identificadores entre l
 
 Una primera línea consistirá en completar la recuperación de PBC para reducir el sesgo por tiempo y límites de solicitudes. El proceso deberá respetar las políticas del servicio, utilizar reanudación y registrar motivos de fallo para cada tender. También será necesario incorporar OCR y medir su calidad sobre documentos escaneados.
 
-Los 680 textos sin embedding podrán reprocesarse con más memoria, fragmentos menores, cuantización o un codificador más eficiente. La comparación deberá informar resultados tanto sobre la intersección común como sobre la población ampliada, para no confundir una mejora de modelo con un cambio de casos incluidos.
+Los 680 textos sin \textit{embedding} podrán reprocesarse con más memoria, fragmentos menores, cuantización o un codificador más eficiente. La comparación deberá informar resultados tanto sobre la intersección común como sobre la población ampliada, para no confundir una mejora de modelo con un cambio de casos incluidos.
 
 \subsection{Validación temporal e institucional}
 
@@ -54,19 +54,19 @@ Estas particiones podrán reducir el desempeño; precisamente por ello aportará
 
 \subsection{Otras categorías de contratación}
 
-El código \texttt{72131701} delimita construcción vial. Trabajos futuros incorporarán otras obras, bienes y servicios. La ampliación permitirá evaluar si la fortaleza de TF--IDF se debe a estandarización sectorial y si los embeddings densos transfieren mejor entre dominios.
+El código \texttt{72131701} delimita construcción vial. Trabajos futuros incorporarán otras obras, bienes y servicios. La ampliación permitirá evaluar si la fortaleza de TF--IDF se debe a estandarización sectorial y si los \textit{embeddings} densos transfieren mejor entre dominios.
 
 No se mezclará inicialmente toda la contratación en una sola partición. Se informarán resultados por categoría y se analizarán diferencias de prevalencia, longitud y calidad documental.
 
 \subsection{Análisis explicativo del texto}
 
-La regresión logística permite inspeccionar coeficientes, pero los términos más ponderados pueden actuar como sustitutos de institución, fecha o plantilla. Se requerirán análisis de estabilidad por pliegue, eliminación de encabezados, agrupación por organismo y revisión cualitativa de n-gramas antes de atribuir significado sustantivo.
+La regresión logística permite inspeccionar coeficientes, pero los términos más ponderados pueden actuar como sustitutos de institución, fecha o plantilla. Se requerirán análisis de estabilidad por pliegue, eliminación de encabezados, agrupación por organismo y revisión cualitativa de $n$-gramas antes de atribuir significado sustantivo.
 
 Para modelos densos podrán utilizarse ablaciones por secciones, atención agregada o métodos de perturbación. Tales explicaciones deberán validarse y presentarse como evidencia del comportamiento del modelo, no como causas del resultado administrativo.
 
 \subsection{Nuevas representaciones y agregadores}
 
-Se evaluarán codificadores multilingües especializados en embeddings, modelos de atención dispersa, pooling atento y modelos de espacio de estados. La literatura muestra que estas alternativas responden de forma distinta a longitud y fragmentación \parencite{beltagy2020longformer,dai2022revisiting,lu2023statespace}.
+Se evaluarán codificadores multilingües especializados en \textit{embeddings}, modelos de atención dispersa, pooling atento y modelos de espacio de estados. La literatura muestra que estas alternativas responden de forma distinta a longitud y fragmentación \parencite{beltagy2020longformer,dai2022revisiting,lu2023statespace}.
 
 También podrá compararse el último token válido con promedio interno, token especial o pooling aprendido. Para aislar efectos, cada experimento mantendrá constantes las particiones y la cabeza cuando cambie el codificador, y mantendrá fijo el codificador cuando cambie el agregador.
 

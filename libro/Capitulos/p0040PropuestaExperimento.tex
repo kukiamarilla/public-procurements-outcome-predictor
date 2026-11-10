@@ -19,13 +19,13 @@ Este bloque corresponde al punto de partida de la Figura~\ref{fig:pipeline-disen
 
 \subsection{API de la DNCP}
 
-Los procesos provienen del servicio de datos abiertos de la DNCP. El script \texttt{fetch\_ids\_by\_status.py} consulta el endpoint:
+Los procesos provienen del servicio de datos abiertos de la DNCP. El script \texttt{fetch\_ids\_by\_status.py} consulta el siguiente punto de acceso a la API:
 
 \begin{center}
 \small\url{https://www.contrataciones.gov.py/datos/api/v3/doc/search/processes}
 \end{center}
 
-La consulta utiliza \texttt{items\_per\_page=100}, el código de clasificación \texttt{72131701}, el estado de la licitación y el número de página. El endpoint forma parte de la publicación paraguaya basada en Open Contracting \parencite{dncpOpenContracting,dncpDatosAbiertos}. Se recorrieron las páginas disponibles para \texttt{unsuccessful} y \texttt{cancelled}; cada respuesta se normalizó añadiendo el estado utilizado en la consulta.
+La consulta utiliza \texttt{items\_per\_page=100}, el código de clasificación \texttt{72131701}, el estado de la licitación y el número de página. Este punto de acceso forma parte de la publicación paraguaya basada en Open Contracting \parencite{dncpOpenContracting,dncpDatosAbiertos}. Se recorrieron las páginas disponibles para \texttt{unsuccessful} y \texttt{cancelled}; cada respuesta se normalizó añadiendo el estado utilizado en la consulta.
 
 De cada registro se recuperaron, cuando estaban disponibles, el OCID, el \texttt{tender.id} y los identificadores de adjudicaciones. Si no aparecía \texttt{tender.id}, el código utilizó el OCID como alternativa. El identificador de tender se mantuvo como clave para unir etapas posteriores.
 
@@ -71,7 +71,7 @@ De 1.845 PDF se obtuvieron 1.842 textos. Los 3 fallos correspondieron a document
 
 La extracción puede conservar ruido de paginación o alterar tablas. El experimento tratará el texto obtenido como entrada efectiva del modelo y no como transcripción perfecta del PBC. Una extensión con OCR deberá evaluarse por separado porque cambiaría la población incluida y la calidad de la entrada.
 
-\section{Generación de embeddings}
+\section{Generación de \textit{embeddings}}
 \label{sec:generacion_embeddings}
 
 En la canalización de la Figura~\ref{fig:pipeline-diseno-experimental}, este bloque produce la representación densa congelada a partir del texto.
@@ -80,13 +80,13 @@ En la canalización de la Figura~\ref{fig:pipeline-diseno-experimental}, este bl
 
 El script \texttt{embed\_pbcs.py} cargará \texttt{openai/gpt-oss-20b} mediante Hugging Face Transformers y congelará todos sus parámetros. La configuración seleccionará \texttt{bfloat16} en CUDA, desactivará la caché de claves y valores y utilizará el backbone que devuelve el último estado oculto.
 
-La secuencia completa se tokenizará sin truncamiento. Se dividirá en fragmentos de 4096 tokens con desplazamiento de 2048. Cada fragmento se completará hasta la longitud máxima para formar microlotes. El embedding corresponderá al estado oculto del último token válido, no al relleno.
+La secuencia completa se tokenizará sin truncamiento. Se dividirá en fragmentos de 4096 tokens con desplazamiento de 2048. Cada fragmento se completará hasta la longitud máxima para formar microlotes. El \textit{embedding} corresponderá al estado oculto del último token válido, no al relleno.
 
 \subsection{Control de memoria}
 
-El tamaño inicial del microlote será 4. Ante un error de memoria CUDA, el código vaciará la caché, reducirá el tamaño por mitades y reintentará hasta llegar a uno. Si el error persiste, se registrará y el documento quedará sin embedding. Este procedimiento evita que un fallo detenga toda la colección, aunque induce una selección técnica por longitud y demanda de memoria.
+El tamaño inicial del microlote será 4. Ante un error de memoria CUDA, el código vaciará la caché, reducirá el tamaño por mitades y reintentará hasta llegar a uno. Si el error persiste, se registrará y el documento quedará sin \textit{embedding}. Este procedimiento evita que un fallo detenga toda la colección, aunque induce una selección técnica por longitud y demanda de memoria.
 
-Cada archivo \texttt{.pt} conserva \texttt{tender\_id}, matriz de embeddings, identificador del modelo, longitud, desplazamiento, tamaño de microlote y eventual etiqueta. Se produjeron 1.162 archivos. Entre los 680 textos sin embedding se observaron 671 errores de memoria y 9 \texttt{ValueError}.
+Cada archivo \texttt{.pt} conserva \texttt{tender\_id}, matriz de \textit{embeddings}, identificador del modelo, longitud, desplazamiento, tamaño de microlote y eventual etiqueta. Se produjeron 1.162 archivos. Entre los 680 textos sin \textit{embedding} se observaron 671 errores de memoria y 9 \texttt{ValueError}.
 
 \section{Embudo de construcción del conjunto supervisado}
 \label{sec:embudo}
@@ -104,7 +104,7 @@ Este bloque de la Figura~\ref{fig:pipeline-diseno-experimental} consolida las p�
 Procesos unificados & 10.628 & 10.628 & 0 \\
 PBC PDF recuperados & 10.628 & 1.845 & 8.783 \\
 Texto extraído & 1.845 & 1.842 & 3 \\
-Embeddings generados & 1.842 & 1.162 & 680 \\
+\textit{Embeddings} generados & 1.842 & 1.162 & 680 \\
 Ejemplos supervisados & 1.162 & 1.162 & 0 \\
 \bottomrule
 \end{tabular}
@@ -118,7 +118,7 @@ La Tabla~\ref{tab:funnel_status} desagrega etapas por estado. La priorización e
 \label{tab:funnel_status}
 \begin{tabular}{lrrrr}
 \toprule
-\textbf{Estado} & \textbf{Inicial} & \textbf{PDF} & \textbf{Texto} & \textbf{Embedding} \\
+\textbf{Estado} & \textbf{Inicial} & \textbf{PDF} & \textbf{Texto} & \textbf{\textit{Embedding}} \\
 \midrule
 \texttt{complete} & 10.000 & 1.273 & 1.270 & 844 \\
 \texttt{unsuccessful} & 257 & 246 & 246 & 204 \\
@@ -129,7 +129,7 @@ Total & 10.628 & 1.845 & 1.842 & 1.162 \\
 \end{tabular}
 \end{table}
 
-La pérdida no es aleatoria. Se priorizaron estados minoritarios y los errores de embedding afectaron principalmente documentos costosos. Por ello, el subconjunto final no debe presentarse como muestra representativa del universo paraguayo. El protocolo medirá desempeño interno sobre los 1.162 casos procesados.
+La pérdida no es aleatoria. Se priorizaron estados minoritarios y los errores de \textit{embedding} afectaron principalmente documentos costosos. Por ello, el subconjunto final no debe presentarse como muestra representativa del universo paraguayo. El protocolo medirá desempeño interno sobre los 1.162 casos procesados.
 
 \section{Definición de la instancia y etiqueta}
 \label{sec:instancia_etiqueta}
@@ -160,15 +160,15 @@ El vectorizador se ajustará exclusivamente con textos de entrenamiento de cada 
 
 \subsection{Promedio con regresión logística}
 
-Se calculará el promedio de embeddings por documento y se ajustará una regresión logística. Este modelo aislará el contenido de la representación congelada sin introducir una red secuencial.
+Se calculará el promedio de \textit{embeddings} por documento y se ajustará una regresión logística. Este modelo aislará el contenido de la representación congelada sin introducir una red secuencial.
 
 \subsection{Promedio con MLP}
 
 El mismo promedio alimentará una red con una capa oculta. En el análisis de sensibilidad se utilizó dimensión oculta 256, ReLU, dropout 0,2, AdamW, lotes de 64 y detención temprana. La comparación con regresión logística permitirá observar si una transformación no lineal del promedio aporta valor.
 
-\subsection{Transformer entre fragmentos}
+\subsection{\textit{Transformer} entre fragmentos}
 
-La matriz variable de embeddings se rellenará dentro de cada lote y se acompañará con una máscara. La arquitectura proyectará de 2880 a 128 dimensiones, añadirá \texttt{[CLS]}, utilizará 4 cabezas, dimensión prealimentada 512, dropout 0,3 y una capa. La cabeza final producirá un logit.
+La matriz variable de \textit{embeddings} se rellenará dentro de cada lote y se acompañará con una máscara. La arquitectura proyectará de 2880 a 128 dimensiones, añadirá \texttt{[CLS]}, utilizará 4 cabezas, dimensión prealimentada 512, dropout 0,3 y una capa. La cabeza final producirá un logit.
 
 \section{Ambiente de software}
 \label{sec:ambiente_software}
@@ -184,7 +184,7 @@ Como aspecto transversal de la Figura~\ref{fig:pipeline-diseno-experimental}, el
 \textbf{Componente} & \textbf{Uso} & \textbf{Versión resuelta observada} \\
 \midrule
 Python & ETL y entrenamiento & $\geq 3.10$ \\
-PyTorch & Embeddings y redes & 2.11.0 \\
+PyTorch & \textit{Embeddings} y redes & 2.11.0 \\
 Transformers & Carga del LLM/tokenizador & 5.4.0 \\
 scikit-learn & TF--IDF, CV y métricas & 1.7.2/1.8.0 según plataforma \\
 MLflow & Seguimiento experimental & 3.10.1 \\
@@ -207,14 +207,14 @@ Este anidamiento separará selección y evaluación. No se utilizará el pliegue
 \section{Entrenamiento}
 \label{sec:entrenamiento}
 
-Este bloque complementa la partición de la Figura~\ref{fig:pipeline-diseno-experimental} con el procedimiento de ajuste de los modelos neuronales. El transformer se entrenará con AdamW, tasa $10^{-4}$, decaimiento 0,01, lotes de 8 y hasta 50 épocas. Después de cada época se calculará la pérdida de validación. Si no mejora durante 5 épocas consecutivas, se detendrá el entrenamiento y se restaurará el mejor estado.
+Este bloque complementa la partición de la Figura~\ref{fig:pipeline-diseno-experimental} con el procedimiento de ajuste de los modelos neuronales. El \textit{transformer} se entrenará con AdamW, tasa $10^{-4}$, decaimiento 0,01, lotes de 8 y hasta 50 épocas. Después de cada época se calculará la pérdida de validación. Si no mejora durante 5 épocas consecutivas, se detendrá el entrenamiento y se restaurará el mejor estado.
 
 La pérdida será entropía cruzada binaria con logits. El uso directo de logits evita aplicar sigmoide antes de una función que implementa de forma estable ambas operaciones. Durante evaluación, la sigmoide transformará logits en probabilidades.
 
 \section{Métricas de evaluación}
 \label{sec:metricas_eval}
 
-El bloque de evaluación fuera de pliegue de la Figura~\ref{fig:pipeline-diseno-experimental} separa ordenamiento, clasificación a umbral y calidad probabilística. Se informarán ROC AUC, PR AUC, F1, exactitud balanceada, Brier y pérdida logarítmica. ROC AUC y PR AUC evaluarán ranking; F1 y exactitud balanceada dependerán del umbral; Brier y pérdida logarítmica evaluarán probabilidades. También se registrará la prevalencia positiva y $PR\ AUC-\pi$.
+El bloque de evaluación fuera de pliegue de la Figura~\ref{fig:pipeline-diseno-experimental} separa ordenamiento, clasificación a umbral y calidad probabilística. Se informarán ROC AUC, PR AUC, F1, exactitud balanceada, Brier y pérdida logarítmica. ROC AUC y PR AUC evaluarán ordenamiento; F1 y exactitud balanceada dependerán del umbral; Brier y pérdida logarítmica evaluarán probabilidades. También se registrará la prevalencia positiva y $PR\ AUC-\pi$.
 
 Las curvas de precisión-exhaustividad se construirán agregando predicciones externas. Las curvas de calibración agruparán probabilidades y compararán predicción media con frecuencia observada. Dado el tamaño limitado, los puntos de bins extremos se interpretarán con cautela.
 
@@ -223,9 +223,9 @@ Las curvas de precisión-exhaustividad se construirán agregando predicciones ex
 
 Como aspecto transversal de la Figura~\ref{fig:pipeline-diseno-experimental}, la trazabilidad registra semillas, métricas y artefactos para auditar la comparación. La semilla global será 42 y cada pliegue recibirá una semilla derivada independiente. El código configurará cuDNN determinista, generadores de \texttt{DataLoader} y reinicios de estados aleatorios. MLflow conservará hiperparámetros y métricas. Los objetos pesados residirán en Spaces y los metadatos de seguimiento, por defecto, en SQLite local.
 
-Los artefactos públicos archivados en Zenodo incluyen el código y los 1.162 archivos \texttt{.pt} de embeddings congelados empleados en los experimentos (doi:10.5281/zenodo.20128768). El paquete de embeddings incorpora un manifiesto con el identificador de cada archivo, sus dimensiones y su suma de verificación SHA--256, además de metadatos agregados y documentación de uso. Esto permite reproducir el entrenamiento y la evaluación de los modelos basados en LLM sin volver a ejecutar la costosa etapa de codificación documental.
+Los artefactos públicos archivados en Zenodo incluyen el código y los 1.162 archivos \texttt{.pt} de \textit{embeddings} congelados empleados en los experimentos (doi:10.5281/zenodo.20128768). El paquete de \textit{embeddings} incorpora un manifiesto con el identificador de cada archivo, sus dimensiones y su suma de verificación SHA--256, además de metadatos agregados y documentación de uso. Esto permite reproducir el entrenamiento y la evaluación de los modelos basados en LLM sin volver a ejecutar la costosa etapa de codificación documental.
 
-El depósito excluye credenciales y los datos fuente locales. Por tanto, reproducir los experimentos a partir de los embeddings publicados no requiere acceso a la infraestructura original, pero reconstruir toda la canalización desde los PDF exige obtener legítimamente los documentos desde la DNCP y disponer del modelo base. Esta distinción delimita el grado de reproducibilidad alcanzado.
+El depósito excluye credenciales y los datos fuente locales. Por tanto, reproducir los experimentos a partir de los \textit{embeddings} publicados no requiere acceso a la infraestructura original, pero reconstruir toda la canalización desde los PDF exige obtener legítimamente los documentos desde la DNCP y disponer del modelo base. Esta distinción delimita el grado de reproducibilidad alcanzado.
 
 \section{Amenazas a la validez previstas}
 \label{sec:amenazas_validez}

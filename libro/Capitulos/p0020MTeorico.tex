@@ -34,7 +34,7 @@ El SICP es el soporte informático donde se registran y publican actuaciones del
 
 El Estándar de Datos para las Contrataciones Abiertas (OCDS) propone un modelo común para divulgar información y documentos durante todo el proceso de contratación. Organiza la información en etapas de licitación, adjudicación, contrato e implementación, y permite registrar sucesivas publicaciones de un mismo proceso \parencite{ocdsPrimer,ocdsReference}. La estandarización facilita combinar fuentes, reconstruir cambios y reutilizar herramientas analíticas; no reemplaza, sin embargo, al sistema transaccional que origina los datos \parencite{ocdsDataStandard}.
 
-En OCDS, una publicación o \textit{release} representa información correspondiente a un evento del ciclo. Varias publicaciones pueden compilarse en un registro que resume el proceso. Entidades compradoras, proveedores, valores, períodos, artículos, documentos y estados se expresan mediante estructuras y listas controladas. Paraguay adopta este estándar con extensiones locales y ofrece endpoints de consulta sobre procesos completos \parencite{dncpOpenContracting,dncpDatosAbiertos}.
+En OCDS, una publicación (\textit{release}) representa información correspondiente a un evento del ciclo. Varias publicaciones pueden compilarse en un registro que resume el proceso. Entidades compradoras, proveedores, valores, períodos, artículos, documentos y estados se expresan mediante estructuras y listas controladas. Paraguay adopta este estándar con extensiones locales y ofrece puntos de acceso a la API (\textit{endpoints}) para consultar procesos completos \parencite{dncpOpenContracting,dncpDatosAbiertos}.
 
 Para este trabajo son relevantes 3 niveles de información:
 
@@ -54,13 +54,13 @@ Desde la perspectiva del procesamiento del lenguaje natural, el PBC presenta var
 
 \begin{itemize}
   \item \textbf{Longitud}: puede superar ampliamente el límite de entrada de un codificador convencional.
-  \item \textbf{Estructura semiformateada}: alterna párrafos, títulos, listas y tablas.
+  \item \textbf{Organización interna}: alterna párrafos, títulos, listas y tablas.
   \item \textbf{Redundancia}: reutiliza cláusulas y plantillas institucionales.
   \item \textbf{Especialización}: incluye terminología jurídica, administrativa y de ingeniería vial.
   \item \textbf{Variabilidad}: cambia según convocante, año, modalidad, complejidad y anexos.
 \end{itemize}
 
-Estas propiedades explican por qué no existe una representación obviamente superior. La repetición puede favorecer n-gramas; la equivalencia semántica entre formulaciones puede favorecer embeddings; y la dispersión de información a lo largo del documento puede justificar modelos jerárquicos.
+Estas propiedades explican por qué no existe una representación obviamente superior. Las cláusulas repetidas pueden detectarse mediante $n$-gramas, que en este trabajo son secuencias de $n$ palabras consecutivas. Los \textit{embeddings} permiten representar expresiones que tienen un significado parecido aunque usen palabras distintas. Los modelos jerárquicos pueden combinar información distribuida en varias secciones del documento.
 
 \section{Clasificación supervisada y resultado que se busca predecir}
 \label{sec:clasificacion_supervisada}
@@ -80,13 +80,13 @@ Así, $\hat p_i$ no expresa una certeza ni una valoración jurídica del proceso
 \section{Del PDF a fragmentos}
 \label{sec:pdf_a_fragmentos}
 
-Un PBC no entra al modelo como archivo. En la canalización de la Figura~\ref{fig:pipeline-marco-teorico}, este bloque cubre la extracción de texto y, cuando corresponde a la vía densa, la tokenización y fragmentación. Debe extraerse texto, segmentarse en unidades del vocabulario del modelo y partirse en fragmentos que respeten el límite de contexto. Las decisiones de esta etapa condicionan tanto a TF--IDF como a los embeddings.
+Un PBC no entra al modelo como archivo. En la canalización de la Figura~\ref{fig:pipeline-marco-teorico}, este bloque cubre la extracción de texto y, cuando corresponde a la vía densa, la tokenización y fragmentación. Debe extraerse texto, segmentarse en unidades del vocabulario del modelo y partirse en fragmentos que respeten el límite de contexto. Las decisiones de esta etapa condicionan tanto a TF--IDF como a los \textit{embeddings}.
 
 \subsection{Extracción de texto desde PDF}
 
 PDF describe la disposición visual de una página y no necesariamente conserva una secuencia textual limpia. La extracción debe reconstruir palabras y líneas a partir de objetos posicionados. El repositorio utiliza \texttt{pdfplumber} para texto y contempla \texttt{Camelot} para tablas. Los documentos compuestos únicamente por imágenes requieren reconocimiento óptico de caracteres, capacidad que no forma parte de la ejecución documentada. Por eso, 3 PDF escaneados no generaron texto y quedaron fuera de etapas posteriores.
 
-Los errores de extracción pueden alterar saltos, orden de columnas, caracteres y tablas. En un modelo léxico, estas alteraciones modifican términos y n-gramas; en un tokenizador subléxico, cambian la segmentación. Documentar las pérdidas evita atribuir al modelo limitaciones originadas en la digitalización.
+Los errores de extracción pueden alterar saltos, orden de columnas, caracteres y tablas. En un modelo léxico, estas alteraciones modifican términos y $n$-gramas; en un tokenizador subléxico, cambian la segmentación. Documentar las pérdidas evita atribuir al modelo limitaciones originadas en la digitalización.
 
 \subsection{Tokenización y fragmentación}
 \label{sec:tokenizacion_fragmentacion}
@@ -105,12 +105,12 @@ La cantidad aproximada de fragmentos $N$ para $T>L$ es:
   N \approx 1 + \left\lceil\frac{T-L}{S}\right\rceil.
 \end{equation}
 
-La implementación no impone por defecto un máximo documental adicional. En consecuencia, documentos muy extensos producen secuencias de muchos embeddings y demandan más memoria tanto en codificación como en la agregación posterior.
+La implementación no impone por defecto un máximo documental adicional. En consecuencia, documentos muy extensos producen secuencias de muchos \textit{embeddings} y demandan más memoria tanto en codificación como en la agregación posterior.
 
 \section{Representación léxica}
 \label{sec:representacion_lexica}
 
-La vía léxica de la Figura~\ref{fig:pipeline-marco-teorico} representa el documento completo como un vector disperso de términos y n-gramas, sin fragmentarlo para respetar un límite de contexto. Esta sección presenta el esquema TF--IDF y el clasificador lineal que se le asocia.
+La vía léxica de la Figura~\ref{fig:pipeline-marco-teorico} representa el documento completo como un vector disperso de términos y $n$-gramas, sin fragmentarlo para respetar un límite de contexto. Esta sección presenta el esquema TF--IDF y el clasificador lineal que se le asocia.
 
 \subsection{Espacio vectorial y ponderación TF--IDF}
 
@@ -146,30 +146,30 @@ donde $w^\top x$ es el producto punto entre coeficientes y características. Cad
 
 Aquí $y\in\{0,1\}$ es la etiqueta verdadera del ejemplo y $\hat p(y=1\mid x)$ es la probabilidad estimada de que el documento pertenezca a la clase positiva dado $x$. Cuando $z$ crece, $\hat p$ se acerca a 1; cuando $z$ decrece, se acerca a 0.
 
-Los coeficientes $w$ asocian dimensiones léxicas con el logaritmo de las razones de probabilidades. Esta linealidad facilita inspeccionar términos con pesos altos o bajos, aunque la interpretación requiere cautela ante correlaciones, n-gramas redundantes y regularización.
+Los coeficientes $w$ asocian dimensiones léxicas con el logaritmo de las razones de probabilidades. Esta linealidad facilita inspeccionar términos con pesos altos o bajos, aunque la interpretación requiere cautela ante correlaciones, $n$-gramas redundantes y regularización.
 
 El modelo del proyecto limita el vocabulario a 50.000 características, incluye unigramas y bigramas, descarta términos con frecuencia documental inferior a 5 y usa pesos balanceados por clase. La frecuencia documental cuenta en cuántos documentos distintos aparece un término, con independencia de la cantidad de veces que se repita dentro de cada uno. El umbral de 5 se fijó como un criterio conservador de filtrado: elimina términos presentes únicamente en unos pocos documentos, más susceptibles a corresponder a errores de extracción, identificadores únicos o asociaciones espurias, pero conserva expresiones recurrentes incluso cuando aparecen en una proporción pequeña del corpus. En cada pliegue, con aproximadamente 930 documentos de entrenamiento, este requisito representa cerca del 0,54\,\% y constituye, por tanto, un filtro poco restrictivo. El valor se estableció como un hiperparámetro del diseño experimental y no se optimizó sobre los pliegues externos de evaluación. Los pesos balanceados modifican la contribución de cada clase a la función de pérdida, sin cambiar la prevalencia real del conjunto de evaluación.
 
 \section{Representación densa y modelado de documentos}
 \label{sec:representacion_densa}
 
-La vía densa de la Figura~\ref{fig:pipeline-marco-teorico} no representa términos individuales, sino vectores aprendidos durante el preentrenamiento. Como el PBC supera el contexto del codificador, primero se obtienen embeddings por fragmento y después se decide cómo agregarlos ---por promedio o mediante un transformer entre fragmentos--- antes de la cabeza de clasificación.
+La vía densa de la Figura~\ref{fig:pipeline-marco-teorico} no representa términos individuales, sino vectores aprendidos durante el preentrenamiento. Como el PBC supera el contexto del codificador, primero se obtienen \textit{embeddings} por fragmento y después se decide cómo agregarlos ---por promedio o mediante un \textit{transformer} entre fragmentos--- antes de la cabeza de clasificación.
 
 \subsection{Codificador congelado}
 
-Una representación densa asigna el texto a un vector de dimensión fija cuyo contenido se aprende durante el preentrenamiento. A diferencia de TF--IDF, las dimensiones no corresponden directamente a términos. El trabajo sobre BERT demostró que representaciones bidireccionales preentrenadas podían adaptarse a múltiples tareas con pocas capas específicas \parencite{devlin2019bert}. Trabajos posteriores extendieron el uso de modelos grandes para producir embeddings generales mediante aprendizaje contrastivo o instrucciones \parencite{wang2024improvingembeddings,e5multilingual2024}.
+Una representación densa asigna el texto a un vector de dimensión fija cuyo contenido se aprende durante el preentrenamiento. A diferencia de TF--IDF, las dimensiones no corresponden directamente a términos. El trabajo sobre BERT demostró que representaciones bidireccionales preentrenadas podían adaptarse a múltiples tareas con pocas capas específicas \parencite{devlin2019bert}. Trabajos posteriores extendieron el uso de modelos grandes para producir \textit{embeddings} generales mediante aprendizaje contrastivo o instrucciones \parencite{wang2024improvingembeddings,e5multilingual2024}.
 
 El proyecto utiliza \texttt{openai/gpt-oss-20b}, un modelo causal de pesos abiertos, como codificador congelado \parencite{agarwal2025gptoss}. Para cada fragmento se extrae el estado oculto del último token válido. Al congelar el codificador, sus parámetros no se actualizan con las etiquetas; el aprendizaje supervisado ocurre únicamente en el agregador o clasificador posterior. Esto reduce el costo de entrenamiento repetido y separa la representación preentrenada del efecto del clasificador.
 
-La salida de un documento es, por tanto, una secuencia de embeddings de fragmentos:
+La salida de un documento es, por tanto, una secuencia de \textit{embeddings} de fragmentos:
 \[
 \mathbf{E} = [\mathbf{e}_1, \mathbf{e}_2, \dots, \mathbf{e}_N], \qquad \mathbf{e}_i \in \mathbb{R}^{d_{in}},
 \]
-donde $N$ es la cantidad de fragmentos y $d_{in}$ está determinado por el tamaño oculto del modelo preentrenado. Un embedding útil no garantiza automáticamente el mejor resultado para todos los dominios. La calidad depende del idioma, el tipo documental, el objetivo de preentrenamiento, el método de pooling y la correspondencia entre las tareas de origen y destino. Por ello, el valor de la representación debe medirse empíricamente frente a líneas base apropiadas.
+donde $N$ es la cantidad de fragmentos y $d_{in}$ está determinado por el tamaño oculto del modelo preentrenado. Un \textit{embedding} útil no garantiza automáticamente el mejor resultado para todos los dominios. La calidad depende del idioma, el tipo documental, el objetivo de preentrenamiento, el método de pooling y la correspondencia entre las tareas de origen y destino. Por ello, el valor de la representación debe medirse empíricamente frente a líneas base apropiadas.
 
-\subsection{Atención y arquitectura transformer}
+\subsection{Atención y arquitectura \textit{transformer}}
 
-El transformer reemplaza recurrencia por atención y capas prealimentadas \parencite{vaswani2017attention}. A partir de una secuencia de entrada, el mecanismo construye 3 matrices: las consultas $Q$, que representan la información buscada por cada posición; las claves $K$, contra las cuales se comparan las consultas; y los valores $V$, cuyo contenido se combina para producir la salida. Si $d_k$ es la dimensión de cada clave, la atención de producto punto escalado se expresa como:
+El \textit{transformer} reemplaza recurrencia por atención y capas prealimentadas \parencite{vaswani2017attention}. A partir de una secuencia de entrada, el mecanismo construye 3 matrices: las consultas $Q$, que representan la información buscada por cada posición; las claves $K$, contra las cuales se comparan las consultas; y los valores $V$, cuyo contenido se combina para producir la salida. Si $d_k$ es la dimensión de cada clave, la atención de producto punto escalado se expresa como:
 
 \begin{equation}
   \operatorname{Attention}(Q,K,V)=\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
@@ -199,16 +199,16 @@ Una vez obtenida $\mathbf{E}$, el documento debe resumirse en una entrada para e
 \end{equation}
 El método es económico e invariante al orden. Esta última propiedad es también su limitación: no distingue qué fragmento apareció primero ni modela relaciones entre secciones. Aun así, líneas base de pooling simple han demostrado ser competitivas en múltiples tareas, por lo que omitirlas puede exagerar el valor de arquitecturas más complejas \parencite{shen2018swem}. Sobre este vector pueden ajustarse una regresión logística o un perceptrón multicapa; ambas variantes aíslan el contenido de la representación congelada sin introducir una red sobre la secuencia de fragmentos.
 
-La alternativa secuencial es un transformer liviano entre fragmentos. El predictor proyecta cada $e_i\in\mathbb{R}^{2880}$ a $d_{model}=128$, inserta un vector \texttt{[CLS]} entrenable y aplica una capa de codificador con 4 cabezas, dimensión interna 512 y dropout 0,3. En síntesis, el modelo:
+La alternativa secuencial es un \textit{transformer} liviano entre fragmentos. El predictor proyecta cada $e_i\in\mathbb{R}^{2880}$ a $d_{model}=128$, inserta un vector \texttt{[CLS]} entrenable y aplica una capa de codificador con 4 cabezas, dimensión interna 512 y dropout 0,3. En síntesis, el modelo:
 
 \begin{enumerate}
   \item proyecta linealmente $d_{in}$ a $d_{model}$;
   \item inserta el token aprendido \texttt{[CLS]} al comienzo de la secuencia;
-  \item aplica un codificador transformer sobre los vectores de fragmentos;
+  \item aplica un codificador \textit{transformer} sobre los vectores de fragmentos;
   \item clasifica con una cabeza multicapa sobre la representación final de \texttt{[CLS]}.
 \end{enumerate}
 
-El vector \texttt{[CLS]} produce un logit $z$ por documento, convertido en probabilidad mediante $\hat{p}(y=1 \mid \mathbf{E}) = \sigma(z)$. El entrenamiento utiliza entropía cruzada binaria con logits. A diferencia del promedio, este mecanismo puede asignar pesos contextuales y modelar interacciones; a diferencia de aplicar el LLM completo durante cada pliegue, reutiliza embeddings congelados.
+El vector \texttt{[CLS]} produce un logit $z$ por documento, convertido en probabilidad mediante $\hat{p}(y=1 \mid \mathbf{E}) = \sigma(z)$. El entrenamiento utiliza entropía cruzada binaria con logits. A diferencia del promedio, este mecanismo puede asignar pesos contextuales y modelar interacciones; a diferencia de aplicar el LLM completo durante cada pliegue, reutiliza \textit{embeddings} congelados.
 
 Las máscaras de relleno distinguen fragmentos reales de posiciones añadidas para formar lotes. Sin ellas, el modelo podría atender a valores de relleno y aprender artefactos asociados a la longitud. La arquitectura implementada utiliza normalización previa y activación GELU, conforme a la capa \texttt{TransformerEncoderLayer} disponible en PyTorch.
 
