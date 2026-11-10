@@ -89,10 +89,17 @@ PDF describe la disposición visual de una página y no necesariamente conserva 
 Los errores de extracción pueden alterar saltos, orden de columnas, caracteres y tablas. En un modelo léxico, estas alteraciones modifican términos y n-gramas; en un tokenizador subléxico, cambian la segmentación. Documentar las pérdidas evita atribuir al modelo limitaciones originadas en la digitalización.
 
 \subsection{Tokenización y fragmentación}
+\label{sec:tokenizacion_fragmentacion}
 
 Un tokenizador transforma texto en identificadores del vocabulario del modelo. Los modelos preentrenados suelen usar unidades subléxicas: una palabra puede corresponder a uno o varios tokens. Esto permite representar vocabulario abierto, pero significa que el número de palabras no coincide con la longitud computacional. La configuración del proyecto tokeniza sin truncamiento inicial, conserva la secuencia en CPU y transfiere a GPU únicamente microlotes de fragmentos.
 
-Sea $T$ la longitud total del documento en tokens, $L$ el tamaño máximo de cada fragmento y $S$ el desplazamiento entre comienzos consecutivos. Los comienzos se ubican en $0,S,2S,\ldots$ hasta cubrir el documento. Cuando $S<L$, fragmentos consecutivos comparten $L-S$ tokens. En este estudio se adoptan $L=4096$ y $S=2048$, de modo que el solapamiento nominal es del $50\%$. Estos valores se toman como configuración de base de trabajos previos sobre documentos extensos: Longformer opera con ventanas de hasta 4096 tokens \parencite{beltagy2020longformer}, y los esquemas jerárquicos que dividen el texto en fragmentos con solapamiento han mostrado buen desempeño al recuperar más contexto que el truncamiento simple \parencite{dai2022revisiting,mamakas2022legal}. El solapamiento del $50\%$ reduce la probabilidad de cortar una relación justo en una frontera, aunque incrementa la cantidad de cómputo y introduce contenido repetido. La cantidad aproximada de fragmentos $N$ para $T>L$ es:
+Sea $T$ la longitud total del documento en tokens, $L$ el tamaño máximo de cada fragmento y $S$ el desplazamiento entre comienzos consecutivos. Los comienzos se ubican en $0,S,2S,\ldots$ hasta cubrir el documento. Cuando $S<L$, fragmentos consecutivos comparten $L-S$ tokens. En este estudio se adoptaron $L=4096$ y $S=2048$, con un solapamiento nominal del $50\%$.
+
+La longitud $L$ limita cuántos tokens se codifican juntos y cuánto contexto se conserva dentro de un fragmento. Como referencia de escala, Longformer se entrenó con secuencias de 4096 tokens en su configuración preentrenada para tareas con documentos largos \parencite{beltagy2020longformer}. Por otra parte, \textcite{dai2022revisiting} evaluaron un solapamiento del $25\%$ en segmentos de 32 a 512 tokens para reducir la pérdida de contexto en los límites de los segmentos.
+
+En el diseño experimental se fijó $S=L/2$ para conservar parte del contexto a ambos lados de los límites entre fragmentos. Por ejemplo, si una condición técnica comienza al final de un fragmento y continúa en el siguiente, compartir 2048 tokens aumenta la posibilidad de que el codificador reciba la condición completa en un solo fragmento. Esta estrategia aumenta el cómputo porque parte del texto se codifica más de una vez. La comparación de modelos mantuvo fija esta configuración, por lo que sus resultados corresponden a esa combinación de longitud y desplazamiento.
+
+La cantidad aproximada de fragmentos $N$ para $T>L$ es:
 
 \begin{equation}
   N \approx 1 + \left\lceil\frac{T-L}{S}\right\rceil.
